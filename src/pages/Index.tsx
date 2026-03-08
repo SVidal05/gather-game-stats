@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, User, Sun, Moon, LogOut, Menu, X, Settings, UsersRound } from "lucide-react";
+import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, Sun, Moon, LogOut, Menu, X, Settings, UsersRound, Swords, GitCompareArrows, Share2 } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -12,17 +12,22 @@ import { PlayTab } from "@/components/PlayTab";
 import { ProfileTab } from "@/components/ProfileTab";
 import { SettingsTab } from "@/components/SettingsTab";
 import { GroupSelector } from "@/components/GroupSelector";
+import { TournamentTab } from "@/components/TournamentTab";
+import { CompareTab } from "@/components/CompareTab";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
-type Tab = "groups" | "profile" | "dashboard" | "players" | "play" | "ranking" | "charts" | "settings";
+type Tab = "groups" | "dashboard" | "play" | "players" | "tournaments" | "ranking" | "charts" | "compare" | "profile" | "settings";
 
 const DARK_KEY = "gamenight_dark";
 
 const Index = () => {
-  const { t, lang, setLang } = useI18n();
+  const { t } = useI18n();
   const { user, username, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
-  
+  const { toast } = useToast();
+
   const {
     groups, loading: groupsLoading, activeGroup, activeGroupId,
     selectGroup, createGroup, joinGroupByCode,
@@ -35,7 +40,7 @@ const Index = () => {
   const { players, addPlayer, removePlayer, updatePlayer, loading: playersLoading } = usePlayers(activeGroupId);
   const { sessions, addSession, removeSession, updateSession, loading: sessionsLoading } = useSessions(activeGroupId);
 
-  const [activeTab, setActiveTab] = useState<Tab>(() => "groups");
+  const [activeTab, setActiveTab] = useState<Tab>("groups");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isDark, setIsDark] = useState(() => {
@@ -51,11 +56,8 @@ const Index = () => {
     if (!authLoading && !user) navigate("/auth");
   }, [authLoading, user, navigate]);
 
-  // Auto-navigate to groups if no active group
   useEffect(() => {
-    if (!groupsLoading && groups.length === 0) {
-      setActiveTab("groups");
-    }
+    if (!groupsLoading && groups.length === 0) setActiveTab("groups");
   }, [groupsLoading, groups.length]);
 
   const toggleDark = () => setIsDark(prev => !prev);
@@ -78,8 +80,10 @@ const Index = () => {
     { id: "dashboard", label: t("tab.home"), emoji: "📊", requiresGroup: true },
     { id: "play", label: t("play.title"), emoji: "🎮", requiresGroup: true },
     { id: "players", label: t("tab.players"), emoji: "👥", requiresGroup: true },
+    { id: "tournaments", label: "Tournaments", emoji: "⚔️", requiresGroup: true },
     { id: "ranking", label: t("tab.ranking"), emoji: "🏆", requiresGroup: true },
     { id: "charts", label: t("tab.charts"), emoji: "📈", requiresGroup: true },
+    { id: "compare", label: "Compare", emoji: "⚖️", requiresGroup: true },
     { id: "profile", label: t("tab.profile"), emoji: "👤" },
     { id: "settings", label: t("settings.title"), emoji: "⚙️" },
   ];
@@ -97,31 +101,29 @@ const Index = () => {
 
   const displayName = username || user.email?.split("@")[0] || "";
 
-  const handleRefetch = () => {
-    refetchGroups();
-    refetchMembers();
+  const handleRefetch = () => { refetchGroups(); refetchMembers(); };
+
+  const handleShareGroup = () => {
+    if (!activeGroupId) return;
+    const url = `${window.location.origin}/share/group/${activeGroupId}`;
+    if (navigator.share) {
+      navigator.share({ title: `${activeGroup?.name} - GameNight`, url });
+    } else {
+      navigator.clipboard.writeText(url);
+      toast({ title: "📋", description: "Share link copied!" });
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar Overlay */}
       {sidebarOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ x: sidebarOpen ? 0 : -280 }}
+      <motion.aside initial={false} animate={{ x: sidebarOpen ? 0 : -280 }}
         transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
-        className="fixed top-0 left-0 bottom-0 z-50 w-[280px] bg-card border-r border-border flex flex-col safe-area-top"
-      >
+        className="fixed top-0 left-0 bottom-0 z-50 w-[280px] bg-card border-r border-border flex flex-col safe-area-top">
         <div className="p-4 pb-2 flex items-center justify-between border-b border-border/60">
           <div className="flex items-center gap-2">
             <img src={logo} alt="GameNight" className="w-7 h-7" />
@@ -133,7 +135,6 @@ const Index = () => {
           </button>
         </div>
 
-        {/* User Info */}
         <div className="px-4 py-3 border-b border-border/60">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-primary/10 flex items-center justify-center text-lg">👤</div>
@@ -150,22 +151,15 @@ const Index = () => {
           )}
         </div>
 
-        {/* Nav Items */}
         <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
           {tabs.map(tab => {
             const disabled = tab.requiresGroup && !activeGroup;
             return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab.id)}
-                disabled={disabled}
+              <button key={tab.id} onClick={() => handleTabClick(tab.id)} disabled={disabled}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] ${
                   disabled ? "opacity-30 cursor-not-allowed" :
-                  activeTab === tab.id
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}
-              >
+                  activeTab === tab.id ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}>
                 <span className="text-base">{tab.emoji}</span>
                 <span>{tab.label}</span>
               </button>
@@ -173,8 +167,12 @@ const Index = () => {
           })}
         </nav>
 
-        {/* Sidebar Footer */}
         <div className="p-3 border-t border-border/60 space-y-2">
+          {activeGroup && (
+            <button onClick={handleShareGroup} className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold active:scale-95 transition-all">
+              <Share2 className="w-3.5 h-3.5" /> Share Leaderboard
+            </button>
+          )}
           <div className="flex gap-1.5">
             <button onClick={toggleDark} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-secondary text-muted-foreground text-xs font-bold active:scale-95 transition-all">
               {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
@@ -187,7 +185,6 @@ const Index = () => {
         </div>
       </motion.aside>
 
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border/60 px-4 py-2.5 safe-area-top">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -205,6 +202,11 @@ const Index = () => {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {activeGroup && (
+              <button onClick={handleShareGroup} className="p-2 rounded-xl bg-secondary/80 text-foreground active:scale-90 transition-all" aria-label="Share">
+                <Share2 className="w-4 h-4" />
+              </button>
+            )}
             <button onClick={toggleDark} className="p-2 rounded-xl bg-secondary/80 text-foreground active:scale-90 transition-all" aria-label="Toggle dark mode">
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
@@ -212,7 +214,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Content */}
       <main className="max-w-lg mx-auto px-3 py-4">
         {groupsLoading ? (
           <div className="text-center py-20">
@@ -222,21 +223,14 @@ const Index = () => {
           <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
             {activeTab === "groups" && (
               <GroupSelector
-                groups={groups}
-                activeGroup={activeGroup}
-                members={members}
-                pendingInvites={pendingInvites}
+                groups={groups} activeGroup={activeGroup} members={members} pendingInvites={pendingInvites}
                 onSelectGroup={(id) => { selectGroup(id); setActiveTab("dashboard"); }}
                 onCreateGroup={async (name) => { const g = await createGroup(name); if (g) setActiveTab("dashboard"); return g; }}
                 onJoinByCode={async (code) => { const res = await joinGroupByCode(code); if (!res.error) setActiveTab("dashboard"); return res; }}
-                onUpdateName={updateGroupName}
-                onDeleteGroup={deleteGroup}
-                onLeaveGroup={leaveGroup}
-                onRemoveMember={removeMember}
-                onInviteByEmail={inviteByEmail}
+                onUpdateName={updateGroupName} onDeleteGroup={deleteGroup} onLeaveGroup={leaveGroup}
+                onRemoveMember={removeMember} onInviteByEmail={inviteByEmail}
                 onAcceptInvite={async (inv) => { await acceptInvite(inv); handleRefetch(); }}
-                onDeclineInvite={declineInvite}
-                onRefetch={handleRefetch}
+                onDeclineInvite={declineInvite} onRefetch={handleRefetch}
               />
             )}
             {activeTab === "profile" && <ProfileTab players={players} sessions={sessions} isDark={isDark} onToggleDark={toggleDark} />}
@@ -250,11 +244,13 @@ const Index = () => {
                 {activeTab === "play" && (
                   <PlayTab players={players} sessions={sessions} onAddSession={addSession} onRemoveSession={removeSession} onUpdateSession={updateSession} />
                 )}
+                {activeTab === "tournaments" && <TournamentTab groupId={activeGroup.id} players={players} />}
                 {activeTab === "ranking" && <RankingTab players={players} sessions={sessions} />}
                 {activeTab === "charts" && <ChartsTab players={players} sessions={sessions} />}
+                {activeTab === "compare" && <CompareTab players={players} sessions={sessions} />}
               </>
             )}
-            {activeGroup && dataLoading && activeTab !== "groups" && activeTab !== "profile" && activeTab !== "settings" && (
+            {activeGroup && dataLoading && !["groups", "profile", "settings"].includes(activeTab) && (
               <div className="text-center py-20">
                 <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
               </div>
