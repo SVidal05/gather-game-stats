@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, BarChart3 } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
-import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji, GameTheme } from "@/lib/gameThemes";
+import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
+import { useI18n } from "@/lib/i18n";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -33,6 +34,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function GamesTab({ players, sessions }: GamesTabProps) {
+  const { t } = useI18n();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
 
   const gamesPlayed = useMemo(() => {
@@ -73,15 +75,15 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-extrabold text-foreground">Games</h2>
-        <p className="text-muted-foreground text-xs mt-0.5">Explore stats by game type</p>
+        <h2 className="text-xl font-extrabold text-foreground">{t("games.title")}</h2>
+        <p className="text-muted-foreground text-xs mt-0.5">{t("games.subtitle")}</p>
       </div>
 
       {gamesPlayed.length > 0 && (
         <div>
           <h3 className="font-bold text-foreground text-sm mb-2 flex items-center gap-1.5">
             <Flame className="w-3.5 h-3.5" style={{ color: "hsl(var(--game-orange))" }} />
-            Your Games
+            {t("games.yourGames")}
           </h3>
           <div className="space-y-2">
             {gamesPlayed.map((game, i) => (
@@ -106,7 +108,7 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
                         <span className="font-bold text-sm text-foreground">{game.name}</span>
                       </div>
                       <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
-                        <span>{game.count} session{game.count !== 1 ? "s" : ""}</span>
+                        <span>{game.count} {game.count !== 1 ? t("sessions.sessionPlural") : t("sessions.session")}</span>
                         <span
                           className="px-1 py-px rounded-full font-bold"
                           style={{ backgroundColor: getCategoryColor(game.theme.category) + "22", color: getCategoryColor(game.theme.category) }}
@@ -127,7 +129,7 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
       <div>
         <h3 className="font-bold text-foreground text-sm mb-2 flex items-center gap-1.5">
           <Target className="w-3.5 h-3.5" style={{ color: "hsl(var(--game-purple))" }} />
-          {gamesPlayed.length > 0 ? "Discover More" : "Popular Games"}
+          {gamesPlayed.length > 0 ? t("games.discoverMore") : t("games.popularGames")}
         </h3>
         <div className="grid grid-cols-2 gap-2">
           {allGames.filter(g => g.count === 0).map((game, i) => (
@@ -157,7 +159,7 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
       {sessions.length === 0 && (
         <div className="text-center py-8">
           <div className="text-4xl mb-2">🎮</div>
-          <p className="text-muted-foreground font-semibold text-sm">Play some games to see detailed stats here!</p>
+          <p className="text-muted-foreground font-semibold text-sm">{t("games.noSessions")}</p>
         </div>
       )}
     </div>
@@ -170,6 +172,7 @@ function GameDetailView({
 }: {
   gameName: string; players: Player[]; sessions: GameSession[]; onBack: () => void;
 }) {
+  const { t } = useI18n();
   const theme = getGameTheme(gameName);
   const gameSessions = sessions.filter(s => s.gameName === gameName);
   const gameStats = getPlayerStats(players, gameSessions);
@@ -199,13 +202,13 @@ function GameDetailView({
     const maxPoints = Math.max(...activePlayers.map(s => s.totalPoints), 1);
 
     return [
-      { stat: "Wins", ...Object.fromEntries(activePlayers.map(s => [s.player.name, (s.wins / maxWins) * 100])) },
-      { stat: "Games", ...Object.fromEntries(activePlayers.map(s => [s.player.name, (s.gamesPlayed / maxGames) * 100])) },
-      { stat: "Points", ...Object.fromEntries(activePlayers.map(s => [s.player.name, (s.totalPoints / maxPoints) * 100])) },
-      { stat: "Win Rate", ...Object.fromEntries(activePlayers.map(s => [s.player.name, s.winRate])) },
-      { stat: "Avg Score", ...Object.fromEntries(activePlayers.map(s => [s.player.name, s.gamesPlayed > 0 ? ((s.totalPoints / s.gamesPlayed) / (maxPoints / maxGames)) * 100 : 0])) },
+      { stat: t("stat.wins"), ...Object.fromEntries(activePlayers.map(s => [s.player.name, (s.wins / maxWins) * 100])) },
+      { stat: t("stat.games"), ...Object.fromEntries(activePlayers.map(s => [s.player.name, (s.gamesPlayed / maxGames) * 100])) },
+      { stat: t("stat.points"), ...Object.fromEntries(activePlayers.map(s => [s.player.name, (s.totalPoints / maxPoints) * 100])) },
+      { stat: t("stat.winRate"), ...Object.fromEntries(activePlayers.map(s => [s.player.name, s.winRate])) },
+      { stat: t("stat.avgScore"), ...Object.fromEntries(activePlayers.map(s => [s.player.name, s.gamesPlayed > 0 ? ((s.totalPoints / s.gamesPlayed) / (maxPoints / maxGames)) * 100 : 0])) },
     ];
-  }, [activePlayers]);
+  }, [activePlayers, t]);
 
   const performanceData = activePlayers.map(s => ({
     name: s.player.name,
@@ -213,7 +216,6 @@ function GameDetailView({
     color: s.player.color,
   })).sort((a, b) => b.avgScore - a.avgScore);
 
-  // Aggregate custom stats
   const aggregatedCustomStats = useMemo(() => {
     const result: Record<string, Record<string, { total: number; count: number; values: string[] }>> = {};
     gameSessions.forEach(s => {
@@ -238,11 +240,11 @@ function GameDetailView({
   const hasCustomStats = Object.keys(aggregatedCustomStats).length > 0;
 
   const chartTabs = [
-    { id: "wins" as const, label: "Wins", emoji: "🏆" },
-    { id: "performance" as const, label: "Avg", emoji: "📊" },
-    { id: "radar" as const, label: "Radar", emoji: "🎯" },
-    { id: "history" as const, label: "History", emoji: "📈" },
-    ...(hasCustomStats ? [{ id: "custom" as const, label: "Stats", emoji: theme.emoji }] : []),
+    { id: "wins" as const, label: t("chart.wins"), emoji: "🏆" },
+    { id: "performance" as const, label: t("chart.avg"), emoji: "📊" },
+    { id: "radar" as const, label: t("chart.radar"), emoji: "🎯" },
+    { id: "history" as const, label: t("chart.history"), emoji: "📈" },
+    ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), emoji: theme.emoji }] : []),
   ];
 
   return (
@@ -276,8 +278,8 @@ function GameDetailView({
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-2">
         {[
-          { icon: Calendar, label: "Sessions", value: gameSessions.length, color: theme.primaryColor },
-          { icon: Users, label: "Players", value: activePlayers.length, color: theme.secondaryColor },
+          { icon: Calendar, label: t("dashboard.sessions"), value: gameSessions.length, color: theme.primaryColor },
+          { icon: Users, label: t("dashboard.players"), value: activePlayers.length, color: theme.secondaryColor },
           { icon: Trophy, label: "Champion", value: topPlayer?.player.name || "—", color: theme.primaryColor },
         ].map((stat, i) => (
           <motion.div
@@ -303,7 +305,7 @@ function GameDetailView({
         style={{ borderColor: theme.primaryColor + "33" }}
       >
         <h3 className="font-bold text-foreground text-xs mb-2 flex items-center gap-1.5">
-          <span className="text-base">💡</span> Track These Stats
+          <span className="text-base">💡</span> {t("games.trackStats")}
         </h3>
         <div className="grid grid-cols-2 gap-1.5">
           {theme.customStats.map((stat, i) => (
@@ -325,8 +327,8 @@ function GameDetailView({
       {gameSessions.length === 0 ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-6">
           <div className="text-4xl mb-2">{theme.emoji}</div>
-          <p className="text-muted-foreground font-semibold text-sm">No sessions for {theme.name} yet.</p>
-          <p className="text-[10px] text-muted-foreground mt-1">Create a session to see charts!</p>
+          <p className="text-muted-foreground font-semibold text-sm">{t("games.noSessionsYet")} {theme.name}.</p>
+          <p className="text-[10px] text-muted-foreground mt-1">{t("games.createSession")}</p>
         </motion.div>
       ) : (
         <>
@@ -363,7 +365,7 @@ function GameDetailView({
               >
                 {activeChart === "wins" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">🏆 Win Distribution</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">🏆 {t("games.winDistribution")}</h3>
                     {winDistribution.length > 0 ? (
                       <div className="flex gap-3">
                         <ResponsiveContainer width="50%" height={160}>
@@ -412,14 +414,14 @@ function GameDetailView({
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs text-muted-foreground text-center py-4">No winners recorded yet</p>
+                      <p className="text-xs text-muted-foreground text-center py-4">{t("common.noWinnersYet")}</p>
                     )}
                   </>
                 )}
 
                 {activeChart === "performance" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">📊 Average Score</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">📊 {t("games.avgScore")}</h3>
                     <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -446,7 +448,7 @@ function GameDetailView({
 
                 {activeChart === "radar" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">🎯 Player Comparison</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">🎯 {t("games.playerComparison")}</h3>
                     {radarData.length > 0 && activePlayers.length <= 6 ? (
                       <ResponsiveContainer width="100%" height={220}>
                         <RadarChart data={radarData}>
@@ -471,7 +473,7 @@ function GameDetailView({
                       </ResponsiveContainer>
                     ) : (
                       <p className="text-xs text-muted-foreground text-center py-4">
-                        {activePlayers.length > 6 ? "Radar works best with ≤6 players" : "Play more to see radar charts"}
+                        {activePlayers.length > 6 ? t("common.radarTooMany") : t("common.playMore")}
                       </p>
                     )}
                     <div className="flex flex-wrap gap-1.5 mt-1.5 justify-center">
@@ -491,7 +493,7 @@ function GameDetailView({
 
                 {activeChart === "history" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">📈 Score History</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">📈 {t("games.scoreHistory")}</h3>
                     {scoreHistory.length > 0 ? (
                       <ResponsiveContainer width="100%" height={180}>
                         <AreaChart data={scoreHistory}>
@@ -515,14 +517,14 @@ function GameDetailView({
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <p className="text-xs text-muted-foreground text-center py-4">Record sessions to see score history</p>
+                      <p className="text-xs text-muted-foreground text-center py-4">{t("common.recordSessions")}</p>
                     )}
                   </>
                 )}
 
                 {activeChart === "custom" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">{theme.emoji} {theme.name} Custom Stats</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">{theme.emoji} {theme.name} {t("games.customStats")}</h3>
                     <div className="space-y-2.5">
                       {Object.entries(aggregatedCustomStats).map(([pid, stats]) => {
                         const p = players.find(pl => pl.id === pid);
@@ -570,14 +572,14 @@ function GameDetailView({
           >
             <div className="p-3 pb-1.5" style={{ background: theme.gradient, opacity: 0.9 }}>
               <h3 className="font-bold text-xs" style={{ color: "white" }}>
-                🏅 {theme.name} Leaderboard
+                🏅 {theme.name} {t("games.leaderboard")}
               </h3>
             </div>
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-muted-foreground text-[10px] border-b border-border">
                   <th className="text-left p-2.5">#</th>
-                  <th className="text-left p-2.5">Player</th>
+                  <th className="text-left p-2.5">{t("ranking.player")}</th>
                   <th className="text-right p-2.5">W</th>
                   <th className="text-right p-2.5">Win%</th>
                   <th className="text-right p-2.5">Pts</th>
@@ -609,7 +611,7 @@ function GameDetailView({
           >
             <h3 className="font-bold text-foreground mb-2 text-xs flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
-              Session History
+              {t("games.sessionHistory")}
             </h3>
             <div className="space-y-1.5">
               {[...gameSessions].reverse().map(session => {

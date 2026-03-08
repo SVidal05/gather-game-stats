@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
-import { Player, GameSession, PlayerStats } from "@/lib/types";
+import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { PlayerBadge } from "@/components/PlayerBadge";
+import { useI18n } from "@/lib/i18n";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell,
+  LineChart, Line, Cell,
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getGameTheme } from "@/lib/gameThemes";
@@ -31,6 +32,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 type SortKey = "wins" | "winRate" | "totalPoints" | "gamesPlayed";
 
 export function RankingTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
+  const { t } = useI18n();
   const [sortBy, setSortBy] = useState<SortKey>("wins");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const stats = getPlayerStats(players, sessions);
@@ -53,14 +55,14 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-extrabold text-foreground">Ranking</h2>
-        <p className="text-muted-foreground text-xs mt-0.5">Leaderboard across all games</p>
+        <h2 className="text-xl font-extrabold text-foreground">{t("ranking.title")}</h2>
+        <p className="text-muted-foreground text-xs mt-0.5">{t("ranking.subtitle")}</p>
       </div>
 
       {sorted.length === 0 ? (
         <div className="text-center py-10">
           <div className="text-4xl mb-2">🏅</div>
-          <p className="text-muted-foreground font-semibold text-sm">Play some games to see rankings!</p>
+          <p className="text-muted-foreground font-semibold text-sm">{t("ranking.noRanking")}</p>
         </div>
       ) : (
         <div className="game-card overflow-x-auto !p-0">
@@ -68,12 +70,12 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
             <thead>
               <tr className="text-muted-foreground text-[10px] border-b border-border">
                 <th className="text-left p-2.5">#</th>
-                <th className="text-left p-2.5">Player</th>
+                <th className="text-left p-2.5">{t("ranking.player")}</th>
                 <th className="text-right p-2.5 cursor-pointer select-none active:opacity-70" onClick={() => toggleSort("gamesPlayed")}>
-                  <span className="inline-flex items-center gap-0.5">Games <SortIcon field="gamesPlayed" /></span>
+                  <span className="inline-flex items-center gap-0.5">{t("ranking.games")} <SortIcon field="gamesPlayed" /></span>
                 </th>
                 <th className="text-right p-2.5 cursor-pointer select-none active:opacity-70" onClick={() => toggleSort("wins")}>
-                  <span className="inline-flex items-center gap-0.5">Wins <SortIcon field="wins" /></span>
+                  <span className="inline-flex items-center gap-0.5">{t("ranking.wins")} <SortIcon field="wins" /></span>
                 </th>
                 <th className="text-right p-2.5 cursor-pointer select-none active:opacity-70" onClick={() => toggleSort("winRate")}>
                   <span className="inline-flex items-center gap-0.5">Win% <SortIcon field="winRate" /></span>
@@ -112,6 +114,7 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
 
 // ─── Charts Tab ───────────────────────────────────
 export function ChartsTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
+  const { t } = useI18n();
   const [gameFilter, setGameFilter] = useState<string>("all");
   const [hoveredBar, setHoveredBar] = useState<string | null>(null);
   const uniqueGames = Array.from(new Set(sessions.map(s => s.gameName)));
@@ -139,10 +142,10 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
   if (players.length === 0 || sessions.length === 0) {
     return (
       <div className="space-y-5">
-        <h2 className="text-xl font-extrabold text-foreground">Charts</h2>
+        <h2 className="text-xl font-extrabold text-foreground">{t("charts.title")}</h2>
         <div className="text-center py-10">
           <div className="text-4xl mb-2">📊</div>
-          <p className="text-muted-foreground font-semibold text-sm">Play some games to see charts!</p>
+          <p className="text-muted-foreground font-semibold text-sm">{t("charts.noCharts")}</p>
         </div>
       </div>
     );
@@ -152,8 +155,8 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-foreground">Charts</h2>
-          <p className="text-muted-foreground text-xs mt-0.5">Visual statistics</p>
+          <h2 className="text-xl font-extrabold text-foreground">{t("charts.title")}</h2>
+          <p className="text-muted-foreground text-xs mt-0.5">{t("charts.subtitle")}</p>
         </div>
         {uniqueGames.length > 1 && (
           <Select value={gameFilter} onValueChange={setGameFilter}>
@@ -161,10 +164,10 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Games</SelectItem>
+              <SelectItem value="all">{t("charts.allGames")}</SelectItem>
               {uniqueGames.map(g => {
-                const t = getGameTheme(g);
-                return <SelectItem key={g} value={g}>{t.emoji} {g}</SelectItem>;
+                const gt = getGameTheme(g);
+                return <SelectItem key={g} value={g}>{gt.emoji} {g}</SelectItem>;
               })}
             </SelectContent>
           </Select>
@@ -173,7 +176,7 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
 
       {winsData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="game-card !p-3">
-          <h3 className="font-bold text-foreground text-xs mb-3">🏆 Wins per Player</h3>
+          <h3 className="font-bold text-foreground text-xs mb-3">🏆 {t("charts.winsPerPlayer")}</h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={winsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -198,7 +201,7 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
 
       {timeData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="game-card !p-3">
-          <h3 className="font-bold text-foreground text-xs mb-3">📅 Sessions Over Time</h3>
+          <h3 className="font-bold text-foreground text-xs mb-3">📅 {t("charts.sessionsOverTime")}</h3>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={timeData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -215,7 +218,7 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
 
       {pointsData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="game-card !p-3">
-          <h3 className="font-bold text-foreground text-xs mb-3">💎 Total Points</h3>
+          <h3 className="font-bold text-foreground text-xs mb-3">💎 {t("charts.totalPoints")}</h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={pointsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

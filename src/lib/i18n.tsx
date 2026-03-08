@@ -1,0 +1,206 @@
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+
+export type Language = "es" | "en" | "fr";
+
+const LANG_KEY = "gamenight_language";
+
+const translations = {
+  // Header
+  "app.title": { es: "GameNight", en: "GameNight", fr: "GameNight" },
+  "app.tracker": { es: "Tracker", en: "Tracker", fr: "Tracker" },
+
+  // Tabs
+  "tab.home": { es: "Inicio", en: "Home", fr: "Accueil" },
+  "tab.players": { es: "Jugadores", en: "Players", fr: "Joueurs" },
+  "tab.sessions": { es: "Sesiones", en: "Sessions", fr: "Sessions" },
+  "tab.games": { es: "Juegos", en: "Games", fr: "Jeux" },
+  "tab.ranking": { es: "Ranking", en: "Ranking", fr: "Classement" },
+  "tab.charts": { es: "Gráficas", en: "Charts", fr: "Graphiques" },
+  "tab.profile": { es: "Perfil", en: "Profile", fr: "Profil" },
+
+  // Dashboard
+  "dashboard.title": { es: "Panel", en: "Dashboard", fr: "Tableau de bord" },
+  "dashboard.subtitle": { es: "Estadísticas de tu grupo", en: "Your group's game night stats", fr: "Statistiques de votre groupe" },
+  "dashboard.sessions": { es: "Sesiones", en: "Sessions", fr: "Sessions" },
+  "dashboard.players": { es: "Jugadores", en: "Players", fr: "Joueurs" },
+  "dashboard.games": { es: "Juegos", en: "Games", fr: "Jeux" },
+  "dashboard.topWinner": { es: "Top Ganador", en: "Top Winner", fr: "Meilleur" },
+  "dashboard.currentLeader": { es: "Líder Actual", en: "Current Leader", fr: "Leader Actuel" },
+  "dashboard.wins": { es: "victorias", en: "wins", fr: "victoires" },
+  "dashboard.winRate": { es: "tasa de victoria", en: "win rate", fr: "taux de victoire" },
+  "dashboard.recentSessions": { es: "Sesiones Recientes", en: "Recent Sessions", fr: "Sessions Récentes" },
+  "dashboard.welcome": { es: "¡Bienvenido a GameNight!", en: "Welcome to GameNight!", fr: "Bienvenue sur GameNight !" },
+  "dashboard.welcomeMsg": { es: "Empieza agregando jugadores, luego crea tu primera sesión.", en: "Start by adding players, then create your first session.", fr: "Commencez par ajouter des joueurs, puis créez votre première session." },
+
+  // Players
+  "players.title": { es: "Jugadores", en: "Players", fr: "Joueurs" },
+  "players.player": { es: "jugador", en: "player", fr: "joueur" },
+  "players.players": { es: "jugadores", en: "players", fr: "joueurs" },
+  "players.add": { es: "Añadir", en: "Add", fr: "Ajouter" },
+  "players.newPlayer": { es: "Nuevo Jugador", en: "New Player", fr: "Nouveau Joueur" },
+  "players.name": { es: "Nombre", en: "Name", fr: "Nom" },
+  "players.playerName": { es: "Nombre del jugador", en: "Player name", fr: "Nom du joueur" },
+  "players.avatar": { es: "Avatar", en: "Avatar", fr: "Avatar" },
+  "players.color": { es: "Color", en: "Color", fr: "Couleur" },
+  "players.addPlayer": { es: "Añadir Jugador", en: "Add Player", fr: "Ajouter Joueur" },
+  "players.save": { es: "Guardar", en: "Save", fr: "Sauvegarder" },
+  "players.games": { es: "partidas", en: "games", fr: "parties" },
+  "players.wins": { es: "victorias", en: "wins", fr: "victoires" },
+  "players.pts": { es: "pts", en: "pts", fr: "pts" },
+  "players.noPlayers": { es: "Aún no hay jugadores. ¡Agrega el primero!", en: "No players yet. Add your first player!", fr: "Pas encore de joueurs. Ajoutez le premier !" },
+  "players.mostWins": { es: "👑 Más Victorias", en: "👑 Most Wins", fr: "👑 Plus de Victoires" },
+  "players.onFire": { es: "🔥 En Racha", en: "🔥 On Fire", fr: "🔥 En Feu" },
+  "players.veteran": { es: "🎖️ Veterano", en: "🎖️ Veteran", fr: "🎖️ Vétéran" },
+  "players.topScorer": { es: "💎 Máximo Anotador", en: "💎 Top Scorer", fr: "💎 Meilleur Scoreur" },
+
+  // Sessions
+  "sessions.title": { es: "Sesiones", en: "Sessions", fr: "Sessions" },
+  "sessions.session": { es: "sesión", en: "session", fr: "session" },
+  "sessions.sessionPlural": { es: "sesiones", en: "sessions", fr: "sessions" },
+  "sessions.new": { es: "Nueva", en: "New", fr: "Nouvelle" },
+  "sessions.newSession": { es: "Nueva Sesión", en: "New Session", fr: "Nouvelle Session" },
+  "sessions.editSession": { es: "Editar Sesión", en: "Edit Session", fr: "Modifier Session" },
+  "sessions.sessionName": { es: "Nombre de la Sesión", en: "Session Name", fr: "Nom de la Session" },
+  "sessions.sessionNamePlaceholder": { es: "Noche de viernes épica", en: "Friday Night Showdown", fr: "Soirée du vendredi" },
+  "sessions.game": { es: "Juego", en: "Game", fr: "Jeu" },
+  "sessions.selectGame": { es: "Selecciona un juego", en: "Select a game", fr: "Sélectionnez un jeu" },
+  "sessions.customGame": { es: "O escribe un juego personalizado", en: "Or type a custom game", fr: "Ou tapez un jeu personnalisé" },
+  "sessions.date": { es: "Fecha", en: "Date", fr: "Date" },
+  "sessions.players": { es: "Jugadores", en: "Players", fr: "Joueurs" },
+  "sessions.scores": { es: "Puntuaciones", en: "Scores", fr: "Scores" },
+  "sessions.score": { es: "Puntuación", en: "Score", fr: "Score" },
+  "sessions.winner": { es: "Ganador", en: "Winner", fr: "Gagnant" },
+  "sessions.selectWinner": { es: "Seleccionar ganador", en: "Select winner", fr: "Sélectionner le gagnant" },
+  "sessions.notes": { es: "Notas (opcional)", en: "Notes (optional)", fr: "Notes (optionnel)" },
+  "sessions.notesPlaceholder": { es: "¿Algún momento memorable?", en: "Any memorable moments?", fr: "Des moments mémorables ?" },
+  "sessions.record": { es: "🎉 Registrar Sesión", en: "🎉 Record Session", fr: "🎉 Enregistrer Session" },
+  "sessions.saveChanges": { es: "💾 Guardar Cambios", en: "💾 Save Changes", fr: "💾 Sauvegarder" },
+  "sessions.stats": { es: "Stats", en: "Stats", fr: "Stats" },
+  "sessions.optional": { es: "(opcional)", en: "(optional)", fr: "(optionnel)" },
+  "sessions.result": { es: "Resultado", en: "Result", fr: "Résultat" },
+  "sessions.gameStats": { es: "Stats del Juego", en: "Game Stats", fr: "Stats du Jeu" },
+  "sessions.minPlayers": { es: "Agrega al menos 2 jugadores para crear una sesión.", en: "Add at least 2 players to create a session.", fr: "Ajoutez au moins 2 joueurs pour créer une session." },
+  "sessions.noSessions": { es: "Aún no hay sesiones. ¡Empieza una noche de juegos!", en: "No sessions yet. Start a game night!", fr: "Pas encore de sessions. Commencez une soirée jeux !" },
+
+  // Games
+  "games.title": { es: "Juegos", en: "Games", fr: "Jeux" },
+  "games.subtitle": { es: "Explora estadísticas por juego", en: "Explore stats by game type", fr: "Explorez les stats par jeu" },
+  "games.yourGames": { es: "Tus Juegos", en: "Your Games", fr: "Vos Jeux" },
+  "games.discoverMore": { es: "Descubre Más", en: "Discover More", fr: "Découvrir Plus" },
+  "games.popularGames": { es: "Juegos Populares", en: "Popular Games", fr: "Jeux Populaires" },
+  "games.noSessions": { es: "¡Juega partidas para ver estadísticas aquí!", en: "Play some games to see detailed stats here!", fr: "Jouez pour voir les stats ici !" },
+  "games.trackStats": { es: "Trackea Estas Stats", en: "Track These Stats", fr: "Suivez Ces Stats" },
+  "games.winDistribution": { es: "Distribución de Victorias", en: "Win Distribution", fr: "Distribution des Victoires" },
+  "games.avgScore": { es: "Puntuación Media", en: "Average Score", fr: "Score Moyen" },
+  "games.playerComparison": { es: "Comparación de Jugadores", en: "Player Comparison", fr: "Comparaison des Joueurs" },
+  "games.scoreHistory": { es: "Historial de Puntos", en: "Score History", fr: "Historique des Scores" },
+  "games.customStats": { es: "Stats Personalizadas", en: "Custom Stats", fr: "Stats Personnalisées" },
+  "games.leaderboard": { es: "Tabla de Líderes", en: "Leaderboard", fr: "Classement" },
+  "games.sessionHistory": { es: "Historial de Sesiones", en: "Session History", fr: "Historique des Sessions" },
+  "games.noSessionsYet": { es: "Aún no hay sesiones para", en: "No sessions for", fr: "Pas encore de sessions pour" },
+  "games.createSession": { es: "¡Crea una sesión para ver gráficas!", en: "Create a session to see charts!", fr: "Créez une session pour voir les graphiques !" },
+
+  // Ranking
+  "ranking.title": { es: "Ranking", en: "Ranking", fr: "Classement" },
+  "ranking.subtitle": { es: "Tabla de líderes global", en: "Leaderboard across all games", fr: "Classement global" },
+  "ranking.noRanking": { es: "¡Juega partidas para ver el ranking!", en: "Play some games to see rankings!", fr: "Jouez pour voir le classement !" },
+  "ranking.player": { es: "Jugador", en: "Player", fr: "Joueur" },
+  "ranking.games": { es: "Partidas", en: "Games", fr: "Parties" },
+  "ranking.wins": { es: "Victorias", en: "Wins", fr: "Victoires" },
+
+  // Charts
+  "charts.title": { es: "Gráficas", en: "Charts", fr: "Graphiques" },
+  "charts.subtitle": { es: "Estadísticas visuales", en: "Visual statistics", fr: "Statistiques visuelles" },
+  "charts.noCharts": { es: "¡Juega partidas para ver gráficas!", en: "Play some games to see charts!", fr: "Jouez pour voir les graphiques !" },
+  "charts.allGames": { es: "Todos los Juegos", en: "All Games", fr: "Tous les Jeux" },
+  "charts.winsPerPlayer": { es: "Victorias por Jugador", en: "Wins per Player", fr: "Victoires par Joueur" },
+  "charts.sessionsOverTime": { es: "Sesiones en el Tiempo", en: "Sessions Over Time", fr: "Sessions dans le Temps" },
+  "charts.totalPoints": { es: "Puntos Totales", en: "Total Points", fr: "Points Totaux" },
+
+  // Profile
+  "profile.title": { es: "Perfil", en: "Profile", fr: "Profil" },
+  "profile.settings": { es: "Configuración", en: "Settings", fr: "Paramètres" },
+  "profile.language": { es: "Idioma", en: "Language", fr: "Langue" },
+  "profile.theme": { es: "Tema", en: "Theme", fr: "Thème" },
+  "profile.light": { es: "Claro", en: "Light", fr: "Clair" },
+  "profile.dark": { es: "Oscuro", en: "Dark", fr: "Sombre" },
+  "profile.achievements": { es: "Logros", en: "Achievements", fr: "Succès" },
+  "profile.stats": { es: "Estadísticas Generales", en: "General Stats", fr: "Statistiques Générales" },
+  "profile.totalSessions": { es: "Total de Sesiones", en: "Total Sessions", fr: "Total Sessions" },
+  "profile.totalPlayers": { es: "Total de Jugadores", en: "Total Players", fr: "Total Joueurs" },
+  "profile.totalGames": { es: "Juegos Diferentes", en: "Different Games", fr: "Jeux Différents" },
+  "profile.unlocked": { es: "desbloqueado", en: "unlocked", fr: "débloqué" },
+  "profile.locked": { es: "bloqueado", en: "locked", fr: "verrouillé" },
+
+  // Radar stats
+  "stat.wins": { es: "Victorias", en: "Wins", fr: "Victoires" },
+  "stat.games": { es: "Partidas", en: "Games", fr: "Parties" },
+  "stat.points": { es: "Puntos", en: "Points", fr: "Points" },
+  "stat.winRate": { es: "Tasa Victoria", en: "Win Rate", fr: "Taux Victoire" },
+  "stat.avgScore": { es: "Puntuación Media", en: "Avg Score", fr: "Score Moyen" },
+
+  // Chart tabs
+  "chart.wins": { es: "Victorias", en: "Wins", fr: "Victoires" },
+  "chart.avg": { es: "Media", en: "Avg", fr: "Moy." },
+  "chart.radar": { es: "Radar", en: "Radar", fr: "Radar" },
+  "chart.history": { es: "Historial", en: "History", fr: "Historique" },
+  "chart.stats": { es: "Stats", en: "Stats", fr: "Stats" },
+
+  // Common
+  "common.noWinnersYet": { es: "Aún no hay ganadores registrados", en: "No winners recorded yet", fr: "Aucun gagnant enregistré" },
+  "common.radarTooMany": { es: "El radar funciona mejor con ≤6 jugadores", en: "Radar works best with ≤6 players", fr: "Le radar fonctionne mieux avec ≤6 joueurs" },
+  "common.playMore": { es: "Juega más para ver radar", en: "Play more to see radar charts", fr: "Jouez plus pour voir les radars" },
+  "common.recordSessions": { es: "Registra sesiones para ver el historial", en: "Record sessions to see score history", fr: "Enregistrez des sessions pour voir l'historique" },
+} as const;
+
+type TranslationKey = keyof typeof translations;
+
+interface I18nContextType {
+  lang: Language;
+  setLang: (lang: Language) => void;
+  t: (key: TranslationKey) => string;
+}
+
+const I18nContext = createContext<I18nContextType>({
+  lang: "es",
+  setLang: () => {},
+  t: (key) => key,
+});
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Language>(() => {
+    try {
+      const saved = localStorage.getItem(LANG_KEY);
+      if (saved && ["es", "en", "fr"].includes(saved)) return saved as Language;
+    } catch {}
+    return "es";
+  });
+
+  useEffect(() => {
+    localStorage.setItem(LANG_KEY, lang);
+  }, [lang]);
+
+  const setLang = (l: Language) => setLangState(l);
+
+  const t = (key: TranslationKey): string => {
+    const entry = translations[key];
+    if (!entry) return key;
+    return entry[lang] || entry["en"] || key;
+  };
+
+  return (
+    <I18nContext.Provider value={{ lang, setLang, t }}>
+      {children}
+    </I18nContext.Provider>
+  );
+}
+
+export function useI18n() {
+  return useContext(I18nContext);
+}
+
+export const LANGUAGE_OPTIONS: { value: Language; label: string; flag: string }[] = [
+  { value: "es", label: "Español", flag: "🇪🇸" },
+  { value: "en", label: "English", flag: "🇬🇧" },
+  { value: "fr", label: "Français", flag: "🇫🇷" },
+];
