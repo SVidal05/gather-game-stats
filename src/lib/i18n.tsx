@@ -82,6 +82,13 @@ const translations = {
   "sessions.minPlayers": { es: "Agrega al menos 2 jugadores para crear una sesión.", en: "Add at least 2 players to create a session.", fr: "Ajoutez au moins 2 joueurs pour créer une session." },
   "sessions.noSessions": { es: "Aún no hay sesiones. ¡Empieza una noche de juegos!", en: "No sessions yet. Start a game night!", fr: "Pas encore de sessions. Commencez une soirée jeux !" },
 
+  // Play (merged games + sessions)
+  "play.title": { es: "Jugar", en: "Play", fr: "Jouer" },
+  "play.subtitle": { es: "Elige un juego y empieza una sesión", en: "Pick a game and start a session", fr: "Choisissez un jeu et commencez" },
+  "play.history": { es: "Historial", en: "History", fr: "Historique" },
+  "play.newGame": { es: "Nueva", en: "New", fr: "Nouvelle" },
+  "play.play": { es: "Jugar", en: "Play", fr: "Jouer" },
+
   // Games
   "games.title": { es: "Juegos", en: "Games", fr: "Jeux" },
   "games.subtitle": { es: "Explora estadísticas por juego", en: "Explore stats by game type", fr: "Explorez les stats par jeu" },
