@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, User, Sun, Moon, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, User, Sun, Moon, LogOut, Menu, X, Settings } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { useI18n, LANGUAGE_OPTIONS } from "@/lib/i18n";
@@ -9,14 +9,16 @@ import { DashboardTab, PlayersTab } from "@/components/GameTabs";
 import { RankingTab, ChartsTab } from "@/components/RankingCharts";
 import { PlayTab } from "@/components/PlayTab";
 import { ProfileTab } from "@/components/ProfileTab";
+import { SettingsTab } from "@/components/SettingsTab";
+import logo from "@/assets/logo.png";
 
-type Tab = "profile" | "dashboard" | "players" | "play" | "ranking" | "charts";
+type Tab = "profile" | "dashboard" | "players" | "play" | "ranking" | "charts" | "settings";
 
 const DARK_KEY = "gamenight_dark";
 
 const Index = () => {
   const { t, lang, setLang } = useI18n();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, username, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const { players, addPlayer, removePlayer, updatePlayer, loading: playersLoading } = usePlayers();
@@ -42,7 +44,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="text-5xl mb-3 animate-bounce">🎲</div>
+          <img src={logo} alt="GameNight" className="w-16 h-16 mx-auto mb-3 animate-bounce" />
           <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
         </div>
       </div>
@@ -58,12 +60,15 @@ const Index = () => {
     { id: "players", label: t("tab.players"), icon: Users, emoji: "👥" },
     { id: "ranking", label: t("tab.ranking"), icon: Trophy, emoji: "🏆" },
     { id: "charts", label: t("tab.charts"), icon: BarChart3, emoji: "📈" },
+    { id: "settings", label: t("settings.title"), icon: Settings, emoji: "⚙️" },
   ];
 
   const handleTabClick = (id: Tab) => {
     setActiveTab(id);
     setSidebarOpen(false);
   };
+
+  const displayName = username || user.email?.split("@")[0] || "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,7 +93,7 @@ const Index = () => {
         {/* Sidebar Header */}
         <div className="p-4 pb-2 flex items-center justify-between border-b border-border/60">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🎲</span>
+            <img src={logo} alt="GameNight" className="w-7 h-7" />
             <h1 className="text-lg font-extrabold text-foreground">GameNight</h1>
             <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold">Tracker</span>
           </div>
@@ -102,8 +107,8 @@ const Index = () => {
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-primary/10 flex items-center justify-center text-lg">👤</div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-foreground truncate">{user.email}</p>
-              <p className="text-[10px] text-muted-foreground">GameNight Tracker</p>
+              <p className="text-xs font-bold text-foreground truncate">{displayName}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
             </div>
           </div>
         </div>
@@ -128,21 +133,6 @@ const Index = () => {
 
         {/* Sidebar Footer */}
         <div className="p-3 border-t border-border/60 space-y-2">
-          {/* Language */}
-          <div className="flex gap-1">
-            {LANGUAGE_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setLang(opt.value as any)}
-                className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-xl text-[10px] font-bold transition-all active:scale-95 ${
-                  lang === opt.value ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                {opt.flag}
-              </button>
-            ))}
-          </div>
-          {/* Theme + Logout */}
           <div className="flex gap-1.5">
             <button onClick={toggleDark} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-secondary text-muted-foreground text-xs font-bold active:scale-95 transition-all">
               {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
@@ -162,7 +152,7 @@ const Index = () => {
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-secondary/80 text-foreground active:scale-90 transition-all">
               <Menu className="w-4.5 h-4.5" />
             </button>
-            <span className="text-xl">🎲</span>
+            <img src={logo} alt="GameNight" className="w-7 h-7" />
             <h1 className="text-lg font-extrabold text-foreground">GameNight</h1>
           </div>
           <div className="flex items-center gap-1">
@@ -191,6 +181,7 @@ const Index = () => {
             )}
             {activeTab === "ranking" && <RankingTab players={players} sessions={sessions} />}
             {activeTab === "charts" && <ChartsTab players={players} sessions={sessions} />}
+            {activeTab === "settings" && <SettingsTab isDark={isDark} onToggleDark={toggleDark} />}
           </motion.div>
         )}
       </main>

@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sun, Moon, Globe, Trophy, Star, Flame, Target, Zap, Award, Crown, Sparkles, Shield } from "lucide-react";
+import { Trophy, Star, Flame } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
-import { useI18n, LANGUAGE_OPTIONS, Language } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 
 interface ProfileTabProps {
   players: Player[];
@@ -186,7 +186,8 @@ const ACHIEVEMENTS: Achievement[] = [
 ];
 
 export function ProfileTab({ players, sessions, isDark, onToggleDark }: ProfileTabProps) {
-  const { lang, setLang, t } = useI18n();
+  const { lang, t } = useI18n();
+  const { username } = useAuth();
   const uniqueGames = new Set(sessions.map(s => s.gameName)).size;
   const unlockedCount = ACHIEVEMENTS.filter(a => a.condition(players, sessions)).length;
 
@@ -219,68 +220,11 @@ export function ProfileTab({ players, sessions, isDark, onToggleDark }: ProfileT
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-extrabold text-foreground">{t("profile.title")}</h2>
-        <p className="text-muted-foreground text-xs mt-0.5">{t("profile.settings")}</p>
+        <h2 className="text-xl font-extrabold text-foreground">
+          {username ? `👋 ${username}` : t("profile.title")}
+        </h2>
+        <p className="text-muted-foreground text-xs mt-0.5">{t("profile.achievements")}</p>
       </div>
-
-      {/* Settings Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="game-card space-y-4"
-      >
-        {/* Language */}
-        <div>
-          <label className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-2">
-            <Globe className="w-3.5 h-3.5 text-primary" />
-            {t("profile.language")}
-          </label>
-          <div className="flex gap-1.5">
-            {LANGUAGE_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setLang(opt.value)}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                  lang === opt.value
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                <span className="text-base">{opt.flag}</span>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Theme */}
-        <div>
-          <label className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-2">
-            {isDark ? <Moon className="w-3.5 h-3.5 text-primary" /> : <Sun className="w-3.5 h-3.5 text-primary" />}
-            {t("profile.theme")}
-          </label>
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => isDark && onToggleDark()}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                !isDark ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              <Sun className="w-4 h-4" />
-              {t("profile.light")}
-            </button>
-            <button
-              onClick={() => !isDark && onToggleDark()}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                isDark ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              <Moon className="w-4 h-4" />
-              {t("profile.dark")}
-            </button>
-          </div>
-        </div>
-      </motion.div>
 
       {/* General Stats */}
       <motion.div
