@@ -2,7 +2,7 @@ export interface Player {
   id: string;
   name: string;
   color: string;
-  avatar: string; // emoji
+  avatar: string;
   createdAt: string;
 }
 
@@ -20,6 +20,7 @@ export interface GameSession {
   playerIds: string[];
   results: PlayerResult[];
   notes: string;
+  customStats?: Record<string, Record<string, string | number>>; // playerId -> { statKey: value }
   createdAt: string;
 }
 
