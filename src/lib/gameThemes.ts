@@ -8,6 +8,10 @@ import gameSmashBros from "@/assets/game-smash-bros.jpg";
 import gameDefault from "@/assets/game-default.jpg";
 import gameJenga from "@/assets/game-jenga.jpg";
 import gameRisk from "@/assets/game-risk.jpg";
+import gameScrabble from "@/assets/game-scrabble.jpg";
+import gamePictionary from "@/assets/game-pictionary.jpg";
+import gameCodenames from "@/assets/game-codenames.jpg";
+import gameTrivialPursuit from "@/assets/game-trivial-pursuit.jpg";
 
 export interface GameTheme {
   id: string;
@@ -17,7 +21,7 @@ export interface GameTheme {
   gradient: string;
   primaryColor: string;
   secondaryColor: string;
-  category: "racing" | "strategy" | "cards" | "party" | "fighting" | "classic";
+  category: "racing" | "strategy" | "cards" | "party" | "fighting" | "classic" | "word";
   description: string;
   customStats: { key: string; label: string; emoji: string }[];
   tips: string[];
@@ -186,19 +190,88 @@ export const GAME_THEMES: Record<string, GameTheme> = {
     ],
     tips: ["Track territory control over time", "Record alliance formations", "Note epic battles"],
   },
+  "Scrabble": {
+    id: "scrabble",
+    name: "Scrabble",
+    image: gameScrabble,
+    emoji: "🔤",
+    gradient: "linear-gradient(135deg, hsl(35, 60%, 45%), hsl(45, 70%, 55%))",
+    primaryColor: "hsl(35, 60%, 50%)",
+    secondaryColor: "hsl(45, 70%, 55%)",
+    category: "word",
+    description: "Build words, score big! The classic word game.",
+    customStats: [
+      { key: "highestWord", label: "Highest Word Score", emoji: "💯" },
+      { key: "bingo", label: "Bingos (7-letter words)", emoji: "🎰" },
+      { key: "tripleWord", label: "Triple Word Scores", emoji: "3️⃣" },
+      { key: "longestWord", label: "Longest Word", emoji: "📏" },
+    ],
+    tips: ["Track highest-scoring words", "Record bingo plays", "Note creative word combos"],
+  },
+  "Pictionary": {
+    id: "pictionary",
+    name: "Pictionary",
+    image: gamePictionary,
+    emoji: "🎨",
+    gradient: "linear-gradient(135deg, hsl(20, 90%, 55%), hsl(340, 75%, 55%))",
+    primaryColor: "hsl(20, 90%, 55%)",
+    secondaryColor: "hsl(340, 75%, 55%)",
+    category: "party",
+    description: "Draw it out! Can your team guess in time?",
+    customStats: [
+      { key: "fastGuess", label: "Fastest Guess (sec)", emoji: "⚡" },
+      { key: "artistWins", label: "Rounds Won Drawing", emoji: "🖌️" },
+      { key: "hardClues", label: "Hard Clues Solved", emoji: "🧩" },
+      { key: "funniest", label: "Funniest Drawing", emoji: "😂" },
+    ],
+    tips: ["Track which categories are easiest", "Record speed of guesses", "Note hilarious drawing moments"],
+  },
+  "Codenames": {
+    id: "codenames",
+    name: "Codenames",
+    image: gameCodenames,
+    emoji: "🕵️",
+    gradient: "linear-gradient(135deg, hsl(0, 65%, 45%), hsl(220, 65%, 45%))",
+    primaryColor: "hsl(0, 65%, 50%)",
+    secondaryColor: "hsl(220, 65%, 50%)",
+    category: "word",
+    description: "Give clues, find agents, avoid the assassin!",
+    customStats: [
+      { key: "cluesGiven", label: "Clues Given", emoji: "💬" },
+      { key: "perfectRounds", label: "Perfect Rounds", emoji: "✨" },
+      { key: "assassinHits", label: "Assassin Hits", emoji: "💀" },
+      { key: "bestClue", label: "Best Clue Combo", emoji: "🧠" },
+    ],
+    tips: ["Track spymaster vs operative wins", "Record best multi-word clues", "Note assassin card disasters"],
+  },
+  "Trivial Pursuit": {
+    id: "trivial-pursuit",
+    name: "Trivial Pursuit",
+    image: gameTrivialPursuit,
+    emoji: "❓",
+    gradient: "linear-gradient(135deg, hsl(280, 60%, 50%), hsl(180, 60%, 45%))",
+    primaryColor: "hsl(280, 60%, 50%)",
+    secondaryColor: "hsl(180, 60%, 45%)",
+    category: "classic",
+    description: "Test your knowledge across all categories!",
+    customStats: [
+      { key: "wedges", label: "Wedges Collected", emoji: "🧀" },
+      { key: "streaks", label: "Longest Answer Streak", emoji: "🔥" },
+      { key: "bestCategory", label: "Best Category", emoji: "🏆" },
+      { key: "totalCorrect", label: "Total Correct", emoji: "✅" },
+    ],
+    tips: ["Track performance by category", "Record answer streaks", "Note surprise correct answers"],
+  },
 };
 
 export function getGameTheme(gameName: string): GameTheme {
-  // Exact match
   if (GAME_THEMES[gameName]) return GAME_THEMES[gameName];
   
-  // Case-insensitive match
   const key = Object.keys(GAME_THEMES).find(
     k => k.toLowerCase() === gameName.toLowerCase()
   );
   if (key) return GAME_THEMES[key];
 
-  // Default theme
   return {
     id: "default",
     name: gameName,
@@ -227,6 +300,7 @@ export function getCategoryColor(category: GameTheme["category"]): string {
     party: "hsl(330, 80%, 58%)",
     fighting: "hsl(280, 70%, 55%)",
     classic: "hsl(162, 60%, 45%)",
+    word: "hsl(35, 60%, 50%)",
   };
   return colors[category];
 }
@@ -239,6 +313,7 @@ export function getCategoryEmoji(category: GameTheme["category"]): string {
     party: "🎉",
     fighting: "⚔️",
     classic: "🎯",
+    word: "🔤",
   };
   return emojis[category];
 }

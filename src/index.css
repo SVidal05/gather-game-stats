@@ -8,34 +8,24 @@
   :root {
     --background: 40 33% 97%;
     --foreground: 220 20% 15%;
-
     --card: 0 0% 100%;
     --card-foreground: 220 20% 15%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 15%;
-
     --primary: 262 80% 55%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 40 40% 93%;
     --secondary-foreground: 220 20% 15%;
-
     --muted: 40 20% 94%;
     --muted-foreground: 220 10% 50%;
-
     --accent: 162 60% 45%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 40 15% 88%;
     --input: 40 15% 88%;
     --ring: 262 80% 55%;
-
     --radius: 1rem;
-
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -44,8 +34,6 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* Custom game colors */
     --game-purple: 262 80% 55%;
     --game-blue: 210 90% 55%;
     --game-green: 162 60% 45%;
@@ -54,10 +42,8 @@
     --game-yellow: 45 95% 55%;
     --game-red: 0 72% 55%;
     --game-cyan: 185 70% 45%;
-
-    /* Shadows */
-    --shadow-card: 0 2px 12px -2px hsl(220 20% 15% / 0.06);
-    --shadow-card-hover: 0 8px 24px -4px hsl(220 20% 15% / 0.1);
+    --shadow-card: 0 1px 8px -2px hsl(220 20% 15% / 0.05);
+    --shadow-card-hover: 0 6px 20px -4px hsl(220 20% 15% / 0.08);
     --shadow-glow: 0 0 20px hsl(262 80% 55% / 0.15);
   }
 
@@ -95,43 +81,64 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Nunito', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
   }
 }
 
 @layer components {
   .game-card {
-    @apply bg-card rounded-2xl border border-border p-5 transition-all duration-200;
+    @apply bg-card rounded-2xl border border-border p-4 transition-all duration-150;
     box-shadow: var(--shadow-card);
   }
 
-  .game-card:hover {
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-1px);
+  .game-card:active {
+    transform: scale(0.99);
   }
 
   .stat-card {
-    @apply game-card flex flex-col items-center justify-center text-center gap-1 p-4;
+    @apply game-card flex flex-col items-center justify-center text-center gap-0.5 p-3;
   }
 
   .player-badge {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
   }
 
   .nav-tab {
-    @apply flex flex-col items-center gap-0.5 px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-200;
+    @apply flex flex-col items-center gap-0.5 px-2.5 py-1.5 text-[9px] font-semibold rounded-xl transition-all duration-150;
+    min-width: 48px;
   }
 
   .nav-tab-active {
-    @apply bg-primary text-primary-foreground shadow-md;
+    @apply bg-primary text-primary-foreground;
+    box-shadow: 0 2px 8px hsl(var(--primary) / 0.3);
   }
 
   .nav-tab-inactive {
-    @apply text-muted-foreground hover:text-foreground;
+    @apply text-muted-foreground;
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 
