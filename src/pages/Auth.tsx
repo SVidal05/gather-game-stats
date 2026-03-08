@@ -79,10 +79,10 @@ export default function Auth() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src={logo} alt="GameNight" className="w-16 h-16 mx-auto mb-3" />
-          <h1 className="text-2xl font-extrabold text-foreground">GameNight</h1>
-          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Tracker</span>
-          <p className="text-muted-foreground text-xs mt-3">
+          <img src={logo} alt="GameNight" className="w-16 h-16 mx-auto mb-4" />
+          <h1 className="text-3xl font-display font-bold text-foreground">GameNight</h1>
+          <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-md font-semibold">Tracker</span>
+          <p className="text-muted-foreground text-sm mt-4">
             {mode === "login" ? t("auth.loginSubtitle") : mode === "signup" ? t("auth.signupSubtitle") : t("auth.resetSubtitle")}
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function Auth() {
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   placeholder={t("auth.username")}
-                  className="pl-10 rounded-xl h-12"
+                  className="pl-10 rounded-lg h-12"
                   required
                   minLength={2}
                 />
@@ -111,7 +111,7 @@ export default function Auth() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder={t("auth.email")}
-                className="pl-10 rounded-xl h-12"
+                className="pl-10 rounded-lg h-12"
                 required
               />
             </div>
@@ -124,7 +124,7 @@ export default function Auth() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder={t("auth.password")}
-                  className="pl-10 rounded-xl h-12"
+                  className="pl-10 rounded-lg h-12"
                   required
                   minLength={6}
                 />
@@ -132,7 +132,7 @@ export default function Auth() {
             )}
           </div>
 
-          <Button type="submit" className="w-full rounded-2xl h-12 font-bold gap-2" disabled={loading}>
+          <Button type="submit" className="w-full rounded-lg h-12 font-semibold gap-2 shadow-md hover:shadow-lg transition-shadow" disabled={loading}>
             {loading ? (
               <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
             ) : mode === "reset" ? (
@@ -145,16 +145,16 @@ export default function Auth() {
 
         {/* Google Sign In */}
         {mode !== "reset" && (
-          <div className="mt-3">
-            <div className="relative flex items-center justify-center my-3">
+          <div className="mt-4">
+            <div className="relative flex items-center justify-center my-4">
               <div className="border-t border-border flex-1" />
-              <span className="px-3 text-[10px] text-muted-foreground font-semibold">{t("auth.orWith")}</span>
+              <span className="px-3 text-xs text-muted-foreground font-medium">{t("auth.orWith")}</span>
               <div className="border-t border-border flex-1" />
             </div>
             <Button
               type="button"
               variant="outline"
-              className="w-full rounded-2xl h-12 font-bold gap-2"
+              className="w-full rounded-lg h-12 font-semibold gap-2"
               onClick={handleGoogleLogin}
               disabled={loading}
             >
@@ -169,30 +169,30 @@ export default function Auth() {
           </div>
         )}
 
-        <div className="mt-5 text-center space-y-2">
+        <div className="mt-6 text-center space-y-2">
           {mode === "login" && (
             <>
-              <button onClick={() => setMode("reset")} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              <button onClick={() => setMode("reset")} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 {t("auth.forgotPassword")}
               </button>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {t("auth.noAccount")}{" "}
-                <button onClick={() => setMode("signup")} className="text-primary font-bold hover:underline">
+                <button onClick={() => setMode("signup")} className="text-primary font-semibold hover:underline">
                   {t("auth.signUp")}
                 </button>
               </p>
             </>
           )}
           {mode === "signup" && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {t("auth.hasAccount")}{" "}
-              <button onClick={() => setMode("login")} className="text-primary font-bold hover:underline">
+              <button onClick={() => setMode("login")} className="text-primary font-semibold hover:underline">
                 {t("auth.signIn")}
               </button>
             </p>
           )}
           {mode === "reset" && (
-            <button onClick={() => setMode("login")} className="text-xs text-primary font-bold hover:underline">
+            <button onClick={() => setMode("login")} className="text-sm text-primary font-semibold hover:underline">
               {t("auth.backToLogin")}
             </button>
           )}

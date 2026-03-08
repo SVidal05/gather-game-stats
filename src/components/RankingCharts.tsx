@@ -17,13 +17,13 @@ import { getGameTheme } from "@/lib/gameThemes";
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-card border border-border rounded-xl p-2 shadow-lg text-xs">
-      <p className="font-bold text-foreground mb-0.5">{label}</p>
+    <div className="bg-card border border-border rounded-lg p-2.5 shadow-lg text-xs">
+      <p className="font-semibold text-foreground mb-1">{label}</p>
       {payload.map((entry: any, i: number) => (
-        <p key={i} className="flex items-center gap-1">
+        <p key={i} className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-muted-foreground">{entry.name}:</span>
-          <span className="font-bold text-foreground">{entry.value}</span>
+          <span className="font-semibold text-foreground">{entry.value}</span>
         </p>
       ))}
     </div>
@@ -50,47 +50,55 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
   };
 
   const SortIcon = ({ field }: { field: SortKey }) => {
-    if (sortBy !== field) return <ArrowUpDown className="w-2.5 h-2.5 opacity-30" />;
-    return sortDir === "desc" ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronUp className="w-2.5 h-2.5" />;
+    if (sortBy !== field) return <ArrowUpDown className="w-3 h-3 opacity-30" />;
+    return sortDir === "desc" ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />;
+  };
+
+  const getRowClass = (i: number) => {
+    if (sortDir !== "desc") return "";
+    if (i === 0) return "leaderboard-gold";
+    if (i === 1) return "leaderboard-silver";
+    if (i === 2) return "leaderboard-bronze";
+    return "";
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-foreground">{t("ranking.title")}</h2>
-          <p className="text-muted-foreground text-xs mt-0.5">{t("ranking.subtitle")}</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t("ranking.title")}</h2>
+          <p className="text-muted-foreground text-sm mt-1">{t("ranking.subtitle")}</p>
         </div>
         {sorted.length > 0 && (
-          <Button size="sm" variant="outline" className="rounded-xl gap-1.5 text-xs" onClick={() => exportToCSV(players, sessions, "leaderboard")}>
+          <Button size="sm" variant="outline" className="rounded-lg gap-1.5 text-xs" onClick={() => exportToCSV(players, sessions, "leaderboard")}>
             <Download className="w-3.5 h-3.5" /> CSV
           </Button>
         )}
       </div>
 
       {sorted.length === 0 ? (
-        <div className="text-center py-10">
+        <div className="text-center py-12">
           <div className="text-4xl mb-2">🏅</div>
-          <p className="text-muted-foreground font-semibold text-sm">{t("ranking.noRanking")}</p>
+          <p className="text-muted-foreground font-medium text-sm">{t("ranking.noRanking")}</p>
         </div>
       ) : (
         <div className="game-card overflow-x-auto !p-0">
-          <table className="w-full text-xs">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="text-muted-foreground text-[10px] border-b border-border">
-                <th className="text-left p-2.5">#</th>
-                <th className="text-left p-2.5">{t("ranking.player")}</th>
-                <th className="text-right p-2.5 cursor-pointer select-none active:opacity-70" onClick={() => toggleSort("gamesPlayed")}>
-                  <span className="inline-flex items-center gap-0.5">{t("ranking.games")} <SortIcon field="gamesPlayed" /></span>
+              <tr className="text-muted-foreground text-xs border-b border-border">
+                <th className="text-left p-3">#</th>
+                <th className="text-left p-3">{t("ranking.player")}</th>
+                <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("gamesPlayed")}>
+                  <span className="inline-flex items-center gap-1">{t("ranking.games")} <SortIcon field="gamesPlayed" /></span>
                 </th>
-                <th className="text-right p-2.5 cursor-pointer select-none active:opacity-70" onClick={() => toggleSort("wins")}>
-                  <span className="inline-flex items-center gap-0.5">{t("ranking.wins")} <SortIcon field="wins" /></span>
+                <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("wins")}>
+                  <span className="inline-flex items-center gap-1">{t("ranking.wins")} <SortIcon field="wins" /></span>
                 </th>
-                <th className="text-right p-2.5 cursor-pointer select-none active:opacity-70" onClick={() => toggleSort("winRate")}>
-                  <span className="inline-flex items-center gap-0.5">Win% <SortIcon field="winRate" /></span>
+                <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("winRate")}>
+                  <span className="inline-flex items-center gap-1">Win% <SortIcon field="winRate" /></span>
                 </th>
-                <th className="text-right p-2.5 cursor-pointer select-none active:opacity-70" onClick={() => toggleSort("totalPoints")}>
-                  <span className="inline-flex items-center gap-0.5">Pts <SortIcon field="totalPoints" /></span>
+                <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("totalPoints")}>
+                  <span className="inline-flex items-center gap-1">Pts <SortIcon field="totalPoints" /></span>
                 </th>
               </tr>
             </thead>
@@ -101,16 +109,16 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.04 }}
-                  className="border-b border-border/50 last:border-0"
+                  className={`border-b border-border/50 last:border-0 hover:bg-secondary/30 transition-colors ${getRowClass(i)}`}
                 >
-                  <td className="p-2.5 font-extrabold text-muted-foreground text-[10px]">
+                  <td className="p-3 font-bold text-muted-foreground text-xs">
                     {i === 0 && sortDir === "desc" ? "🥇" : i === 1 && sortDir === "desc" ? "🥈" : i === 2 && sortDir === "desc" ? "🥉" : i + 1}
                   </td>
-                  <td className="p-2.5"><PlayerBadge player={ps.player} size="sm" /></td>
-                  <td className="p-2.5 text-right font-bold">{ps.gamesPlayed}</td>
-                  <td className="p-2.5 text-right font-bold">{ps.wins}</td>
-                  <td className="p-2.5 text-right font-bold">{ps.winRate.toFixed(0)}%</td>
-                  <td className="p-2.5 text-right font-bold">{ps.totalPoints}</td>
+                  <td className="p-3"><PlayerBadge player={ps.player} size="sm" /></td>
+                  <td className="p-3 text-right font-semibold">{ps.gamesPlayed}</td>
+                  <td className="p-3 text-right font-semibold">{ps.wins}</td>
+                  <td className="p-3 text-right font-semibold">{ps.winRate.toFixed(0)}%</td>
+                  <td className="p-3 text-right font-semibold">{ps.totalPoints}</td>
                 </motion.tr>
               ))}
             </tbody>
@@ -150,26 +158,26 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
 
   if (players.length === 0 || sessions.length === 0) {
     return (
-      <div className="space-y-5">
-        <h2 className="text-xl font-extrabold text-foreground">{t("charts.title")}</h2>
-        <div className="text-center py-10">
+      <div className="space-y-6">
+        <h2 className="text-2xl font-display font-bold text-foreground">{t("charts.title")}</h2>
+        <div className="text-center py-12">
           <div className="text-4xl mb-2">📊</div>
-          <p className="text-muted-foreground font-semibold text-sm">{t("charts.noCharts")}</p>
+          <p className="text-muted-foreground font-medium text-sm">{t("charts.noCharts")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-foreground">{t("charts.title")}</h2>
-          <p className="text-muted-foreground text-xs mt-0.5">{t("charts.subtitle")}</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">{t("charts.title")}</h2>
+          <p className="text-muted-foreground text-sm mt-1">{t("charts.subtitle")}</p>
         </div>
         {uniqueGames.length > 1 && (
           <Select value={gameFilter} onValueChange={setGameFilter}>
-            <SelectTrigger className="w-32 rounded-xl h-9 text-xs">
+            <SelectTrigger className="w-36 rounded-lg h-10 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -184,13 +192,13 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
       </div>
 
       {winsData.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="game-card !p-3">
-          <h3 className="font-bold text-foreground text-xs mb-3">🏆 {t("charts.winsPerPlayer")}</h3>
-          <ResponsiveContainer width="100%" height={180}>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="game-card !p-4">
+          <h3 className="font-display font-semibold text-foreground text-sm mb-4">🏆 {t("charts.winsPerPlayer")}</h3>
+          <ResponsiveContainer width="100%" height={200}>
             <BarChart data={winsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis allowDecimals={false} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="wins" radius={[6, 6, 0, 0]} animationDuration={800}
                 onMouseEnter={(d) => setHoveredBar(d.name)}
@@ -198,7 +206,7 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
               >
                 {winsData.map((entry, i) => (
                   <Cell key={i} fill={entry.color}
-                    opacity={hoveredBar && hoveredBar !== entry.name ? 0.4 : 1}
+                    opacity={hoveredBar && hoveredBar !== entry.name ? 0.3 : 1}
                     style={{ transition: "opacity 0.2s", cursor: "pointer" }}
                   />
                 ))}
@@ -209,13 +217,13 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
       )}
 
       {timeData.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="game-card !p-3">
-          <h3 className="font-bold text-foreground text-xs mb-3">📅 {t("charts.sessionsOverTime")}</h3>
-          <ResponsiveContainer width="100%" height={180}>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="game-card !p-4">
+          <h3 className="font-display font-semibold text-foreground text-sm mb-4">📅 {t("charts.sessionsOverTime")}</h3>
+          <ResponsiveContainer width="100%" height={200}>
             <LineChart data={timeData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis allowDecimals={false} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
               <Tooltip content={<CustomTooltip />} />
               <Line type="monotone" dataKey="sessions" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }}
                 activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2 }}
@@ -226,13 +234,13 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
       )}
 
       {pointsData.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="game-card !p-3">
-          <h3 className="font-bold text-foreground text-xs mb-3">💎 {t("charts.totalPoints")}</h3>
-          <ResponsiveContainer width="100%" height={180}>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="game-card !p-4">
+          <h3 className="font-display font-semibold text-foreground text-sm mb-4">💎 {t("charts.totalPoints")}</h3>
+          <ResponsiveContainer width="100%" height={200}>
             <BarChart data={pointsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="points" radius={[6, 6, 0, 0]} animationDuration={800}
                 onMouseEnter={(d) => setHoveredBar(d.name)}
@@ -240,7 +248,7 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
               >
                 {pointsData.map((entry, i) => (
                   <Cell key={i} fill={entry.color}
-                    opacity={hoveredBar && hoveredBar !== entry.name ? 0.4 : 1}
+                    opacity={hoveredBar && hoveredBar !== entry.name ? 0.3 : 1}
                     style={{ transition: "opacity 0.2s", cursor: "pointer" }}
                   />
                 ))}

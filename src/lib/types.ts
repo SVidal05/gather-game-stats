@@ -33,14 +33,14 @@ export interface PlayerStats {
 }
 
 export const PLAYER_COLORS = [
-  { name: "Purple", value: "hsl(262, 80%, 55%)" },
-  { name: "Blue", value: "hsl(210, 90%, 55%)" },
-  { name: "Green", value: "hsl(162, 60%, 45%)" },
-  { name: "Orange", value: "hsl(28, 90%, 55%)" },
-  { name: "Pink", value: "hsl(330, 80%, 58%)" },
-  { name: "Yellow", value: "hsl(45, 95%, 55%)" },
-  { name: "Red", value: "hsl(0, 72%, 55%)" },
-  { name: "Cyan", value: "hsl(185, 70%, 45%)" },
+  { name: "Red", value: "#EF4444" },
+  { name: "Blue", value: "#3B82F6" },
+  { name: "Green", value: "#22C55E" },
+  { name: "Yellow", value: "#F59E0B" },
+  { name: "Purple", value: "#A855F7" },
+  { name: "Pink", value: "#EC4899" },
+  { name: "Cyan", value: "#06B6D4" },
+  { name: "Orange", value: "#F97316" },
 ];
 
 export const PLAYER_AVATARS = [

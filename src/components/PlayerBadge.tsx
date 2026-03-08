@@ -7,22 +7,22 @@ interface PlayerBadgeProps {
 }
 
 const sizeClasses = {
-  sm: "w-6 h-6 text-xs",
-  md: "w-8 h-8 text-sm",
+  sm: "w-7 h-7 text-xs",
+  md: "w-9 h-9 text-sm",
   lg: "w-12 h-12 text-xl",
 };
 
 export function PlayerBadge({ player, size = "md", showName = true }: PlayerBadgeProps) {
   return (
-    <div className="inline-flex items-center gap-1.5">
+    <div className="inline-flex items-center gap-2">
       <div
-        className={`${sizeClasses[size]} rounded-full flex items-center justify-center font-bold shrink-0`}
-        style={{ backgroundColor: player.color + "22", border: `2px solid ${player.color}` }}
+        className={`${sizeClasses[size]} rounded-lg flex items-center justify-center font-bold shrink-0`}
+        style={{ backgroundColor: player.color + "15", border: `2px solid ${player.color}` }}
       >
         {player.avatar}
       </div>
       {showName && (
-        <span className="font-semibold text-sm" style={{ color: player.color }}>
+        <span className="font-semibold text-sm text-foreground">
           {player.name}
         </span>
       )}

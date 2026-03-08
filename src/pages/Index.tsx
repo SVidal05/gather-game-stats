@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, Sun, Moon, LogOut, Menu, X, Settings, UsersRound, Swords, GitCompareArrows, Share2 } from "lucide-react";
+import { Sun, Moon, LogOut, Menu, X, UsersRound, Share2, Monitor } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -20,7 +20,12 @@ import logo from "@/assets/logo.png";
 
 type Tab = "groups" | "dashboard" | "play" | "players" | "tournaments" | "ranking" | "charts" | "compare" | "profile" | "settings";
 
-const DARK_KEY = "gamenight_dark";
+type ThemeMode = "system" | "light" | "dark";
+const THEME_KEY = "gamenight_theme";
+
+function getSystemDark() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
 
 const Index = () => {
   const { t } = useI18n();
@@ -43,14 +48,25 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("groups");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [isDark, setIsDark] = useState(() => {
-    try { return localStorage.getItem(DARK_KEY) === "true"; } catch { return false; }
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    try { return (localStorage.getItem(THEME_KEY) as ThemeMode) || "system"; } catch { return "system"; }
   });
+
+  const isDark = themeMode === "system" ? getSystemDark() : themeMode === "dark";
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
-    localStorage.setItem(DARK_KEY, String(isDark));
-  }, [isDark]);
+    localStorage.setItem(THEME_KEY, themeMode);
+  }, [isDark, themeMode]);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    if (themeMode !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => document.documentElement.classList.toggle("dark", mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [themeMode]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -60,7 +76,11 @@ const Index = () => {
     if (!groupsLoading && groups.length === 0) setActiveTab("groups");
   }, [groupsLoading, groups.length]);
 
-  const toggleDark = () => setIsDark(prev => !prev);
+  const cycleTheme = () => {
+    setThemeMode(prev => prev === "system" ? "light" : prev === "light" ? "dark" : "system");
+  };
+
+  const ThemeIcon = themeMode === "system" ? Monitor : themeMode === "dark" ? Moon : Sun;
 
   if (authLoading || !user) {
     return (
@@ -116,111 +136,124 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Sidebar Overlay */}
       {sidebarOpen && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <motion.aside initial={false} animate={{ x: sidebarOpen ? 0 : -280 }}
+      {/* Sidebar */}
+      <motion.aside initial={false} animate={{ x: sidebarOpen ? 0 : -300 }}
         transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
-        className="fixed top-0 left-0 bottom-0 z-50 w-[280px] bg-card border-r border-border flex flex-col safe-area-top">
-        <div className="p-4 pb-2 flex items-center justify-between border-b border-border/60">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="GameNight" className="w-7 h-7" />
-            <h1 className="text-lg font-extrabold text-foreground">GameNight</h1>
-            <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold">Tracker</span>
+        className="fixed top-0 left-0 bottom-0 z-50 w-[300px] bg-card border-r border-border flex flex-col safe-area-top">
+        
+        {/* Sidebar Header */}
+        <div className="p-5 pb-3 flex items-center justify-between border-b border-border">
+          <div className="flex items-center gap-2.5">
+            <img src={logo} alt="GameNight" className="w-8 h-8" />
+            <div>
+              <h1 className="text-base font-display font-bold text-foreground">GameNight</h1>
+              <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">Tracker</span>
+            </div>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground active:scale-90 transition-all">
+          <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="px-4 py-3 border-b border-border/60">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-primary/10 flex items-center justify-center text-lg">👤</div>
+        {/* User Info */}
+        <div className="px-5 py-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-lg font-bold text-primary">
+              {displayName[0]?.toUpperCase() || "?"}
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-foreground truncate">{displayName}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+              <p className="text-sm font-semibold text-foreground truncate">{displayName}</p>
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
             </div>
           </div>
           {activeGroup && (
-            <div className="mt-2 flex items-center gap-1.5 bg-primary/10 rounded-xl px-2.5 py-1.5">
-              <UsersRound className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[10px] font-bold text-primary truncate">{activeGroup.name}</span>
+            <div className="mt-3 flex items-center gap-2 bg-primary/5 border border-primary/10 rounded-lg px-3 py-2">
+              <UsersRound className="w-4 h-4 text-primary" />
+              <span className="text-xs font-semibold text-primary truncate">{activeGroup.name}</span>
             </div>
           )}
         </div>
 
-        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+        {/* Nav */}
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {tabs.map(tab => {
             const disabled = tab.requiresGroup && !activeGroup;
             return (
               <button key={tab.id} onClick={() => handleTabClick(tab.id)} disabled={disabled}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   disabled ? "opacity-30 cursor-not-allowed" :
                   activeTab === tab.id ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 }`}>
-                <span className="text-base">{tab.emoji}</span>
+                <span className="text-base w-6 text-center">{tab.emoji}</span>
                 <span>{tab.label}</span>
               </button>
             );
           })}
         </nav>
 
-        <div className="p-3 border-t border-border/60 space-y-2">
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-border space-y-2">
           {activeGroup && (
-            <button onClick={handleShareGroup} className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold active:scale-95 transition-all">
-              <Share2 className="w-3.5 h-3.5" /> Share Leaderboard
+            <button onClick={handleShareGroup} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-all">
+              <Share2 className="w-4 h-4" /> Share Leaderboard
             </button>
           )}
-          <div className="flex gap-1.5">
-            <button onClick={toggleDark} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-secondary text-muted-foreground text-xs font-bold active:scale-95 transition-all">
-              {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-              {isDark ? t("profile.light") : t("profile.dark")}
+          <div className="flex gap-2">
+            <button onClick={cycleTheme} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-secondary text-muted-foreground text-xs font-semibold hover:text-foreground transition-all">
+              <ThemeIcon className="w-4 h-4" />
+              {themeMode === "system" ? "System" : isDark ? t("profile.dark") : t("profile.light")}
             </button>
-            <button onClick={signOut} className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-destructive/10 text-destructive text-xs font-bold active:scale-95 transition-all">
-              <LogOut className="w-3.5 h-3.5" />
+            <button onClick={signOut} className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-destructive/10 text-destructive text-xs font-semibold hover:bg-destructive/15 transition-all">
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
       </motion.aside>
 
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border/60 px-4 py-2.5 safe-area-top">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-secondary/80 text-foreground active:scale-90 transition-all">
-              <Menu className="w-4.5 h-4.5" />
+      {/* Top Header */}
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 safe-area-top">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-all">
+              <Menu className="w-5 h-5" />
             </button>
-            <img src={logo} alt="GameNight" className="w-7 h-7" />
+            <img src={logo} alt="GameNight" className="w-8 h-8" />
             <div className="flex flex-col">
-              <h1 className="text-lg font-extrabold text-foreground leading-tight">GameNight</h1>
+              <h1 className="text-lg font-display font-bold text-foreground leading-tight">GameNight</h1>
               {activeGroup && (
-                <button onClick={() => setActiveTab("groups")} className="text-[10px] text-primary font-bold leading-tight hover:underline text-left">
+                <button onClick={() => setActiveTab("groups")} className="text-[11px] text-primary font-semibold leading-tight hover:underline text-left">
                   {activeGroup.name}
                 </button>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {activeGroup && (
-              <button onClick={handleShareGroup} className="p-2 rounded-xl bg-secondary/80 text-foreground active:scale-90 transition-all" aria-label="Share">
+              <button onClick={handleShareGroup} className="p-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-all" aria-label="Share">
                 <Share2 className="w-4 h-4" />
               </button>
             )}
-            <button onClick={toggleDark} className="p-2 rounded-xl bg-secondary/80 text-foreground active:scale-90 transition-all" aria-label="Toggle dark mode">
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            <button onClick={cycleTheme} className="p-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-all" aria-label="Toggle theme">
+              <ThemeIcon className="w-4 h-4" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-3 py-4">
+      {/* Main Content */}
+      <main className="max-w-2xl mx-auto px-4 py-6">
         {groupsLoading ? (
           <div className="text-center py-20">
             <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
           </div>
         ) : (
-          <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+          <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {activeTab === "groups" && (
               <GroupSelector
                 groups={groups} activeGroup={activeGroup} members={members} pendingInvites={pendingInvites}
@@ -233,8 +266,8 @@ const Index = () => {
                 onDeclineInvite={declineInvite} onRefetch={handleRefetch}
               />
             )}
-            {activeTab === "profile" && <ProfileTab players={players} sessions={sessions} isDark={isDark} onToggleDark={toggleDark} />}
-            {activeTab === "settings" && <SettingsTab isDark={isDark} onToggleDark={toggleDark} />}
+            {activeTab === "profile" && <ProfileTab players={players} sessions={sessions} isDark={isDark} onToggleDark={cycleTheme} />}
+            {activeTab === "settings" && <SettingsTab isDark={isDark} onToggleDark={cycleTheme} themeMode={themeMode} onSetThemeMode={setThemeMode} />}
             {activeGroup && !dataLoading && (
               <>
                 {activeTab === "dashboard" && <DashboardTab players={players} sessions={sessions} />}
