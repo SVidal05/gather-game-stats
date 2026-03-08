@@ -47,7 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
       if (session?.user) {
-        setTimeout(() => fetchUsername(session.user.id), 0);
+        // Use setTimeout to avoid Supabase deadlock
+        setTimeout(() => fetchUsername(session.user.id), 100);
       } else {
         setUsername("");
       }
@@ -63,15 +64,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, username?: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, usernameVal?: string) => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { username: username || "" },
+        data: { username: usernameVal || "" },
       },
     });
+    if (!error && data.user && usernameVal) {
+      // Wait a bit for the trigger to create the profile, then update username
+      setTimeout(async () => {
+        // Ensure profile exists with username
+        const { data: existing } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", data.user!.id)
+          .single();
+        if (existing) {
+          await supabase.from("profiles").update({ username: usernameVal }).eq("user_id", data.user!.id);
+        } else {
+          await supabase.from("profiles").insert({ user_id: data.user!.id, username: usernameVal });
+        }
+        setUsername(usernameVal);
+      }, 500);
+    }
     return { error };
   };
 
@@ -93,10 +111,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUsername = async (newUsername: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
+    // Upsert to handle case where profile might not exist
+    const { data: existing } = await supabase
       .from("profiles")
-      .update({ username: newUsername })
-      .eq("user_id", user.id);
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+    
+    let error;
+    if (existing) {
+      ({ error } = await supabase.from("profiles").update({ username: newUsername }).eq("user_id", user.id));
+    } else {
+      ({ error } = await supabase.from("profiles").insert({ user_id: user.id, username: newUsername }));
+    }
     if (!error) setUsername(newUsername);
     return { error };
   };

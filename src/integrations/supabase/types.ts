@@ -105,6 +105,45 @@ export type Database = {
         }
         Relationships: []
       }
+      player_achievements: {
+        Row: {
+          achievement_type: string
+          group_id: string
+          id: string
+          player_id: string
+          unlocked_at: string
+        }
+        Insert: {
+          achievement_type: string
+          group_id: string
+          id?: string
+          player_id: string
+          unlocked_at?: string
+        }
+        Update: {
+          achievement_type?: string
+          group_id?: string
+          id?: string
+          player_id?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_achievements_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_achievements_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           avatar: string
@@ -256,6 +295,115 @@ export type Database = {
           },
         ]
       }
+      tournament_matches: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          match_order: number
+          player1_id: string | null
+          player1_score: number
+          player2_id: string | null
+          player2_score: number
+          round: number
+          tournament_id: string
+          winner_id: string | null
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          match_order?: number
+          player1_id?: string | null
+          player1_score?: number
+          player2_id?: string | null
+          player2_score?: number
+          round?: number
+          tournament_id: string
+          winner_id?: string | null
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          match_order?: number
+          player1_id?: string | null
+          player1_score?: number
+          player2_id?: string | null
+          player2_score?: number
+          round?: number
+          tournament_id?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_matches_player1_id_fkey"
+            columns: ["player1_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_player2_id_fkey"
+            columns: ["player2_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          created_by: string
+          game_name: string
+          group_id: string
+          id: string
+          name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          game_name?: string
+          group_id: string
+          id?: string
+          name: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          game_name?: string
+          group_id?: string
+          id?: string
+          name?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -268,6 +416,7 @@ export type Database = {
           name: string
         }[]
       }
+      get_group_share_data: { Args: { _group_id: string }; Returns: Json }
       is_group_admin: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean

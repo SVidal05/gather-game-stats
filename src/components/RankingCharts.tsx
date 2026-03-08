@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { useI18n } from "@/lib/i18n";
+import { exportToCSV } from "@/lib/exportUtils";
+import { Button } from "@/components/ui/button";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Cell,
@@ -54,9 +56,16 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-extrabold text-foreground">{t("ranking.title")}</h2>
-        <p className="text-muted-foreground text-xs mt-0.5">{t("ranking.subtitle")}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-extrabold text-foreground">{t("ranking.title")}</h2>
+          <p className="text-muted-foreground text-xs mt-0.5">{t("ranking.subtitle")}</p>
+        </div>
+        {sorted.length > 0 && (
+          <Button size="sm" variant="outline" className="rounded-xl gap-1.5 text-xs" onClick={() => exportToCSV(players, sessions, "leaderboard")}>
+            <Download className="w-3.5 h-3.5" /> CSV
+          </Button>
+        )}
       </div>
 
       {sorted.length === 0 ? (
