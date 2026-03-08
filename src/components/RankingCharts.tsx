@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { Player, GameSession } from "@/lib/types";
+import { getPlayerStats } from "@/lib/store";
+import { PlayerBadge } from "@/components/PlayerBadge";
+import { useI18n } from "@/lib/i18n";
+import { exportToCSV } from "@/lib/exportUtils";
+import { Button } from "@/components/ui/button";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { PlayerBadge } from "@/components/PlayerBadge";
