@@ -151,6 +151,30 @@ const translations = {
   "common.radarTooMany": { es: "El radar funciona mejor con ≤6 jugadores", en: "Radar works best with ≤6 players", fr: "Le radar fonctionne mieux avec ≤6 joueurs" },
   "common.playMore": { es: "Juega más para ver radar", en: "Play more to see radar charts", fr: "Jouez plus pour voir les radars" },
   "common.recordSessions": { es: "Registra sesiones para ver el historial", en: "Record sessions to see score history", fr: "Enregistrez des sessions pour voir l'historique" },
+
+  // Auth
+  "auth.loginSubtitle": { es: "Inicia sesión para continuar", en: "Sign in to continue", fr: "Connectez-vous pour continuer" },
+  "auth.signupSubtitle": { es: "Crea tu cuenta gratuita", en: "Create your free account", fr: "Créez votre compte gratuit" },
+  "auth.resetSubtitle": { es: "Te enviaremos un enlace para restablecer tu contraseña", en: "We'll send you a password reset link", fr: "Nous vous enverrons un lien de réinitialisation" },
+  "auth.email": { es: "Email", en: "Email", fr: "Email" },
+  "auth.password": { es: "Contraseña", en: "Password", fr: "Mot de passe" },
+  "auth.signIn": { es: "Iniciar Sesión", en: "Sign In", fr: "Se Connecter" },
+  "auth.signUp": { es: "Registrarse", en: "Sign Up", fr: "S'inscrire" },
+  "auth.logout": { es: "Cerrar Sesión", en: "Log Out", fr: "Déconnexion" },
+  "auth.forgotPassword": { es: "¿Olvidaste tu contraseña?", en: "Forgot your password?", fr: "Mot de passe oublié ?" },
+  "auth.noAccount": { es: "¿No tienes cuenta?", en: "Don't have an account?", fr: "Pas de compte ?" },
+  "auth.hasAccount": { es: "¿Ya tienes cuenta?", en: "Already have an account?", fr: "Déjà un compte ?" },
+  "auth.backToLogin": { es: "Volver al inicio de sesión", en: "Back to login", fr: "Retour à la connexion" },
+  "auth.sendReset": { es: "Enviar Enlace", en: "Send Reset Link", fr: "Envoyer le Lien" },
+  "auth.resetSent": { es: "Enlace enviado", en: "Link sent", fr: "Lien envoyé" },
+  "auth.resetSentMsg": { es: "Revisa tu correo para restablecer tu contraseña", en: "Check your email to reset your password", fr: "Vérifiez votre email pour réinitialiser votre mot de passe" },
+  "auth.signupSuccess": { es: "¡Cuenta creada!", en: "Account created!", fr: "Compte créé !" },
+  "auth.signupSuccessMsg": { es: "Revisa tu correo para confirmar tu cuenta", en: "Check your email to confirm your account", fr: "Vérifiez votre email pour confirmer votre compte" },
+  "auth.passwordUpdated": { es: "Contraseña actualizada", en: "Password updated", fr: "Mot de passe mis à jour" },
+  "auth.invalidResetLink": { es: "Enlace de restablecimiento inválido", en: "Invalid reset link", fr: "Lien de réinitialisation invalide" },
+  "auth.newPassword": { es: "Nueva Contraseña", en: "New Password", fr: "Nouveau Mot de Passe" },
+  "auth.newPasswordPlaceholder": { es: "Tu nueva contraseña", en: "Your new password", fr: "Votre nouveau mot de passe" },
+  "auth.updatePassword": { es: "Actualizar Contraseña", en: "Update Password", fr: "Mettre à Jour" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
