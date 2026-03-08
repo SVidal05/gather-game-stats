@@ -1,35 +1,83 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, Swords } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, Swords, User, Sun, Moon } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
+import { useI18n, LANGUAGE_OPTIONS } from "@/lib/i18n";
 import { DashboardTab, PlayersTab, SessionsTab } from "@/components/GameTabs";
 import { RankingTab, ChartsTab } from "@/components/RankingCharts";
 import { GamesTab } from "@/components/GamesTab";
+import { ProfileTab } from "@/components/ProfileTab";
 
-type Tab = "dashboard" | "players" | "sessions" | "games" | "ranking" | "charts";
+type Tab = "dashboard" | "players" | "sessions" | "games" | "ranking" | "charts" | "profile";
 
-const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: "dashboard", label: "Home", icon: LayoutDashboard },
-  { id: "players", label: "Players", icon: Users },
-  { id: "sessions", label: "Sessions", icon: Gamepad2 },
-  { id: "games", label: "Games", icon: Swords },
-  { id: "ranking", label: "Ranking", icon: Trophy },
-  { id: "charts", label: "Charts", icon: BarChart3 },
-];
+const DARK_KEY = "gamenight_dark";
 
 const Index = () => {
+  const { t, lang, setLang } = useI18n();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const { players, addPlayer, removePlayer, updatePlayer } = usePlayers();
   const { sessions, addSession, removeSession, updateSession } = useSessions();
+
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      return localStorage.getItem(DARK_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+    localStorage.setItem(DARK_KEY, String(isDark));
+  }, [isDark]);
+
+  const toggleDark = () => setIsDark(prev => !prev);
+
+  const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
+    { id: "dashboard", label: t("tab.home"), icon: LayoutDashboard },
+    { id: "players", label: t("tab.players"), icon: Users },
+    { id: "sessions", label: t("tab.sessions"), icon: Gamepad2 },
+    { id: "games", label: t("tab.games"), icon: Swords },
+    { id: "ranking", label: t("tab.ranking"), icon: Trophy },
+    { id: "charts", label: t("tab.charts"), icon: BarChart3 },
+    { id: "profile", label: t("tab.profile"), icon: User },
+  ];
+
+  const currentFlag = LANGUAGE_OPTIONS.find(l => l.value === lang)?.flag || "🇪🇸";
 
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border/60 px-4 py-2.5 safe-area-top">
-        <div className="max-w-lg mx-auto flex items-center gap-2">
-          <span className="text-xl">🎲</span>
-          <h1 className="text-lg font-extrabold text-foreground">GameNight</h1>
-          <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold ml-0.5">Tracker</span>
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🎲</span>
+            <h1 className="text-lg font-extrabold text-foreground">GameNight</h1>
+            <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold ml-0.5">Tracker</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {/* Language selector */}
+            <div className="relative">
+              <select
+                value={lang}
+                onChange={(e) => setLang(e.target.value as any)}
+                className="appearance-none bg-secondary/80 text-foreground rounded-xl pl-7 pr-2 py-1.5 text-[10px] font-bold cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 active:scale-95 transition-all"
+              >
+                {LANGUAGE_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.flag} {opt.label}</option>
+                ))}
+              </select>
+              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none">{currentFlag}</span>
+            </div>
+            {/* Dark mode toggle */}
+            <button
+              onClick={toggleDark}
+              className="p-2 rounded-xl bg-secondary/80 text-foreground active:scale-90 transition-all"
+              aria-label="Toggle dark mode"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -51,6 +99,7 @@ const Index = () => {
           {activeTab === "games" && <GamesTab players={players} sessions={sessions} />}
           {activeTab === "ranking" && <RankingTab players={players} sessions={sessions} />}
           {activeTab === "charts" && <ChartsTab players={players} sessions={sessions} />}
+          {activeTab === "profile" && <ProfileTab players={players} sessions={sessions} isDark={isDark} onToggleDark={toggleDark} />}
         </motion.div>
       </main>
 
