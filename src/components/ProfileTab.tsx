@@ -191,71 +191,40 @@ export function ProfileTab({ players, sessions, isDark, onToggleDark }: ProfileT
   const uniqueGames = new Set(sessions.map(s => s.gameName)).size;
   const unlockedCount = ACHIEVEMENTS.filter(a => a.condition(players, sessions)).length;
 
+  // Find longest win streak per player
+  const getStreakInfo = () => {
+    let bestPlayer: Player | null = null;
+    let bestStreak = 0;
+    for (const player of players) {
+      let streak = 0;
+      let maxStreak = 0;
+      for (const session of sessions) {
+        const result = session.results.find(r => r.playerId === player.id);
+        if (result?.isWinner) {
+          streak++;
+          maxStreak = Math.max(maxStreak, streak);
+        } else if (result) {
+          streak = 0;
+        }
+      }
+      if (maxStreak > bestStreak) {
+        bestStreak = maxStreak;
+        bestPlayer = player;
+      }
+    }
+    return { bestPlayer, bestStreak };
+  };
+
+  const streakInfo = getStreakInfo();
+
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-extrabold text-foreground">{t("profile.title")}</h2>
-        <p className="text-muted-foreground text-xs mt-0.5">{t("profile.settings")}</p>
+        <h2 className="text-xl font-extrabold text-foreground">
+          {username ? `👋 ${username}` : t("profile.title")}
+        </h2>
+        <p className="text-muted-foreground text-xs mt-0.5">{t("profile.achievements")}</p>
       </div>
-
-      {/* Settings Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="game-card space-y-4"
-      >
-        {/* Language */}
-        <div>
-          <label className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-2">
-            <Globe className="w-3.5 h-3.5 text-primary" />
-            {t("profile.language")}
-          </label>
-          <div className="flex gap-1.5">
-            {LANGUAGE_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setLang(opt.value)}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                  lang === opt.value
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                <span className="text-base">{opt.flag}</span>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Theme */}
-        <div>
-          <label className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-2">
-            {isDark ? <Moon className="w-3.5 h-3.5 text-primary" /> : <Sun className="w-3.5 h-3.5 text-primary" />}
-            {t("profile.theme")}
-          </label>
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => isDark && onToggleDark()}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                !isDark ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              <Sun className="w-4 h-4" />
-              {t("profile.light")}
-            </button>
-            <button
-              onClick={() => !isDark && onToggleDark()}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                isDark ? "bg-primary text-primary-foreground shadow-md" : "bg-secondary text-muted-foreground"
-              }`}
-            >
-              <Moon className="w-4 h-4" />
-              {t("profile.dark")}
-            </button>
-          </div>
-        </div>
-      </motion.div>
 
       {/* General Stats */}
       <motion.div
