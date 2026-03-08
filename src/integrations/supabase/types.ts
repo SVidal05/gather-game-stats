@@ -14,11 +14,103 @@ export type Database = {
   }
   public: {
     Tables: {
+      group_invites: {
+        Row: {
+          created_at: string
+          email: string
+          group_id: string
+          id: string
+          invited_by: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          group_id: string
+          id?: string
+          invited_by: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          group_id?: string
+          id?: string
+          invited_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          id: string
+          invite_code: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_code?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_code?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           avatar: string
           color: string
           created_at: string
+          group_id: string | null
           id: string
           name: string
           user_id: string
@@ -27,6 +119,7 @@ export type Database = {
           avatar?: string
           color?: string
           created_at?: string
+          group_id?: string | null
           id?: string
           name: string
           user_id: string
@@ -35,11 +128,20 @@ export type Database = {
           avatar?: string
           color?: string
           created_at?: string
+          group_id?: string | null
           id?: string
           name?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "players_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -110,9 +212,11 @@ export type Database = {
       sessions: {
         Row: {
           created_at: string
+          created_by: string | null
           custom_stats: Json | null
           date: string
           game_name: string
+          group_id: string | null
           id: string
           name: string
           notes: string | null
@@ -120,9 +224,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           custom_stats?: Json | null
           date?: string
           game_name: string
+          group_id?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -130,22 +236,47 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           custom_stats?: Json | null
           date?: string
           game_name?: string
+          group_id?: string | null
           id?: string
           name?: string
           notes?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_group_by_invite_code: {
+        Args: { _code: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
+      is_group_admin: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_group_member: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      join_group_by_code: { Args: { _code: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
