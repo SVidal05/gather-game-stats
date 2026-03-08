@@ -7,10 +7,6 @@ import { PlayerBadge } from "@/components/PlayerBadge";
 import { useI18n } from "@/lib/i18n";
 import { exportToCSV } from "@/lib/exportUtils";
 import { Button } from "@/components/ui/button";
-import { Player, GameSession } from "@/lib/types";
-import { getPlayerStats } from "@/lib/store";
-import { PlayerBadge } from "@/components/PlayerBadge";
-import { useI18n } from "@/lib/i18n";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Cell,
