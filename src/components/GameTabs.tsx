@@ -5,6 +5,7 @@ import { Player, GameSession, PlayerStats, PLAYER_COLORS, PLAYER_AVATARS, POPULA
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,22 +16,23 @@ import confetti from "canvas-confetti";
 
 // ─── Dashboard Tab ────────────────────────────────
 export function DashboardTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
+  const { t } = useI18n();
   const stats = getPlayerStats(players, sessions);
   const topPlayer = stats.length > 0 ? stats.reduce((a, b) => a.wins > b.wins ? a : b) : null;
   const uniqueGames = new Set(sessions.map(s => s.gameName)).size;
 
   const statCards = [
-    { icon: Calendar, label: "Sessions", value: sessions.length, color: "var(--game-purple)" },
-    { icon: Users, label: "Players", value: players.length, color: "var(--game-blue)" },
-    { icon: Gamepad2, label: "Games", value: uniqueGames, color: "var(--game-green)" },
-    { icon: Trophy, label: "Top Winner", value: topPlayer?.player.name || "—", color: "var(--game-orange)" },
+    { icon: Calendar, label: t("dashboard.sessions"), value: sessions.length, color: "var(--game-purple)" },
+    { icon: Users, label: t("dashboard.players"), value: players.length, color: "var(--game-blue)" },
+    { icon: Gamepad2, label: t("dashboard.games"), value: uniqueGames, color: "var(--game-green)" },
+    { icon: Trophy, label: t("dashboard.topWinner"), value: topPlayer?.player.name || "—", color: "var(--game-orange)" },
   ];
 
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-extrabold text-foreground">Dashboard</h2>
-        <p className="text-muted-foreground text-xs mt-0.5">Your group's game night stats</p>
+        <h2 className="text-xl font-extrabold text-foreground">{t("dashboard.title")}</h2>
+        <p className="text-muted-foreground text-xs mt-0.5">{t("dashboard.subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -58,12 +60,12 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
           <div className="flex items-center gap-3">
             <div className="text-3xl">👑</div>
             <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Current Leader</p>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dashboard.currentLeader")}</p>
               <div className="flex items-center gap-2 mt-1">
                 <PlayerBadge player={topPlayer.player} size="md" />
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {topPlayer.wins} wins · {topPlayer.winRate.toFixed(0)}% win rate
+                {topPlayer.wins} {t("dashboard.wins")} · {topPlayer.winRate.toFixed(0)}% {t("dashboard.winRate")}
               </p>
             </div>
           </div>
@@ -72,7 +74,7 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
 
       {sessions.length > 0 && (
         <div>
-          <h3 className="font-bold text-foreground text-sm mb-2">Recent Sessions</h3>
+          <h3 className="font-bold text-foreground text-sm mb-2">{t("dashboard.recentSessions")}</h3>
           <div className="space-y-2">
             {sessions.slice(-3).reverse().map(session => {
               const theme = getGameTheme(session.gameName);
@@ -111,8 +113,8 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
       {sessions.length === 0 && players.length === 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-10">
           <div className="text-5xl mb-3">🎲</div>
-          <h3 className="text-lg font-bold text-foreground">Welcome to GameNight!</h3>
-          <p className="text-xs text-muted-foreground mt-1">Start by adding players, then create your first session.</p>
+          <h3 className="text-lg font-bold text-foreground">{t("dashboard.welcome")}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{t("dashboard.welcomeMsg")}</p>
         </motion.div>
       )}
     </div>
@@ -128,6 +130,7 @@ export function PlayersTab({
   onRemovePlayer: (id: string) => void;
   onUpdatePlayer: (id: string, updates: Partial<Player>) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [color, setColor] = useState(PLAYER_COLORS[0].value);
@@ -163,10 +166,10 @@ export function PlayersTab({
 
   const getBadges = (ps: PlayerStats) => {
     const badges: string[] = [];
-    if (ps.wins > 0 && stats.every(s => s.wins <= ps.wins)) badges.push("👑 Most Wins");
-    if (ps.gamesPlayed >= 5 && ps.winRate >= 60) badges.push("🔥 On Fire");
-    if (ps.gamesPlayed >= 10) badges.push("🎖️ Veteran");
-    if (ps.totalPoints > 0 && stats.every(s => s.totalPoints <= ps.totalPoints)) badges.push("💎 Top Scorer");
+    if (ps.wins > 0 && stats.every(s => s.wins <= ps.wins)) badges.push(t("players.mostWins"));
+    if (ps.gamesPlayed >= 5 && ps.winRate >= 60) badges.push(t("players.onFire"));
+    if (ps.gamesPlayed >= 10) badges.push(t("players.veteran"));
+    if (ps.totalPoints > 0 && stats.every(s => s.totalPoints <= ps.totalPoints)) badges.push(t("players.topScorer"));
     return badges;
   };
 
@@ -174,26 +177,26 @@ export function PlayersTab({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-foreground">Players</h2>
-          <p className="text-muted-foreground text-xs mt-0.5">{players.length} player{players.length !== 1 ? "s" : ""}</p>
+          <h2 className="text-xl font-extrabold text-foreground">{t("players.title")}</h2>
+          <p className="text-muted-foreground text-xs mt-0.5">{players.length} {players.length !== 1 ? t("players.players") : t("players.player")}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="lg" className="rounded-2xl gap-2 font-bold h-11 text-sm">
-              <Plus className="w-4 h-4" /> Add
+              <Plus className="w-4 h-4" /> {t("players.add")}
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)]">
             <DialogHeader>
-              <DialogTitle className="font-extrabold">New Player</DialogTitle>
+              <DialogTitle className="font-extrabold">{t("players.newPlayer")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label className="font-semibold text-xs">Name</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} placeholder="Player name" className="rounded-xl mt-1 h-11" />
+                <Label className="font-semibold text-xs">{t("players.name")}</Label>
+                <Input value={name} onChange={e => setName(e.target.value)} placeholder={t("players.playerName")} className="rounded-xl mt-1 h-11" />
               </div>
               <div>
-                <Label className="font-semibold text-xs">Avatar</Label>
+                <Label className="font-semibold text-xs">{t("players.avatar")}</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {PLAYER_AVATARS.map(a => (
                     <button
@@ -207,7 +210,7 @@ export function PlayersTab({
                 </div>
               </div>
               <div>
-                <Label className="font-semibold text-xs">Color</Label>
+                <Label className="font-semibold text-xs">{t("players.color")}</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {PLAYER_COLORS.map(c => (
                     <button
@@ -220,7 +223,7 @@ export function PlayersTab({
                 </div>
               </div>
               <Button onClick={handleAdd} className="w-full rounded-2xl font-bold h-12" size="lg" disabled={!name.trim()}>
-                Add Player
+                {t("players.addPlayer")}
               </Button>
             </div>
           </DialogContent>
@@ -258,7 +261,7 @@ export function PlayersTab({
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={saveEdit} size="sm" className="rounded-xl flex-1 gap-1"><Check className="w-4 h-4" /> Save</Button>
+                    <Button onClick={saveEdit} size="sm" className="rounded-xl flex-1 gap-1"><Check className="w-4 h-4" /> {t("players.save")}</Button>
                     <Button onClick={() => setEditingId(null)} size="sm" variant="outline" className="rounded-xl gap-1"><X className="w-4 h-4" /></Button>
                   </div>
                 </div>
@@ -274,10 +277,10 @@ export function PlayersTab({
                     <div>
                       <p className="font-bold text-foreground text-sm">{ps.player.name}</p>
                       <div className="flex gap-2.5 mt-0.5 text-[10px] text-muted-foreground">
-                        <span>{ps.gamesPlayed} games</span>
-                        <span>{ps.wins} wins</span>
+                        <span>{ps.gamesPlayed} {t("players.games")}</span>
+                        <span>{ps.wins} {t("players.wins")}</span>
                         <span>{ps.winRate.toFixed(0)}%</span>
-                        <span>{ps.totalPoints} pts</span>
+                        <span>{ps.totalPoints} {t("players.pts")}</span>
                       </div>
                       {getBadges(ps).length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
@@ -306,7 +309,7 @@ export function PlayersTab({
       {players.length === 0 && (
         <div className="text-center py-10">
           <div className="text-5xl mb-3">👥</div>
-          <p className="text-muted-foreground font-semibold text-sm">No players yet. Add your first player!</p>
+          <p className="text-muted-foreground font-semibold text-sm">{t("players.noPlayers")}</p>
         </div>
       )}
     </div>
@@ -322,6 +325,7 @@ export function SessionsTab({
   onRemoveSession: (id: string) => void;
   onUpdateSession: (id: string, updates: Partial<GameSession>) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [sessionName, setSessionName] = useState("");
   const [gameName, setGameName] = useState("");
@@ -345,13 +349,11 @@ export function SessionsTab({
 
   const handleAdd = () => {
     if (!sessionName.trim() || !gameName.trim() || selectedPlayerIds.length === 0) return;
-
     const results: PlayerResult[] = selectedPlayerIds.map(pid => ({
       playerId: pid,
       score: scores[pid] || 0,
       isWinner: pid === winnerId,
     }));
-
     onAddSession({
       name: sessionName.trim(),
       date,
@@ -361,11 +363,9 @@ export function SessionsTab({
       notes: notes.trim(),
       customStats: Object.keys(customStats).length > 0 ? customStats : undefined,
     });
-
     if (winnerId) {
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     }
-
     resetForm();
   };
 
@@ -424,47 +424,42 @@ export function SessionsTab({
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-extrabold text-foreground">Sessions</h2>
-          <p className="text-muted-foreground text-xs mt-0.5">{sessions.length} session{sessions.length !== 1 ? "s" : ""}</p>
+          <h2 className="text-xl font-extrabold text-foreground">{t("sessions.title")}</h2>
+          <p className="text-muted-foreground text-xs mt-0.5">{sessions.length} {sessions.length !== 1 ? t("sessions.sessionPlural") : t("sessions.session")}</p>
         </div>
         <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>
           <DialogTrigger asChild>
             <Button size="lg" className="rounded-2xl gap-2 font-bold h-11 text-sm" disabled={players.length < 2}>
-              <Plus className="w-4 h-4" /> New
+              <Plus className="w-4 h-4" /> {t("sessions.new")}
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="font-extrabold">{editingSessionId ? "Edit Session" : "New Session"}</DialogTitle>
+              <DialogTitle className="font-extrabold">{editingSessionId ? t("sessions.editSession") : t("sessions.newSession")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label className="font-semibold text-xs">Session Name</Label>
-                <Input value={sessionName} onChange={e => setSessionName(e.target.value)} placeholder="Friday Night Showdown" className="rounded-xl mt-1 h-11" />
+                <Label className="font-semibold text-xs">{t("sessions.sessionName")}</Label>
+                <Input value={sessionName} onChange={e => setSessionName(e.target.value)} placeholder={t("sessions.sessionNamePlaceholder")} className="rounded-xl mt-1 h-11" />
               </div>
               <div>
-                <Label className="font-semibold text-xs">Game</Label>
+                <Label className="font-semibold text-xs">{t("sessions.game")}</Label>
                 <Select value={gameName} onValueChange={setGameName}>
                   <SelectTrigger className="rounded-xl mt-1 h-11">
-                    <SelectValue placeholder="Select a game" />
+                    <SelectValue placeholder={t("sessions.selectGame")} />
                   </SelectTrigger>
                   <SelectContent>
                     {POPULAR_GAMES.map(g => {
-                      const t = getGameTheme(g);
-                      return <SelectItem key={g} value={g}>{t.emoji} {g}</SelectItem>;
+                      const gt = getGameTheme(g);
+                      return <SelectItem key={g} value={g}>{gt.emoji} {g}</SelectItem>;
                     })}
                   </SelectContent>
                 </Select>
-                <Input value={gameName} onChange={e => setGameName(e.target.value)} placeholder="Or type a custom game" className="rounded-xl mt-2 h-11" />
+                <Input value={gameName} onChange={e => setGameName(e.target.value)} placeholder={t("sessions.customGame")} className="rounded-xl mt-2 h-11" />
               </div>
 
-              {/* Game theme preview */}
               {currentTheme && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="rounded-xl overflow-hidden"
-                >
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
                   <div className="h-16 relative">
                     <img src={currentTheme.image} alt={currentTheme.name} className="w-full h-full object-cover" />
                     <div className="absolute inset-0" style={{ background: currentTheme.gradient, opacity: 0.4 }} />
@@ -477,11 +472,11 @@ export function SessionsTab({
               )}
 
               <div>
-                <Label className="font-semibold text-xs">Date</Label>
+                <Label className="font-semibold text-xs">{t("sessions.date")}</Label>
                 <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="rounded-xl mt-1 h-11" />
               </div>
               <div>
-                <Label className="font-semibold text-xs">Players</Label>
+                <Label className="font-semibold text-xs">{t("sessions.players")}</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {players.map(p => (
                     <button
@@ -505,7 +500,7 @@ export function SessionsTab({
               {selectedPlayerIds.length > 0 && (
                 <>
                   <div>
-                    <Label className="font-semibold text-xs">Scores</Label>
+                    <Label className="font-semibold text-xs">{t("sessions.scores")}</Label>
                     <div className="space-y-1.5 mt-1">
                       {selectedPlayerIds.map(pid => {
                         const p = players.find(pl => pl.id === pid)!;
@@ -516,7 +511,7 @@ export function SessionsTab({
                               type="number"
                               value={scores[pid] || ""}
                               onChange={e => setScores(prev => ({ ...prev, [pid]: Number(e.target.value) }))}
-                              placeholder="Score"
+                              placeholder={t("sessions.score")}
                               className="rounded-xl flex-1 h-10"
                             />
                           </div>
@@ -525,10 +520,10 @@ export function SessionsTab({
                     </div>
                   </div>
                   <div>
-                    <Label className="font-semibold text-xs">Winner</Label>
+                    <Label className="font-semibold text-xs">{t("sessions.winner")}</Label>
                     <Select value={winnerId} onValueChange={setWinnerId}>
                       <SelectTrigger className="rounded-xl mt-1 h-11">
-                        <SelectValue placeholder="Select winner" />
+                        <SelectValue placeholder={t("sessions.selectWinner")} />
                       </SelectTrigger>
                       <SelectContent>
                         {selectedPlayerIds.map(pid => {
@@ -539,11 +534,10 @@ export function SessionsTab({
                     </Select>
                   </div>
 
-                  {/* Custom stats per game */}
                   {currentTheme && (
                     <div>
                       <Label className="font-semibold text-xs flex items-center gap-1">
-                        {currentTheme.emoji} {currentTheme.name} Stats <span className="text-muted-foreground">(optional)</span>
+                        {currentTheme.emoji} {currentTheme.name} {t("sessions.stats")} <span className="text-muted-foreground">{t("sessions.optional")}</span>
                       </Label>
                       <div className="space-y-3 mt-2">
                         {selectedPlayerIds.map(pid => {
@@ -576,8 +570,8 @@ export function SessionsTab({
               )}
 
               <div>
-                <Label className="font-semibold text-xs">Notes (optional)</Label>
-                <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any memorable moments?" className="rounded-xl mt-1" />
+                <Label className="font-semibold text-xs">{t("sessions.notes")}</Label>
+                <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t("sessions.notesPlaceholder")} className="rounded-xl mt-1" />
               </div>
 
               <Button
@@ -586,7 +580,7 @@ export function SessionsTab({
                 size="lg"
                 disabled={!sessionName.trim() || !gameName.trim() || selectedPlayerIds.length < 2}
               >
-                {editingSessionId ? "💾 Save Changes" : "🎉 Record Session"}
+                {editingSessionId ? t("sessions.saveChanges") : t("sessions.record")}
               </Button>
             </div>
           </DialogContent>
@@ -595,7 +589,7 @@ export function SessionsTab({
 
       {players.length < 2 && (
         <div className="game-card bg-secondary/50 text-center !p-3">
-          <p className="text-xs text-muted-foreground font-semibold">Add at least 2 players to create a session.</p>
+          <p className="text-xs text-muted-foreground font-semibold">{t("sessions.minPlayers")}</p>
         </div>
       )}
 
@@ -660,9 +654,9 @@ export function SessionsTab({
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="text-muted-foreground text-[10px]">
-                              <th className="text-left pb-1.5">Player</th>
-                              <th className="text-right pb-1.5">Score</th>
-                              <th className="text-right pb-1.5">Result</th>
+                              <th className="text-left pb-1.5">{t("ranking.player")}</th>
+                              <th className="text-right pb-1.5">{t("sessions.score")}</th>
+                              <th className="text-right pb-1.5">{t("sessions.result")}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -680,15 +674,14 @@ export function SessionsTab({
                           </tbody>
                         </table>
 
-                        {/* Custom stats display */}
                         {session.customStats && Object.keys(session.customStats).length > 0 && (
                           <div className="mt-3 pt-2 border-t border-border/50">
-                            <p className="text-[10px] font-bold text-muted-foreground mb-1.5">{theme.emoji} Game Stats</p>
+                            <p className="text-[10px] font-bold text-muted-foreground mb-1.5">{theme.emoji} {t("sessions.gameStats")}</p>
                             <div className="space-y-1.5">
-                              {Object.entries(session.customStats).map(([pid, stats]) => {
+                              {Object.entries(session.customStats).map(([pid, cstats]) => {
                                 const p = players.find(pl => pl.id === pid);
                                 if (!p) return null;
-                                const filledStats = Object.entries(stats).filter(([, v]) => v !== "" && v !== 0);
+                                const filledStats = Object.entries(cstats).filter(([, v]) => v !== "" && v !== 0);
                                 if (filledStats.length === 0) return null;
                                 return (
                                   <div key={pid} className="bg-secondary/50 rounded-lg px-2 py-1.5">
@@ -726,7 +719,7 @@ export function SessionsTab({
       {sessions.length === 0 && players.length >= 2 && (
         <div className="text-center py-10">
           <div className="text-5xl mb-3">🎮</div>
-          <p className="text-muted-foreground font-semibold text-sm">No sessions yet. Start a game night!</p>
+          <p className="text-muted-foreground font-semibold text-sm">{t("sessions.noSessions")}</p>
         </div>
       )}
     </div>
