@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sun, Moon, Globe, Trophy, Star, Flame, Target, Zap, Award, Crown, Sparkles, Shield } from "lucide-react";
+import { Trophy, Star, Flame } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
-import { useI18n, LANGUAGE_OPTIONS, Language } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 
 interface ProfileTabProps {
   players: Player[];
