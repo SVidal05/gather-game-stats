@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Sun, Moon, LogOut, Menu, X, UsersRound, Share2, Monitor } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Sun, Moon, LogOut, Menu, X, Monitor,
+  LayoutDashboard, Gamepad2, Users, Trophy, UsersRound,
+  UserCircle, Settings, ChevronDown, ChevronRight,
+} from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -14,17 +18,22 @@ import { SettingsTab } from "@/components/SettingsTab";
 import { GroupSelector } from "@/components/GroupSelector";
 import { TournamentTab } from "@/components/TournamentTab";
 import { CompareTab } from "@/components/CompareTab";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
-type Tab = "groups" | "dashboard" | "play" | "players" | "tournaments" | "ranking" | "charts" | "compare" | "profile" | "settings";
+type Tab = "groups" | "dashboard" | "charts" | "play" | "players" | "compare" | "tournaments" | "ranking" | "profile" | "settings";
 
 type ThemeMode = "system" | "light" | "dark";
 const THEME_KEY = "gamenight_theme";
 
 function getSystemDark() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+interface NavSection {
+  label: string;
+  icon: React.ElementType;
+  items: { id: Tab; label: string; requiresGroup?: boolean }[];
 }
 
 const Index = () => {
@@ -47,6 +56,8 @@ const Index = () => {
 
   const [activeTab, setActiveTab] = useState<Tab>("groups");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [groupSelectorOpen, setGroupSelectorOpen] = useState(false);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     try { return (localStorage.getItem(THEME_KEY) as ThemeMode) || "system"; } catch { return "system"; }
@@ -59,7 +70,6 @@ const Index = () => {
     localStorage.setItem(THEME_KEY, themeMode);
   }, [isDark, themeMode]);
 
-  // Listen for system theme changes
   useEffect(() => {
     if (themeMode !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -76,11 +86,58 @@ const Index = () => {
     if (!groupsLoading && groups.length === 0) setActiveTab("groups");
   }, [groupsLoading, groups.length]);
 
+  // Auto-expand the section containing active tab
+  useEffect(() => {
+    const section = navSections.find(s => s.items.some(i => i.id === activeTab));
+    if (section) setExpandedSection(section.label);
+  }, [activeTab]);
+
   const cycleTheme = () => {
     setThemeMode(prev => prev === "system" ? "light" : prev === "light" ? "dark" : "system");
   };
 
   const ThemeIcon = themeMode === "system" ? Monitor : themeMode === "dark" ? Moon : Sun;
+
+  const navSections: NavSection[] = [
+    {
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      items: [
+        { id: "dashboard", label: t("tab.home"), requiresGroup: true },
+        { id: "charts", label: t("tab.charts"), requiresGroup: true },
+      ],
+    },
+    {
+      label: t("play.title"),
+      icon: Gamepad2,
+      items: [
+        { id: "play", label: t("play.title"), requiresGroup: true },
+      ],
+    },
+    {
+      label: t("tab.players"),
+      icon: Users,
+      items: [
+        { id: "players", label: t("tab.players"), requiresGroup: true },
+        { id: "compare", label: "Compare", requiresGroup: true },
+      ],
+    },
+    {
+      label: "Competición",
+      icon: Trophy,
+      items: [
+        { id: "ranking", label: t("tab.ranking"), requiresGroup: true },
+        { id: "tournaments", label: "Tournaments", requiresGroup: true },
+      ],
+    },
+    {
+      label: "Grupo",
+      icon: UsersRound,
+      items: [
+        { id: "groups", label: t("groups.title") },
+      ],
+    },
+  ];
 
   if (authLoading || !user) {
     return (
@@ -94,23 +151,12 @@ const Index = () => {
   }
 
   const dataLoading = playersLoading || sessionsLoading;
-
-  const tabs: { id: Tab; label: string; emoji: string; requiresGroup?: boolean }[] = [
-    { id: "groups", label: t("groups.title"), emoji: "🏠" },
-    { id: "dashboard", label: t("tab.home"), emoji: "📊", requiresGroup: true },
-    { id: "play", label: t("play.title"), emoji: "🎮", requiresGroup: true },
-    { id: "players", label: t("tab.players"), emoji: "👥", requiresGroup: true },
-    { id: "tournaments", label: "Tournaments", emoji: "⚔️", requiresGroup: true },
-    { id: "ranking", label: t("tab.ranking"), emoji: "🏆", requiresGroup: true },
-    { id: "charts", label: t("tab.charts"), emoji: "📈", requiresGroup: true },
-    { id: "compare", label: "Compare", emoji: "⚖️", requiresGroup: true },
-    { id: "profile", label: t("tab.profile"), emoji: "👤" },
-    { id: "settings", label: t("settings.title"), emoji: "⚙️" },
-  ];
+  const displayName = username || user.email?.split("@")[0] || "";
 
   const handleTabClick = (id: Tab) => {
-    const tab = tabs.find(t => t.id === id);
-    if (tab?.requiresGroup && !activeGroup) {
+    const section = navSections.find(s => s.items.some(i => i.id === id));
+    const item = section?.items.find(i => i.id === id);
+    if (item?.requiresGroup && !activeGroup) {
       setActiveTab("groups");
       setSidebarOpen(false);
       return;
@@ -119,41 +165,39 @@ const Index = () => {
     setSidebarOpen(false);
   };
 
-  const displayName = username || user.email?.split("@")[0] || "";
-
   const handleRefetch = () => { refetchGroups(); refetchMembers(); };
 
-  const handleShareGroup = () => {
-    if (!activeGroupId) return;
-    const url = `${window.location.origin}/share/group/${activeGroupId}`;
-    if (navigator.share) {
-      navigator.share({ title: `${activeGroup?.name} - GameNight`, url });
-    } else {
-      navigator.clipboard.writeText(url);
-      toast({ title: "📋", description: "Share link copied!" });
-    }
+  const toggleSection = (label: string) => {
+    setExpandedSection(prev => prev === label ? null : label);
   };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Sidebar Overlay */}
-      {sidebarOpen && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-      )}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <motion.aside initial={false} animate={{ x: sidebarOpen ? 0 : -300 }}
+      <motion.aside
+        initial={false}
+        animate={{ x: sidebarOpen ? 0 : -300 }}
         transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
-        className="fixed top-0 left-0 bottom-0 z-50 w-[300px] bg-card border-r border-border flex flex-col safe-area-top">
-        
+        className="fixed top-0 left-0 bottom-0 z-50 w-[300px] bg-card border-r border-border flex flex-col"
+      >
         {/* Sidebar Header */}
-        <div className="p-5 pb-3 flex items-center justify-between border-b border-border">
+        <div className="p-4 pb-3 flex items-center justify-between border-b border-border">
           <div className="flex items-center gap-2.5">
             <img src={logo} alt="GameNight" className="w-8 h-8" />
             <div>
               <h1 className="text-base font-display font-bold text-foreground">GameNight</h1>
-              <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">Tracker</span>
+              <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold tracking-wide">Tracker</span>
             </div>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all">
@@ -162,54 +206,179 @@ const Index = () => {
         </div>
 
         {/* User Info */}
-        <div className="px-5 py-4 border-b border-border">
+        <div className="px-4 py-3 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-lg font-bold text-primary">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
               {displayName[0]?.toUpperCase() || "?"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{displayName}</p>
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
             </div>
           </div>
-          {activeGroup && (
-            <div className="mt-3 flex items-center gap-2 bg-primary/5 border border-primary/10 rounded-lg px-3 py-2">
-              <UsersRound className="w-4 h-4 text-primary" />
-              <span className="text-xs font-semibold text-primary truncate">{activeGroup.name}</span>
-            </div>
-          )}
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {tabs.map(tab => {
-            const disabled = tab.requiresGroup && !activeGroup;
+        {/* Group Selector */}
+        {groups.length > 0 && (
+          <div className="px-3 py-2 border-b border-border">
+            <button
+              onClick={() => setGroupSelectorOpen(!groupSelectorOpen)}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-all"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <UsersRound className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-xs font-semibold text-primary truncate">
+                  {activeGroup?.name || "Seleccionar grupo"}
+                </span>
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 text-primary/60 transition-transform ${groupSelectorOpen ? "rotate-180" : ""}`} />
+            </button>
+            <AnimatePresence>
+              {groupSelectorOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-1.5 space-y-0.5">
+                    {groups.map(g => (
+                      <button
+                        key={g.id}
+                        onClick={() => {
+                          selectGroup(g.id);
+                          setGroupSelectorOpen(false);
+                          if (activeTab === "groups") setActiveTab("dashboard");
+                        }}
+                        className={`w-full text-left px-3 py-1.5 rounded-md text-xs transition-all ${
+                          g.id === activeGroupId
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        }`}
+                      >
+                        {g.name}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-0.5">
+          {navSections.map(section => {
+            const SectionIcon = section.icon;
+            const isExpanded = expandedSection === section.label;
+            const hasActiveItem = section.items.some(i => i.id === activeTab);
+            const isSingleItem = section.items.length === 1;
+
+            if (isSingleItem) {
+              const item = section.items[0];
+              const disabled = item.requiresGroup && !activeGroup;
+              return (
+                <button
+                  key={section.label}
+                  onClick={() => handleTabClick(item.id)}
+                  disabled={disabled}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    disabled ? "opacity-30 cursor-not-allowed" :
+                    activeTab === item.id ? "bg-primary text-primary-foreground shadow-md" :
+                    "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  <SectionIcon className="w-4.5 h-4.5" />
+                  <span>{section.label}</span>
+                </button>
+              );
+            }
+
             return (
-              <button key={tab.id} onClick={() => handleTabClick(tab.id)} disabled={disabled}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  disabled ? "opacity-30 cursor-not-allowed" :
-                  activeTab === tab.id ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                }`}>
-                <span className="text-base w-6 text-center">{tab.emoji}</span>
-                <span>{tab.label}</span>
-              </button>
+              <div key={section.label}>
+                <button
+                  onClick={() => toggleSection(section.label)}
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    hasActiveItem ? "text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <SectionIcon className="w-4.5 h-4.5" />
+                    <span>{section.label}</span>
+                  </div>
+                  <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="ml-5 pl-3 border-l border-border/50 space-y-0.5 py-0.5">
+                        {section.items.map(item => {
+                          const disabled = item.requiresGroup && !activeGroup;
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => handleTabClick(item.id)}
+                              disabled={disabled}
+                              className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                disabled ? "opacity-30 cursor-not-allowed" :
+                                activeTab === item.id ? "bg-primary text-primary-foreground shadow-sm" :
+                                "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              }`}
+                            >
+                              {item.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             );
           })}
         </nav>
 
-        {/* Sidebar Footer */}
-        <div className="p-4 border-t border-border space-y-2">
-          {activeGroup && (
-            <button onClick={handleShareGroup} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-all">
-              <Share2 className="w-4 h-4" /> Share Leaderboard
-            </button>
-          )}
-          <div className="flex gap-2">
-            <button onClick={cycleTheme} className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-secondary text-muted-foreground text-xs font-semibold hover:text-foreground transition-all">
+        {/* Bottom Section */}
+        <div className="border-t border-border px-3 py-2 space-y-0.5">
+          <button
+            onClick={() => handleTabClick("profile")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === "profile" ? "bg-primary text-primary-foreground shadow-md" :
+              "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            <UserCircle className="w-4.5 h-4.5" />
+            <span>{t("tab.profile")}</span>
+          </button>
+          <button
+            onClick={() => handleTabClick("settings")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === "settings" ? "bg-primary text-primary-foreground shadow-md" :
+              "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            <Settings className="w-4.5 h-4.5" />
+            <span>{t("settings.title")}</span>
+          </button>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={cycleTheme}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-secondary text-muted-foreground text-xs font-medium hover:text-foreground transition-all"
+            >
               <ThemeIcon className="w-4 h-4" />
-              {themeMode === "system" ? "System" : isDark ? t("profile.dark") : t("profile.light")}
+              <span>{themeMode === "system" ? "System" : isDark ? t("profile.dark") : t("profile.light")}</span>
             </button>
-            <button onClick={signOut} className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-destructive/10 text-destructive text-xs font-semibold hover:bg-destructive/15 transition-all">
+            <button
+              onClick={signOut}
+              className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/15 transition-all"
+              aria-label="Logout"
+            >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -217,7 +386,7 @@ const Index = () => {
       </motion.aside>
 
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 safe-area-top">
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-all">
@@ -233,16 +402,9 @@ const Index = () => {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {activeGroup && (
-              <button onClick={handleShareGroup} className="p-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-all" aria-label="Share">
-                <Share2 className="w-4 h-4" />
-              </button>
-            )}
-            <button onClick={cycleTheme} className="p-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-all" aria-label="Toggle theme">
-              <ThemeIcon className="w-4 h-4" />
-            </button>
-          </div>
+          <button onClick={cycleTheme} className="p-2 rounded-lg bg-secondary text-foreground hover:bg-secondary/80 transition-all" aria-label="Toggle theme">
+            <ThemeIcon className="w-4 h-4" />
+          </button>
         </div>
       </header>
 
