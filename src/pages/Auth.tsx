@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, KeyRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -11,12 +12,17 @@ type Mode = "login" | "signup" | "reset";
 
 export default function Auth() {
   const { t } = useI18n();
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) navigate("/");
+  }, [authLoading, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,8 +46,6 @@ export default function Auth() {
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else if (mode === "signup") {
-      toast({ title: t("auth.signupSuccess"), description: t("auth.signupSuccessMsg") });
     }
   };
 
