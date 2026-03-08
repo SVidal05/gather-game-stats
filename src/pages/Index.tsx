@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, Swords } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
 import { DashboardTab, PlayersTab, SessionsTab } from "@/components/GameTabs";
 import { RankingTab, ChartsTab } from "@/components/RankingCharts";
+import { GamesTab } from "@/components/GamesTab";
 
-type Tab = "dashboard" | "players" | "sessions" | "ranking" | "charts";
+type Tab = "dashboard" | "players" | "sessions" | "games" | "ranking" | "charts";
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Home", icon: LayoutDashboard },
   { id: "players", label: "Players", icon: Users },
   { id: "sessions", label: "Sessions", icon: Gamepad2 },
+  { id: "games", label: "Games", icon: Swords },
   { id: "ranking", label: "Ranking", icon: Trophy },
   { id: "charts", label: "Charts", icon: BarChart3 },
 ];
@@ -46,6 +48,7 @@ const Index = () => {
           {activeTab === "sessions" && (
             <SessionsTab players={players} sessions={sessions} onAddSession={addSession} onRemoveSession={removeSession} />
           )}
+          {activeTab === "games" && <GamesTab players={players} sessions={sessions} />}
           {activeTab === "ranking" && <RankingTab players={players} sessions={sessions} />}
           {activeTab === "charts" && <ChartsTab players={players} sessions={sessions} />}
         </motion.div>
@@ -53,7 +56,7 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-lg border-t border-border">
-        <div className="max-w-lg mx-auto flex justify-around px-2 py-2">
+        <div className="max-w-lg mx-auto flex justify-around px-1 py-2">
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -61,7 +64,7 @@ const Index = () => {
               className={`nav-tab relative ${activeTab === tab.id ? "nav-tab-active" : "nav-tab-inactive"}`}
             >
               <tab.icon className="w-5 h-5" />
-              <span>{tab.label}</span>
+              <span className="text-[10px]">{tab.label}</span>
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="activeTab"
