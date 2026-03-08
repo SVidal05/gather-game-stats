@@ -3,16 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Player, GameSession, PlayerStats, PlayerResult } from "./types";
 
-export function usePlayers() {
+export function usePlayers(groupId: string | null) {
   const { user } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPlayers = useCallback(async () => {
-    if (!user) { setPlayers([]); setLoading(false); return; }
+    if (!user || !groupId) { setPlayers([]); setLoading(false); return; }
     const { data } = await supabase
       .from("players")
       .select("*")
+      .eq("group_id", groupId)
       .order("created_at", { ascending: true });
     if (data) {
       setPlayers(data.map(p => ({
@@ -24,21 +25,21 @@ export function usePlayers() {
       })));
     }
     setLoading(false);
-  }, [user]);
+  }, [user, groupId]);
 
   useEffect(() => { fetchPlayers(); }, [fetchPlayers]);
 
   const addPlayer = useCallback(async (player: Omit<Player, "id" | "createdAt">) => {
-    if (!user) return;
+    if (!user || !groupId) return;
     const { data } = await supabase
       .from("players")
-      .insert({ user_id: user.id, name: player.name, color: player.color, avatar: player.avatar })
+      .insert({ user_id: user.id, group_id: groupId, name: player.name, color: player.color, avatar: player.avatar })
       .select()
       .single();
     if (data) {
       setPlayers(prev => [...prev, { id: data.id, name: data.name, color: data.color, avatar: data.avatar, createdAt: data.created_at }]);
     }
-  }, [user]);
+  }, [user, groupId]);
 
   const removePlayer = useCallback(async (id: string) => {
     await supabase.from("players").delete().eq("id", id);
@@ -57,26 +58,33 @@ export function usePlayers() {
   return { players, addPlayer, removePlayer, updatePlayer, loading };
 }
 
-export function useSessions() {
+export function useSessions(groupId: string | null) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchSessions = useCallback(async () => {
-    if (!user) { setSessions([]); setLoading(false); return; }
+    if (!user || !groupId) { setSessions([]); setLoading(false); return; }
     const { data: sessionsData } = await supabase
       .from("sessions")
       .select("*")
+      .eq("group_id", groupId)
       .order("created_at", { ascending: true });
 
     if (!sessionsData) { setLoading(false); return; }
 
-    const { data: resultsData } = await supabase
-      .from("results")
-      .select("*");
+    const sessionIds = sessionsData.map(s => s.id);
+    let allResults: any[] = [];
+    if (sessionIds.length > 0) {
+      const { data: resultsData } = await supabase
+        .from("results")
+        .select("*")
+        .in("session_id", sessionIds);
+      allResults = resultsData || [];
+    }
 
     const resultsBySession = new Map<string, PlayerResult[]>();
-    (resultsData || []).forEach(r => {
+    allResults.forEach(r => {
       const arr = resultsBySession.get(r.session_id) || [];
       arr.push({ playerId: r.player_id, score: r.score, isWinner: r.is_winner });
       resultsBySession.set(r.session_id, arr);
@@ -94,16 +102,18 @@ export function useSessions() {
       createdAt: s.created_at,
     })));
     setLoading(false);
-  }, [user]);
+  }, [user, groupId]);
 
   useEffect(() => { fetchSessions(); }, [fetchSessions]);
 
   const addSession = useCallback(async (session: Omit<GameSession, "id" | "createdAt">) => {
-    if (!user) return;
+    if (!user || !groupId) return;
     const { data: sessionData } = await supabase
       .from("sessions")
       .insert({
         user_id: user.id,
+        group_id: groupId,
+        created_by: user.id,
         name: session.name,
         game_name: session.gameName,
         date: session.date,
@@ -135,7 +145,7 @@ export function useSessions() {
       customStats: sessionData.custom_stats as any,
       createdAt: sessionData.created_at,
     }]);
-  }, [user]);
+  }, [user, groupId]);
 
   const removeSession = useCallback(async (id: string) => {
     await supabase.from("results").delete().eq("session_id", id);

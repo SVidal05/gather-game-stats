@@ -1,0 +1,254 @@
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+
+export interface Group {
+  id: string;
+  name: string;
+  ownerId: string;
+  inviteCode: string;
+  createdAt: string;
+}
+
+export interface GroupMember {
+  id: string;
+  groupId: string;
+  userId: string;
+  role: "admin" | "member";
+  joinedAt: string;
+  email?: string;
+  username?: string;
+}
+
+export interface GroupInvite {
+  id: string;
+  groupId: string;
+  email: string;
+  invitedBy: string;
+  status: "pending" | "accepted" | "declined";
+  createdAt: string;
+  groupName?: string;
+}
+
+export function useGroups() {
+  const { user } = useAuth();
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(() => {
+    try { return localStorage.getItem("gamenight_active_group"); } catch { return null; }
+  });
+
+  const fetchGroups = useCallback(async () => {
+    if (!user) { setGroups([]); setLoading(false); return; }
+    const { data } = await supabase
+      .from("groups")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (data) {
+      const mapped = data.map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        ownerId: g.owner_id,
+        inviteCode: g.invite_code,
+        createdAt: g.created_at,
+      }));
+      setGroups(mapped);
+      // Auto-select first group if none selected
+      if (!activeGroupId && mapped.length > 0) {
+        setActiveGroupId(mapped[0].id);
+        localStorage.setItem("gamenight_active_group", mapped[0].id);
+      }
+    }
+    setLoading(false);
+  }, [user, activeGroupId]);
+
+  useEffect(() => { fetchGroups(); }, [fetchGroups]);
+
+  const selectGroup = useCallback((id: string) => {
+    setActiveGroupId(id);
+    localStorage.setItem("gamenight_active_group", id);
+  }, []);
+
+  const createGroup = useCallback(async (name: string) => {
+    if (!user) return null;
+    // Create group
+    const { data: groupData, error } = await supabase
+      .from("groups")
+      .insert({ name, owner_id: user.id })
+      .select()
+      .single();
+    if (error || !groupData) return null;
+
+    // Add creator as admin member
+    await supabase.from("group_members").insert({
+      group_id: groupData.id,
+      user_id: user.id,
+      role: "admin",
+    });
+
+    const newGroup: Group = {
+      id: groupData.id,
+      name: groupData.name,
+      ownerId: groupData.owner_id,
+      inviteCode: groupData.invite_code,
+      createdAt: groupData.created_at,
+    };
+    setGroups(prev => [...prev, newGroup]);
+    setActiveGroupId(newGroup.id);
+    localStorage.setItem("gamenight_active_group", newGroup.id);
+    return newGroup;
+  }, [user]);
+
+  const joinGroupByCode = useCallback(async (code: string) => {
+    if (!user) return { error: "Not authenticated" };
+    const { data, error } = await supabase.rpc("join_group_by_code", { _code: code });
+    if (error) return { error: error.message };
+    // Refetch groups
+    await fetchGroups();
+    if (data) {
+      setActiveGroupId(data);
+      localStorage.setItem("gamenight_active_group", data);
+    }
+    return { error: null, groupId: data };
+  }, [user, fetchGroups]);
+
+  const updateGroupName = useCallback(async (groupId: string, name: string) => {
+    await supabase.from("groups").update({ name }).eq("id", groupId);
+    setGroups(prev => prev.map(g => g.id === groupId ? { ...g, name } : g));
+  }, []);
+
+  const deleteGroup = useCallback(async (groupId: string) => {
+    await supabase.from("groups").delete().eq("id", groupId);
+    setGroups(prev => prev.filter(g => g.id !== groupId));
+    if (activeGroupId === groupId) {
+      const remaining = groups.filter(g => g.id !== groupId);
+      const next = remaining[0]?.id || null;
+      setActiveGroupId(next);
+      if (next) localStorage.setItem("gamenight_active_group", next);
+      else localStorage.removeItem("gamenight_active_group");
+    }
+  }, [activeGroupId, groups]);
+
+  const leaveGroup = useCallback(async (groupId: string) => {
+    if (!user) return;
+    await supabase.from("group_members").delete().eq("group_id", groupId).eq("user_id", user.id);
+    setGroups(prev => prev.filter(g => g.id !== groupId));
+    if (activeGroupId === groupId) {
+      const remaining = groups.filter(g => g.id !== groupId);
+      const next = remaining[0]?.id || null;
+      setActiveGroupId(next);
+      if (next) localStorage.setItem("gamenight_active_group", next);
+      else localStorage.removeItem("gamenight_active_group");
+    }
+  }, [user, activeGroupId, groups]);
+
+  const activeGroup = groups.find(g => g.id === activeGroupId) || null;
+
+  return {
+    groups, loading, activeGroup, activeGroupId,
+    selectGroup, createGroup, joinGroupByCode,
+    updateGroupName, deleteGroup, leaveGroup,
+    refetch: fetchGroups,
+  };
+}
+
+export function useGroupMembers(groupId: string | null) {
+  const [members, setMembers] = useState<GroupMember[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchMembers = useCallback(async () => {
+    if (!groupId) { setMembers([]); setLoading(false); return; }
+    const { data } = await supabase
+      .from("group_members")
+      .select("*")
+      .eq("group_id", groupId)
+      .order("joined_at", { ascending: true });
+    if (data) {
+      // Fetch profiles for usernames
+      const userIds = data.map((m: any) => m.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, username")
+        .in("user_id", userIds);
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p.username]));
+
+      setMembers(data.map((m: any) => ({
+        id: m.id,
+        groupId: m.group_id,
+        userId: m.user_id,
+        role: m.role as "admin" | "member",
+        joinedAt: m.joined_at,
+        username: profileMap.get(m.user_id) || "",
+      })));
+    }
+    setLoading(false);
+  }, [groupId]);
+
+  useEffect(() => { fetchMembers(); }, [fetchMembers]);
+
+  const removeMember = useCallback(async (memberId: string) => {
+    await supabase.from("group_members").delete().eq("id", memberId);
+    setMembers(prev => prev.filter(m => m.id !== memberId));
+  }, []);
+
+  const inviteByEmail = useCallback(async (email: string, invitedBy: string) => {
+    if (!groupId) return { error: "No group" };
+    const { error } = await supabase.from("group_invites").insert({
+      group_id: groupId,
+      email,
+      invited_by: invitedBy,
+    });
+    return { error: error?.message || null };
+  }, [groupId]);
+
+  return { members, loading, removeMember, inviteByEmail, refetch: fetchMembers };
+}
+
+export function usePendingInvites() {
+  const { user } = useAuth();
+  const [invites, setInvites] = useState<GroupInvite[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchInvites = useCallback(async () => {
+    if (!user?.email) { setInvites([]); setLoading(false); return; }
+    const { data } = await supabase
+      .from("group_invites")
+      .select("*, groups:group_id(name)")
+      .eq("email", user.email)
+      .eq("status", "pending");
+    if (data) {
+      setInvites(data.map((inv: any) => ({
+        id: inv.id,
+        groupId: inv.group_id,
+        email: inv.email,
+        invitedBy: inv.invited_by,
+        status: inv.status,
+        createdAt: inv.created_at,
+        groupName: inv.groups?.name || "",
+      })));
+    }
+    setLoading(false);
+  }, [user?.email]);
+
+  useEffect(() => { fetchInvites(); }, [fetchInvites]);
+
+  const acceptInvite = useCallback(async (invite: GroupInvite) => {
+    if (!user) return;
+    // Add as member
+    await supabase.from("group_members").insert({
+      group_id: invite.groupId,
+      user_id: user.id,
+      role: "member",
+    });
+    // Mark invite as accepted
+    await supabase.from("group_invites").update({ status: "accepted" }).eq("id", invite.id);
+    setInvites(prev => prev.filter(i => i.id !== invite.id));
+  }, [user]);
+
+  const declineInvite = useCallback(async (inviteId: string) => {
+    await supabase.from("group_invites").update({ status: "declined" }).eq("id", inviteId);
+    setInvites(prev => prev.filter(i => i.id !== inviteId));
+  }, []);
+
+  return { invites, loading, acceptInvite, declineInvite, refetch: fetchInvites };
+}
