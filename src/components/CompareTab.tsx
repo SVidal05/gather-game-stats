@@ -16,13 +16,13 @@ interface CompareTabProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-card border border-border rounded-xl p-2 shadow-lg text-xs">
-      <p className="font-bold text-foreground mb-0.5">{label}</p>
+    <div className="bg-card border border-border rounded-lg p-2.5 shadow-lg text-xs">
+      <p className="font-semibold text-foreground mb-1">{label}</p>
       {payload.map((entry: any, i: number) => (
-        <p key={i} className="flex items-center gap-1">
+        <p key={i} className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-muted-foreground">{entry.name}:</span>
-          <span className="font-bold text-foreground">{typeof entry.value === "number" ? entry.value.toFixed(1) : entry.value}</span>
+          <span className="font-semibold text-foreground">{typeof entry.value === "number" ? entry.value.toFixed(1) : entry.value}</span>
         </p>
       ))}
     </div>
@@ -38,7 +38,6 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
   const p1Stats = stats.find(s => s.player.id === player1Id);
   const p2Stats = stats.find(s => s.player.id === player2Id);
 
-  // Head to head
   const headToHead = useMemo(() => {
     if (!player1Id || !player2Id) return { p1Wins: 0, p2Wins: 0, draws: 0 };
     let p1Wins = 0, p2Wins = 0, draws = 0;
@@ -64,20 +63,20 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
   }, [p1Stats, p2Stats, t]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-extrabold text-foreground flex items-center gap-2">
-          <GitCompareArrows className="w-5 h-5 text-primary" /> Compare
+        <h2 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
+          <GitCompareArrows className="w-6 h-6 text-primary" /> Compare
         </h2>
-        <p className="text-muted-foreground text-xs mt-0.5">Side-by-side player comparison</p>
+        <p className="text-muted-foreground text-sm mt-1">Side-by-side player comparison</p>
       </div>
 
       {/* Player Selectors */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[10px] font-semibold text-muted-foreground">Player 1</label>
+          <label className="text-xs font-medium text-muted-foreground">Player 1</label>
           <Select value={player1Id} onValueChange={setPlayer1Id}>
-            <SelectTrigger className="rounded-xl mt-1 h-11"><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectTrigger className="rounded-lg mt-1 h-11"><SelectValue placeholder="Select" /></SelectTrigger>
             <SelectContent>
               {players.filter(p => p.id !== player2Id).map(p => (
                 <SelectItem key={p.id} value={p.id}>{p.avatar} {p.name}</SelectItem>
@@ -86,9 +85,9 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
           </Select>
         </div>
         <div>
-          <label className="text-[10px] font-semibold text-muted-foreground">Player 2</label>
+          <label className="text-xs font-medium text-muted-foreground">Player 2</label>
           <Select value={player2Id} onValueChange={setPlayer2Id}>
-            <SelectTrigger className="rounded-xl mt-1 h-11"><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectTrigger className="rounded-lg mt-1 h-11"><SelectValue placeholder="Select" /></SelectTrigger>
             <SelectContent>
               {players.filter(p => p.id !== player1Id).map(p => (
                 <SelectItem key={p.id} value={p.id}>{p.avatar} {p.name}</SelectItem>
@@ -101,30 +100,30 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
       {p1Stats && p2Stats && (
         <>
           {/* Head to Head */}
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="game-card !p-4">
-            <h3 className="text-xs font-bold text-foreground text-center mb-3">⚔️ Head to Head</h3>
-            <div className="grid grid-cols-3 gap-2 text-center">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="game-card !p-5">
+            <h3 className="text-sm font-display font-semibold text-foreground text-center mb-4">⚔️ Head to Head</h3>
+            <div className="grid grid-cols-3 gap-3 text-center">
               <div>
-                <div className="text-2xl">{p1Stats.player.avatar}</div>
-                <p className="text-sm font-bold text-foreground mt-1">{p1Stats.player.name}</p>
-                <p className="text-2xl font-extrabold mt-1" style={{ color: p1Stats.player.color }}>{headToHead.p1Wins}</p>
+                <div className="text-3xl">{p1Stats.player.avatar}</div>
+                <p className="text-sm font-semibold text-foreground mt-1">{p1Stats.player.name}</p>
+                <p className="text-3xl font-display font-bold mt-2" style={{ color: p1Stats.player.color }}>{headToHead.p1Wins}</p>
               </div>
               <div className="flex flex-col items-center justify-center">
-                <p className="text-[10px] text-muted-foreground font-bold">VS</p>
-                {headToHead.draws > 0 && <p className="text-[10px] text-muted-foreground">{headToHead.draws} draws</p>}
+                <p className="text-xs text-muted-foreground font-semibold">VS</p>
+                {headToHead.draws > 0 && <p className="text-xs text-muted-foreground mt-1">{headToHead.draws} draws</p>}
               </div>
               <div>
-                <div className="text-2xl">{p2Stats.player.avatar}</div>
-                <p className="text-sm font-bold text-foreground mt-1">{p2Stats.player.name}</p>
-                <p className="text-2xl font-extrabold mt-1" style={{ color: p2Stats.player.color }}>{headToHead.p2Wins}</p>
+                <div className="text-3xl">{p2Stats.player.avatar}</div>
+                <p className="text-sm font-semibold text-foreground mt-1">{p2Stats.player.name}</p>
+                <p className="text-3xl font-display font-bold mt-2" style={{ color: p2Stats.player.color }}>{headToHead.p2Wins}</p>
               </div>
             </div>
           </motion.div>
 
           {/* Stats Comparison */}
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="game-card space-y-3">
-            <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-primary" /> Stats
+            <h3 className="text-sm font-display font-semibold text-foreground flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary" /> Stats
             </h3>
             {[
               { label: t("ranking.games"), v1: p1Stats.gamesPlayed, v2: p2Stats.gamesPlayed },
@@ -137,9 +136,9 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
               const n2 = typeof row.v2 === "number" ? row.v2 : parseFloat(String(row.v2));
               return (
                 <div key={i} className="flex items-center gap-2">
-                  <span className={`flex-1 text-right text-sm font-bold ${n1 > n2 ? "text-foreground" : "text-muted-foreground"}`}>{row.v1}</span>
-                  <span className="text-[10px] text-muted-foreground font-semibold w-20 text-center bg-secondary/50 rounded-lg px-2 py-1">{row.label}</span>
-                  <span className={`flex-1 text-left text-sm font-bold ${n2 > n1 ? "text-foreground" : "text-muted-foreground"}`}>{row.v2}</span>
+                  <span className={`flex-1 text-right text-sm font-semibold ${n1 > n2 ? "text-foreground" : "text-muted-foreground"}`}>{row.v1}</span>
+                  <span className="text-xs text-muted-foreground font-medium w-24 text-center bg-secondary rounded-md px-2 py-1">{row.label}</span>
+                  <span className={`flex-1 text-left text-sm font-semibold ${n2 > n1 ? "text-foreground" : "text-muted-foreground"}`}>{row.v2}</span>
                 </div>
               );
             })}
@@ -147,13 +146,13 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
 
           {/* Comparison Chart */}
           {comparisonData.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="game-card !p-3">
-              <h3 className="font-bold text-foreground text-xs mb-3">📊 Comparison</h3>
-              <ResponsiveContainer width="100%" height={180}>
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="game-card !p-4">
+              <h3 className="font-display font-semibold text-foreground text-sm mb-4">📊 Comparison</h3>
+              <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={comparisonData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="stat" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                  <XAxis dataKey="stat" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey={p1Stats.player.name} fill={p1Stats.player.color} radius={[4, 4, 0, 0]} />
                   <Bar dataKey={p2Stats.player.name} fill={p2Stats.player.color} radius={[4, 4, 0, 0]} />
@@ -165,9 +164,9 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
       )}
 
       {(!player1Id || !player2Id) && (
-        <div className="text-center py-10">
+        <div className="text-center py-12">
           <div className="text-4xl mb-2">⚔️</div>
-          <p className="text-muted-foreground font-semibold text-sm">Select two players to compare</p>
+          <p className="text-muted-foreground font-medium text-sm">Select two players to compare</p>
         </div>
       )}
     </div>
