@@ -71,27 +71,16 @@ export function useGroups() {
 
   const createGroup = useCallback(async (name: string) => {
     if (!user) return null;
-    // Create group
-    const { data: groupData, error } = await supabase
-      .from("groups")
-      .insert({ name, owner_id: user.id })
-      .select()
-      .single();
+    const { data: groupData, error } = await supabase.rpc("create_group_with_owner", { _name: name });
     if (error || !groupData) return null;
 
-    // Add creator as admin member
-    await supabase.from("group_members").insert({
-      group_id: groupData.id,
-      user_id: user.id,
-      role: "admin",
-    });
-
+    const g = groupData as any;
     const newGroup: Group = {
-      id: groupData.id,
-      name: groupData.name,
-      ownerId: groupData.owner_id,
-      inviteCode: groupData.invite_code,
-      createdAt: groupData.created_at,
+      id: g.id,
+      name: g.name,
+      ownerId: g.owner_id,
+      inviteCode: g.invite_code,
+      createdAt: g.created_at,
     };
     setGroups(prev => [...prev, newGroup]);
     setActiveGroupId(newGroup.id);
