@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3, Swords } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
 import { DashboardTab, PlayersTab, SessionsTab } from "@/components/GameTabs";
@@ -19,34 +19,34 @@ const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const { players, addPlayer, removePlayer } = usePlayers();
-  const { sessions, addSession, removeSession } = useSessions();
+  const { players, addPlayer, removePlayer, updatePlayer } = usePlayers();
+  const { sessions, addSession, removeSession, updateSession } = useSessions();
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 py-3">
+      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border/60 px-4 py-2.5 safe-area-top">
         <div className="max-w-lg mx-auto flex items-center gap-2">
-          <span className="text-2xl">🎲</span>
-          <h1 className="text-xl font-extrabold text-foreground">GameNight</h1>
-          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold ml-1">Tracker</span>
+          <span className="text-xl">🎲</span>
+          <h1 className="text-lg font-extrabold text-foreground">GameNight</h1>
+          <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold ml-0.5">Tracker</span>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-lg mx-auto px-4 py-6">
+      <main className="max-w-lg mx-auto px-3 py-4">
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.15 }}
         >
           {activeTab === "dashboard" && <DashboardTab players={players} sessions={sessions} />}
           {activeTab === "players" && (
-            <PlayersTab players={players} sessions={sessions} onAddPlayer={addPlayer} onRemovePlayer={removePlayer} />
+            <PlayersTab players={players} sessions={sessions} onAddPlayer={addPlayer} onRemovePlayer={removePlayer} onUpdatePlayer={updatePlayer} />
           )}
           {activeTab === "sessions" && (
-            <SessionsTab players={players} sessions={sessions} onAddSession={addSession} onRemoveSession={removeSession} />
+            <SessionsTab players={players} sessions={sessions} onAddSession={addSession} onRemoveSession={removeSession} onUpdateSession={updateSession} />
           )}
           {activeTab === "games" && <GamesTab players={players} sessions={sessions} />}
           {activeTab === "ranking" && <RankingTab players={players} sessions={sessions} />}
@@ -54,22 +54,22 @@ const Index = () => {
         </motion.div>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-lg border-t border-border">
-        <div className="max-w-lg mx-auto flex justify-around px-1 py-2">
+      {/* Bottom Navigation - iOS style */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/92 backdrop-blur-xl border-t border-border/60 safe-area-bottom">
+        <div className="max-w-lg mx-auto flex justify-around px-1 py-1.5">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`nav-tab relative ${activeTab === tab.id ? "nav-tab-active" : "nav-tab-inactive"}`}
             >
-              <tab.icon className="w-5 h-5" />
-              <span className="text-[10px]">{tab.label}</span>
+              <tab.icon className="w-[18px] h-[18px]" />
+              <span className="text-[9px] leading-tight">{tab.label}</span>
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="activeTab"
                   className="absolute inset-0 bg-primary rounded-xl -z-10"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
                 />
               )}
             </button>
