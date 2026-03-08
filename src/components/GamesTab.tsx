@@ -1,13 +1,13 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, BarChart3 } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji, GameTheme } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   PieChart, Pie, Cell, Area, AreaChart,
 } from "recharts";
 
@@ -16,10 +16,25 @@ interface GamesTabProps {
   sessions: GameSession[];
 }
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-card border border-border rounded-xl p-2.5 shadow-lg text-xs">
+      <p className="font-bold text-foreground mb-1">{label}</p>
+      {payload.map((entry: any, i: number) => (
+        <p key={i} className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-muted-foreground">{entry.name}:</span>
+          <span className="font-bold text-foreground">{entry.value}</span>
+        </p>
+      ))}
+    </div>
+  );
+};
+
 export function GamesTab({ players, sessions }: GamesTabProps) {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
 
-  // Get unique games played
   const gamesPlayed = useMemo(() => {
     const gameMap = new Map<string, { count: number; lastPlayed: string }>();
     sessions.forEach(s => {
@@ -36,7 +51,6 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
       .sort((a, b) => b.count - a.count);
   }, [sessions]);
 
-  // All known games (played + from themes)
   const allGames = useMemo(() => {
     const played = new Set(gamesPlayed.map(g => g.name));
     const unplayed = Object.keys(GAME_THEMES)
@@ -57,51 +71,51 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h2 className="text-2xl font-extrabold text-foreground">Games</h2>
-        <p className="text-muted-foreground text-sm mt-1">Explore stats by game type</p>
+        <h2 className="text-xl font-extrabold text-foreground">Games</h2>
+        <p className="text-muted-foreground text-xs mt-0.5">Explore stats by game type</p>
       </div>
 
-      {/* Games played */}
       {gamesPlayed.length > 0 && (
         <div>
-          <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
-            <Flame className="w-4 h-4" style={{ color: "hsl(var(--game-orange))" }} />
+          <h3 className="font-bold text-foreground text-sm mb-2 flex items-center gap-1.5">
+            <Flame className="w-3.5 h-3.5" style={{ color: "hsl(var(--game-orange))" }} />
             Your Games
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {gamesPlayed.map((game, i) => (
               <motion.button
                 key={game.name}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: i * 0.04 }}
                 onClick={() => setSelectedGame(game.name)}
                 className="game-card w-full text-left !p-0 overflow-hidden"
+                whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-stretch">
-                  <div className="w-20 h-20 shrink-0 relative overflow-hidden">
+                  <div className="w-16 h-16 shrink-0 relative overflow-hidden">
                     <img src={game.theme.image} alt={game.name} className="w-full h-full object-cover" />
                     <div className="absolute inset-0" style={{ background: game.theme.gradient, opacity: 0.3 }} />
                   </div>
-                  <div className="flex-1 p-3 flex items-center justify-between">
+                  <div className="flex-1 p-2.5 flex items-center justify-between">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{game.theme.emoji}</span>
-                        <span className="font-bold text-foreground">{game.name}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-base">{game.theme.emoji}</span>
+                        <span className="font-bold text-sm text-foreground">{game.name}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
                         <span>{game.count} session{game.count !== 1 ? "s" : ""}</span>
                         <span
-                          className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                          className="px-1 py-px rounded-full font-bold"
                           style={{ backgroundColor: getCategoryColor(game.theme.category) + "22", color: getCategoryColor(game.theme.category) }}
                         >
                           {getCategoryEmoji(game.theme.category)} {game.theme.category}
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </div>
               </motion.button>
@@ -110,27 +124,27 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
         </div>
       )}
 
-      {/* Discover games */}
       <div>
-        <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
-          <Target className="w-4 h-4" style={{ color: "hsl(var(--game-purple))" }} />
+        <h3 className="font-bold text-foreground text-sm mb-2 flex items-center gap-1.5">
+          <Target className="w-3.5 h-3.5" style={{ color: "hsl(var(--game-purple))" }} />
           {gamesPlayed.length > 0 ? "Discover More" : "Popular Games"}
         </h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {allGames.filter(g => g.count === 0).map((game, i) => (
             <motion.button
               key={game.name}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: i * 0.04 }}
               onClick={() => setSelectedGame(game.name)}
               className="game-card !p-0 overflow-hidden text-left"
+              whileTap={{ scale: 0.96 }}
             >
-              <div className="relative h-24 overflow-hidden">
+              <div className="relative h-20 overflow-hidden">
                 <img src={game.theme.image} alt={game.name} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
-                <div className="absolute bottom-2 left-2 right-2">
-                  <p className="font-bold text-foreground text-sm flex items-center gap-1">
+                <div className="absolute bottom-1.5 left-2 right-2">
+                  <p className="font-bold text-foreground text-xs flex items-center gap-1">
                     {game.theme.emoji} {game.name}
                   </p>
                 </div>
@@ -142,8 +156,8 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
 
       {sessions.length === 0 && (
         <div className="text-center py-8">
-          <div className="text-5xl mb-3">🎮</div>
-          <p className="text-muted-foreground font-semibold">Play some games to see detailed stats here!</p>
+          <div className="text-4xl mb-2">🎮</div>
+          <p className="text-muted-foreground font-semibold text-sm">Play some games to see detailed stats here!</p>
         </div>
       )}
     </div>
@@ -160,17 +174,15 @@ function GameDetailView({
   const gameSessions = sessions.filter(s => s.gameName === gameName);
   const gameStats = getPlayerStats(players, gameSessions);
   const activePlayers = gameStats.filter(s => s.gamesPlayed > 0);
-  const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history">("wins");
+  const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom">("wins");
+  const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
 
-  // Top player for this game
   const topPlayer = activePlayers.length > 0 ? activePlayers.reduce((a, b) => a.wins > b.wins ? a : b) : null;
 
-  // Win distribution for pie chart
   const winDistribution = activePlayers
     .filter(s => s.wins > 0)
     .map(s => ({ name: s.player.name, value: s.wins, color: s.player.color }));
 
-  // Score progression per session
   const scoreHistory = gameSessions.map((s, i) => {
     const entry: Record<string, any> = { session: `#${i + 1}`, name: s.name };
     s.results.forEach(r => {
@@ -180,13 +192,11 @@ function GameDetailView({
     return entry;
   });
 
-  // Radar chart data: normalize stats for comparison
   const radarData = useMemo(() => {
     if (activePlayers.length === 0) return [];
     const maxWins = Math.max(...activePlayers.map(s => s.wins), 1);
     const maxGames = Math.max(...activePlayers.map(s => s.gamesPlayed), 1);
     const maxPoints = Math.max(...activePlayers.map(s => s.totalPoints), 1);
-    const maxWinRate = 100;
 
     return [
       { stat: "Wins", ...Object.fromEntries(activePlayers.map(s => [s.player.name, (s.wins / maxWins) * 100])) },
@@ -197,43 +207,67 @@ function GameDetailView({
     ];
   }, [activePlayers]);
 
-  // Average score per player for bar chart
   const performanceData = activePlayers.map(s => ({
     name: s.player.name,
     avgScore: s.gamesPlayed > 0 ? Math.round(s.totalPoints / s.gamesPlayed) : 0,
     color: s.player.color,
   })).sort((a, b) => b.avgScore - a.avgScore);
 
+  // Aggregate custom stats
+  const aggregatedCustomStats = useMemo(() => {
+    const result: Record<string, Record<string, { total: number; count: number; values: string[] }>> = {};
+    gameSessions.forEach(s => {
+      if (!s.customStats) return;
+      Object.entries(s.customStats).forEach(([pid, stats]) => {
+        if (!result[pid]) result[pid] = {};
+        Object.entries(stats).forEach(([key, value]) => {
+          if (!result[pid][key]) result[pid][key] = { total: 0, count: 0, values: [] };
+          const numVal = Number(value);
+          if (!isNaN(numVal) && value !== "") {
+            result[pid][key].total += numVal;
+            result[pid][key].count++;
+          } else if (typeof value === "string" && value) {
+            result[pid][key].values.push(value);
+          }
+        });
+      });
+    });
+    return result;
+  }, [gameSessions]);
+
+  const hasCustomStats = Object.keys(aggregatedCustomStats).length > 0;
+
   const chartTabs = [
     { id: "wins" as const, label: "Wins", emoji: "🏆" },
-    { id: "performance" as const, label: "Average", emoji: "📊" },
+    { id: "performance" as const, label: "Avg", emoji: "📊" },
     { id: "radar" as const, label: "Radar", emoji: "🎯" },
     { id: "history" as const, label: "History", emoji: "📈" },
+    ...(hasCustomStats ? [{ id: "custom" as const, label: "Stats", emoji: theme.emoji }] : []),
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Hero Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="relative rounded-2xl overflow-hidden"
       >
-        <img src={theme.image} alt={theme.name} className="w-full h-44 object-cover" />
+        <img src={theme.image} alt={theme.name} className="w-full h-36 object-cover" />
         <div className="absolute inset-0" style={{ background: `${theme.gradient}`, opacity: 0.5 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
         <button
           onClick={onBack}
-          className="absolute top-3 left-3 bg-card/80 backdrop-blur-sm rounded-xl p-2 text-foreground hover:bg-card transition-colors"
+          className="absolute top-2.5 left-2.5 bg-card/80 backdrop-blur-sm rounded-xl p-1.5 text-foreground active:scale-90 transition-transform"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-4 h-4" />
         </button>
-        <div className="absolute bottom-3 left-4 right-4">
+        <div className="absolute bottom-2.5 left-3 right-3">
           <div className="flex items-center gap-2">
-            <span className="text-3xl">{theme.emoji}</span>
+            <span className="text-2xl">{theme.emoji}</span>
             <div>
-              <h2 className="text-2xl font-extrabold text-foreground">{theme.name}</h2>
-              <p className="text-xs text-muted-foreground">{theme.description}</p>
+              <h2 className="text-xl font-extrabold text-foreground">{theme.name}</h2>
+              <p className="text-[10px] text-muted-foreground">{theme.description}</p>
             </div>
           </div>
         </div>
@@ -250,78 +284,66 @@ function GameDetailView({
             key={stat.label}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + i * 0.08 }}
-            className="stat-card !p-3"
+            transition={{ delay: 0.1 + i * 0.06 }}
+            className="stat-card !p-2.5"
           >
-            <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
-            <span className="text-lg font-extrabold text-foreground truncate max-w-full">{stat.value}</span>
-            <span className="text-[10px] font-semibold text-muted-foreground">{stat.label}</span>
+            <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
+            <span className="text-base font-extrabold text-foreground truncate max-w-full">{stat.value}</span>
+            <span className="text-[9px] font-semibold text-muted-foreground">{stat.label}</span>
           </motion.div>
         ))}
       </div>
 
-      {/* Game-Specific Stats Hints */}
+      {/* Track Stats Hints */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="game-card"
+        transition={{ delay: 0.25 }}
+        className="game-card !p-3"
         style={{ borderColor: theme.primaryColor + "33" }}
       >
-        <h3 className="font-bold text-foreground text-sm mb-2 flex items-center gap-2">
-          <span className="text-lg">💡</span> Track These Stats
+        <h3 className="font-bold text-foreground text-xs mb-2 flex items-center gap-1.5">
+          <span className="text-base">💡</span> Track These Stats
         </h3>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1.5">
           {theme.customStats.map((stat, i) => (
             <motion.div
               key={stat.key}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 + i * 0.05 }}
-              className="flex items-center gap-2 bg-secondary/50 rounded-xl px-3 py-2"
+              transition={{ delay: 0.3 + i * 0.04 }}
+              className="flex items-center gap-1.5 bg-secondary/50 rounded-xl px-2.5 py-1.5"
             >
-              <span className="text-lg">{stat.emoji}</span>
-              <span className="text-xs font-semibold text-foreground">{stat.label}</span>
+              <span className="text-base">{stat.emoji}</span>
+              <span className="text-[10px] font-semibold text-foreground">{stat.label}</span>
             </motion.div>
-          ))}
-        </div>
-        <div className="mt-3 space-y-1">
-          {theme.tips.map((tip, i) => (
-            <p key={i} className="text-[11px] text-muted-foreground flex items-start gap-1">
-              <span>•</span> {tip}
-            </p>
           ))}
         </div>
       </motion.div>
 
-      {/* No data state */}
+      {/* Charts */}
       {gameSessions.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-8"
-        >
-          <div className="text-5xl mb-3">{theme.emoji}</div>
-          <p className="text-muted-foreground font-semibold">No sessions recorded for {theme.name} yet.</p>
-          <p className="text-xs text-muted-foreground mt-1">Create a session to see detailed charts!</p>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-6">
+          <div className="text-4xl mb-2">{theme.emoji}</div>
+          <p className="text-muted-foreground font-semibold text-sm">No sessions for {theme.name} yet.</p>
+          <p className="text-[10px] text-muted-foreground mt-1">Create a session to see charts!</p>
         </motion.div>
       ) : (
         <>
-          {/* Interactive Chart Tabs */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
+            transition={{ delay: 0.3 }}
           >
-            <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+            <div className="flex gap-1 mb-3 overflow-x-auto pb-0.5 scrollbar-hide">
               {chartTabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveChart(tab.id)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap active:scale-95 ${
                     activeChart === tab.id
                       ? "text-primary-foreground shadow-md"
-                      : "bg-secondary text-muted-foreground hover:text-foreground"
+                      : "bg-secondary text-muted-foreground"
                   }`}
                   style={activeChart === tab.id ? { background: theme.gradient } : {}}
                 >
@@ -333,68 +355,88 @@ function GameDetailView({
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeChart}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="game-card"
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="game-card !p-3"
               >
                 {activeChart === "wins" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-4 text-sm">🏆 Win Distribution</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">🏆 Win Distribution</h3>
                     {winDistribution.length > 0 ? (
-                      <div className="flex gap-4">
-                        <ResponsiveContainer width="50%" height={180}>
+                      <div className="flex gap-3">
+                        <ResponsiveContainer width="50%" height={160}>
                           <PieChart>
                             <Pie
                               data={winDistribution}
                               cx="50%"
                               cy="50%"
-                              innerRadius={40}
-                              outerRadius={70}
+                              innerRadius={35}
+                              outerRadius={60}
                               paddingAngle={4}
                               dataKey="value"
                               animationBegin={0}
                               animationDuration={800}
+                              onMouseEnter={(_, i) => setHoveredPlayer(winDistribution[i]?.name)}
+                              onMouseLeave={() => setHoveredPlayer(null)}
                             >
                               {winDistribution.map((entry, i) => (
-                                <Cell key={i} fill={entry.color} stroke="hsl(var(--card))" strokeWidth={2} />
+                                <Cell
+                                  key={i}
+                                  fill={entry.color}
+                                  stroke="hsl(var(--card))"
+                                  strokeWidth={2}
+                                  opacity={hoveredPlayer && hoveredPlayer !== entry.name ? 0.4 : 1}
+                                  style={{ transition: "opacity 0.2s", cursor: "pointer" }}
+                                />
                               ))}
                             </Pie>
-                            <Tooltip
-                              formatter={(value: number, name: string) => [`${value} wins`, name]}
-                              contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))" }}
-                            />
+                            <Tooltip content={<CustomTooltip />} />
                           </PieChart>
                         </ResponsiveContainer>
-                        <div className="flex-1 flex flex-col justify-center space-y-2">
+                        <div className="flex-1 flex flex-col justify-center space-y-1.5">
                           {winDistribution.map(entry => (
-                            <div key={entry.name} className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-                              <span className="text-xs font-semibold text-foreground flex-1">{entry.name}</span>
-                              <span className="text-xs font-bold text-muted-foreground">{entry.value}</span>
-                            </div>
+                            <motion.div
+                              key={entry.name}
+                              className="flex items-center gap-1.5 cursor-pointer rounded-lg px-1.5 py-0.5"
+                              onHoverStart={() => setHoveredPlayer(entry.name)}
+                              onHoverEnd={() => setHoveredPlayer(null)}
+                              animate={{ opacity: hoveredPlayer && hoveredPlayer !== entry.name ? 0.4 : 1 }}
+                            >
+                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                              <span className="text-[10px] font-semibold text-foreground flex-1">{entry.name}</span>
+                              <span className="text-[10px] font-bold text-muted-foreground">{entry.value}</span>
+                            </motion.div>
                           ))}
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground text-center py-6">No winners recorded yet</p>
+                      <p className="text-xs text-muted-foreground text-center py-4">No winners recorded yet</p>
                     )}
                   </>
                 )}
 
                 {activeChart === "performance" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-4 text-sm">📊 Average Score</h3>
-                    <ResponsiveContainer width="100%" height={200}>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">📊 Average Score</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                        <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))" }} />
-                        <Bar dataKey="avgScore" radius={[8, 8, 0, 0]} animationDuration={800}>
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                        <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="avgScore" radius={[6, 6, 0, 0]} animationDuration={800}
+                          onMouseEnter={(data) => setHoveredPlayer(data.name)}
+                          onMouseLeave={() => setHoveredPlayer(null)}
+                        >
                           {performanceData.map((entry, i) => (
-                            <Cell key={i} fill={entry.color} />
+                            <Cell
+                              key={i}
+                              fill={entry.color}
+                              opacity={hoveredPlayer && hoveredPlayer !== entry.name ? 0.4 : 1}
+                              style={{ transition: "opacity 0.2s", cursor: "pointer" }}
+                            />
                           ))}
                         </Bar>
                       </BarChart>
@@ -404,12 +446,12 @@ function GameDetailView({
 
                 {activeChart === "radar" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-4 text-sm">🎯 Player Comparison</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">🎯 Player Comparison</h3>
                     {radarData.length > 0 && activePlayers.length <= 6 ? (
-                      <ResponsiveContainer width="100%" height={250}>
+                      <ResponsiveContainer width="100%" height={220}>
                         <RadarChart data={radarData}>
                           <PolarGrid stroke="hsl(var(--border))" />
-                          <PolarAngleAxis dataKey="stat" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                          <PolarAngleAxis dataKey="stat" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} />
                           <PolarRadiusAxis tick={false} domain={[0, 100]} />
                           {activePlayers.map((s) => (
                             <Radar
@@ -418,22 +460,30 @@ function GameDetailView({
                               dataKey={s.player.name}
                               stroke={s.player.color}
                               fill={s.player.color}
-                              fillOpacity={0.15}
-                              strokeWidth={2}
+                              fillOpacity={hoveredPlayer === s.player.name ? 0.35 : 0.12}
+                              strokeWidth={hoveredPlayer === s.player.name ? 3 : 1.5}
                               animationDuration={800}
+                              style={{ transition: "all 0.2s" }}
                             />
                           ))}
-                          <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))" }} />
+                          <Tooltip content={<CustomTooltip />} />
                         </RadarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <p className="text-sm text-muted-foreground text-center py-6">
-                        {activePlayers.length > 6 ? "Radar works best with 6 or fewer players" : "Play more to see radar charts"}
+                      <p className="text-xs text-muted-foreground text-center py-4">
+                        {activePlayers.length > 6 ? "Radar works best with ≤6 players" : "Play more to see radar charts"}
                       </p>
                     )}
-                    <div className="flex flex-wrap gap-2 mt-2 justify-center">
+                    <div className="flex flex-wrap gap-1.5 mt-1.5 justify-center">
                       {activePlayers.map(s => (
-                        <PlayerBadge key={s.player.id} player={s.player} size="sm" />
+                        <motion.div
+                          key={s.player.id}
+                          onHoverStart={() => setHoveredPlayer(s.player.name)}
+                          onHoverEnd={() => setHoveredPlayer(null)}
+                          className="cursor-pointer"
+                        >
+                          <PlayerBadge player={s.player} size="sm" />
+                        </motion.div>
                       ))}
                     </div>
                   </>
@@ -441,14 +491,14 @@ function GameDetailView({
 
                 {activeChart === "history" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-4 text-sm">📈 Score History</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">📈 Score History</h3>
                     {scoreHistory.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={200}>
+                      <ResponsiveContainer width="100%" height={180}>
                         <AreaChart data={scoreHistory}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="session" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                          <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                          <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))" }} />
+                          <XAxis dataKey="session" tick={{ fontSize: 9 }} stroke="hsl(var(--muted-foreground))" />
+                          <YAxis tick={{ fontSize: 9 }} stroke="hsl(var(--muted-foreground))" />
+                          <Tooltip content={<CustomTooltip />} />
                           {activePlayers.map((s) => (
                             <Area
                               key={s.player.id}
@@ -456,42 +506,81 @@ function GameDetailView({
                               dataKey={s.player.name}
                               stroke={s.player.color}
                               fill={s.player.color}
-                              fillOpacity={0.1}
-                              strokeWidth={2}
+                              fillOpacity={hoveredPlayer === s.player.name ? 0.3 : 0.08}
+                              strokeWidth={hoveredPlayer === s.player.name ? 3 : 1.5}
                               animationDuration={800}
+                              style={{ transition: "all 0.2s" }}
                             />
                           ))}
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <p className="text-sm text-muted-foreground text-center py-6">Record sessions to see score history</p>
+                      <p className="text-xs text-muted-foreground text-center py-4">Record sessions to see score history</p>
                     )}
+                  </>
+                )}
+
+                {activeChart === "custom" && (
+                  <>
+                    <h3 className="font-bold text-foreground mb-3 text-xs">{theme.emoji} {theme.name} Custom Stats</h3>
+                    <div className="space-y-2.5">
+                      {Object.entries(aggregatedCustomStats).map(([pid, stats]) => {
+                        const p = players.find(pl => pl.id === pid);
+                        if (!p) return null;
+                        const entries = Object.entries(stats).filter(([, v]) => v.count > 0 || v.values.length > 0);
+                        if (entries.length === 0) return null;
+                        return (
+                          <motion.div
+                            key={pid}
+                            className="bg-secondary/50 rounded-xl p-2.5"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                          >
+                            <PlayerBadge player={p} size="sm" />
+                            <div className="grid grid-cols-2 gap-2 mt-1.5">
+                              {entries.map(([key, data]) => {
+                                const statDef = theme.customStats.find(s => s.key === key);
+                                return (
+                                  <div key={key} className="text-[10px]">
+                                    <span className="text-muted-foreground">{statDef?.emoji} {statDef?.label}</span>
+                                    <p className="font-bold text-foreground">
+                                      {data.count > 0 ? `Total: ${data.total}` : data.values.join(", ")}
+                                      {data.count > 1 && <span className="text-muted-foreground font-normal"> (avg: {(data.total / data.count).toFixed(1)})</span>}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
                   </>
                 )}
               </motion.div>
             </AnimatePresence>
           </motion.div>
 
-          {/* Player Rankings for this game */}
+          {/* Leaderboard */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.35 }}
             className="game-card !p-0 overflow-hidden"
           >
-            <div className="p-4 pb-2" style={{ background: theme.gradient, opacity: 0.9 }}>
-              <h3 className="font-bold text-sm" style={{ color: "white" }}>
+            <div className="p-3 pb-1.5" style={{ background: theme.gradient, opacity: 0.9 }}>
+              <h3 className="font-bold text-xs" style={{ color: "white" }}>
                 🏅 {theme.name} Leaderboard
               </h3>
             </div>
-            <table className="w-full text-sm">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="text-muted-foreground text-xs border-b border-border">
-                  <th className="text-left p-3">#</th>
-                  <th className="text-left p-3">Player</th>
-                  <th className="text-right p-3">W</th>
-                  <th className="text-right p-3">Win%</th>
-                  <th className="text-right p-3">Pts</th>
+                <tr className="text-muted-foreground text-[10px] border-b border-border">
+                  <th className="text-left p-2.5">#</th>
+                  <th className="text-left p-2.5">Player</th>
+                  <th className="text-right p-2.5">W</th>
+                  <th className="text-right p-2.5">Win%</th>
+                  <th className="text-right p-2.5">Pts</th>
                 </tr>
               </thead>
               <tbody>
@@ -499,48 +588,48 @@ function GameDetailView({
                   .sort((a, b) => b.wins - a.wins || b.totalPoints - a.totalPoints)
                   .map((ps, i) => (
                     <tr key={ps.player.id} className="border-b border-border/50 last:border-0">
-                      <td className="p-3 font-extrabold text-muted-foreground">
+                      <td className="p-2.5 font-extrabold text-muted-foreground text-[10px]">
                         {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
                       </td>
-                      <td className="p-3"><PlayerBadge player={ps.player} size="sm" /></td>
-                      <td className="p-3 text-right font-bold">{ps.wins}</td>
-                      <td className="p-3 text-right font-bold">{ps.winRate.toFixed(0)}%</td>
-                      <td className="p-3 text-right font-bold">{ps.totalPoints}</td>
+                      <td className="p-2.5"><PlayerBadge player={ps.player} size="sm" /></td>
+                      <td className="p-2.5 text-right font-bold">{ps.wins}</td>
+                      <td className="p-2.5 text-right font-bold">{ps.winRate.toFixed(0)}%</td>
+                      <td className="p-2.5 text-right font-bold">{ps.totalPoints}</td>
                     </tr>
                   ))}
               </tbody>
             </table>
           </motion.div>
 
-          {/* Session History for this game */}
+          {/* Session History */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45 }}
+            transition={{ delay: 0.4 }}
           >
-            <h3 className="font-bold text-foreground mb-3 text-sm flex items-center gap-2">
-              <Calendar className="w-4 h-4" style={{ color: theme.primaryColor }} />
+            <h3 className="font-bold text-foreground mb-2 text-xs flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
               Session History
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {[...gameSessions].reverse().map(session => {
                 const winner = session.results.find(r => r.isWinner);
                 const winnerPlayer = winner ? players.find(p => p.id === winner.playerId) : null;
                 return (
-                  <div key={session.id} className="game-card !p-3">
+                  <motion.div key={session.id} className="game-card !p-2.5" whileTap={{ scale: 0.98 }}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-bold text-sm text-foreground">{session.name}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(session.date).toLocaleDateString()}</p>
+                        <p className="font-bold text-xs text-foreground">{session.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{new Date(session.date).toLocaleDateString()}</p>
                       </div>
                       {winnerPlayer && (
-                        <span className="text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1"
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"
                           style={{ backgroundColor: winnerPlayer.color + "22", color: winnerPlayer.color }}>
                           🏆 {winnerPlayer.name}
                         </span>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
