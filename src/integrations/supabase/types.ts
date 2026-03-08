@@ -409,6 +409,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_group_with_owner: { Args: { _name: string }; Returns: Json }
+      get_current_user_email: { Args: never; Returns: string }
       get_group_by_invite_code: {
         Args: { _code: string }
         Returns: {
