@@ -23,13 +23,6 @@ export default function Auth() {
   useEffect(() => {
     if (!authLoading && user) navigate("/");
   }, [authLoading, user, navigate]);
-  const { t } = useI18n();
-  const { signIn, signUp, resetPassword } = useAuth();
-  const { toast } = useToast();
-  const [mode, setMode] = useState<Mode>("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +46,6 @@ export default function Auth() {
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else if (mode === "signup") {
-      toast({ title: t("auth.signupSuccess"), description: t("auth.signupSuccessMsg") });
     }
   };
 
