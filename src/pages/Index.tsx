@@ -1,12 +1,78 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { LayoutDashboard, Users, Gamepad2, Trophy, BarChart3 } from "lucide-react";
+import { usePlayers, useSessions } from "@/lib/store";
+import { DashboardTab, PlayersTab, SessionsTab } from "@/components/GameTabs";
+import { RankingTab, ChartsTab } from "@/components/RankingCharts";
+
+type Tab = "dashboard" | "players" | "sessions" | "ranking" | "charts";
+
+const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: "dashboard", label: "Home", icon: LayoutDashboard },
+  { id: "players", label: "Players", icon: Users },
+  { id: "sessions", label: "Sessions", icon: Gamepad2 },
+  { id: "ranking", label: "Ranking", icon: Trophy },
+  { id: "charts", label: "Charts", icon: BarChart3 },
+];
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const { players, addPlayer, removePlayer } = usePlayers();
+  const { sessions, addSession, removeSession } = useSessions();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background pb-24">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 py-3">
+        <div className="max-w-lg mx-auto flex items-center gap-2">
+          <span className="text-2xl">🎲</span>
+          <h1 className="text-xl font-extrabold text-foreground">GameNight</h1>
+          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold ml-1">Tracker</span>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="max-w-lg mx-auto px-4 py-6">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {activeTab === "dashboard" && <DashboardTab players={players} sessions={sessions} />}
+          {activeTab === "players" && (
+            <PlayersTab players={players} sessions={sessions} onAddPlayer={addPlayer} onRemovePlayer={removePlayer} />
+          )}
+          {activeTab === "sessions" && (
+            <SessionsTab players={players} sessions={sessions} onAddSession={addSession} onRemoveSession={removeSession} />
+          )}
+          {activeTab === "ranking" && <RankingTab players={players} sessions={sessions} />}
+          {activeTab === "charts" && <ChartsTab players={players} sessions={sessions} />}
+        </motion.div>
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-lg border-t border-border">
+        <div className="max-w-lg mx-auto flex justify-around px-2 py-2">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`nav-tab relative ${activeTab === tab.id ? "nav-tab-active" : "nav-tab-inactive"}`}
+            >
+              <tab.icon className="w-5 h-5" />
+              <span>{tab.label}</span>
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-primary rounded-xl -z-10"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 };
