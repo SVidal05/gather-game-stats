@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, KeyRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -10,6 +11,18 @@ import { useToast } from "@/hooks/use-toast";
 type Mode = "login" | "signup" | "reset";
 
 export default function Auth() {
+  const { t } = useI18n();
+  const { signIn, signUp, resetPassword, user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) navigate("/");
+  }, [authLoading, user, navigate]);
   const { t } = useI18n();
   const { signIn, signUp, resetPassword } = useAuth();
   const { toast } = useToast();
