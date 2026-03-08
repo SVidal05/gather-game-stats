@@ -1,72 +1,175 @@
 import { useState, useEffect, useCallback } from "react";
-import { Player, GameSession, PlayerStats } from "./types";
-
-const PLAYERS_KEY = "gamenight_players";
-const SESSIONS_KEY = "gamenight_sessions";
-
-function loadFromStorage<T>(key: string, fallback: T): T {
-  try {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveToStorage<T>(key: string, data: T) {
-  localStorage.setItem(key, JSON.stringify(data));
-}
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { Player, GameSession, PlayerStats, PlayerResult } from "./types";
 
 export function usePlayers() {
-  const [players, setPlayers] = useState<Player[]>(() => loadFromStorage(PLAYERS_KEY, []));
+  const { user } = useAuth();
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { saveToStorage(PLAYERS_KEY, players); }, [players]);
+  const fetchPlayers = useCallback(async () => {
+    if (!user) { setPlayers([]); setLoading(false); return; }
+    const { data } = await supabase
+      .from("players")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (data) {
+      setPlayers(data.map(p => ({
+        id: p.id,
+        name: p.name,
+        color: p.color,
+        avatar: p.avatar,
+        createdAt: p.created_at,
+      })));
+    }
+    setLoading(false);
+  }, [user]);
 
-  const addPlayer = useCallback((player: Omit<Player, "id" | "createdAt">) => {
-    const newPlayer: Player = {
-      ...player,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    };
-    setPlayers(prev => [...prev, newPlayer]);
-    return newPlayer;
-  }, []);
+  useEffect(() => { fetchPlayers(); }, [fetchPlayers]);
 
-  const removePlayer = useCallback((id: string) => {
+  const addPlayer = useCallback(async (player: Omit<Player, "id" | "createdAt">) => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("players")
+      .insert({ user_id: user.id, name: player.name, color: player.color, avatar: player.avatar })
+      .select()
+      .single();
+    if (data) {
+      setPlayers(prev => [...prev, { id: data.id, name: data.name, color: data.color, avatar: data.avatar, createdAt: data.created_at }]);
+    }
+  }, [user]);
+
+  const removePlayer = useCallback(async (id: string) => {
+    await supabase.from("players").delete().eq("id", id);
     setPlayers(prev => prev.filter(p => p.id !== id));
   }, []);
 
-  const updatePlayer = useCallback((id: string, updates: Partial<Player>) => {
+  const updatePlayer = useCallback(async (id: string, updates: Partial<Player>) => {
+    const dbUpdates: Record<string, any> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.color !== undefined) dbUpdates.color = updates.color;
+    if (updates.avatar !== undefined) dbUpdates.avatar = updates.avatar;
+    await supabase.from("players").update(dbUpdates).eq("id", id);
     setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
   }, []);
 
-  return { players, addPlayer, removePlayer, updatePlayer };
+  return { players, addPlayer, removePlayer, updatePlayer, loading };
 }
 
 export function useSessions() {
-  const [sessions, setSessions] = useState<GameSession[]>(() => loadFromStorage(SESSIONS_KEY, []));
+  const { user } = useAuth();
+  const [sessions, setSessions] = useState<GameSession[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { saveToStorage(SESSIONS_KEY, sessions); }, [sessions]);
+  const fetchSessions = useCallback(async () => {
+    if (!user) { setSessions([]); setLoading(false); return; }
+    const { data: sessionsData } = await supabase
+      .from("sessions")
+      .select("*")
+      .order("created_at", { ascending: true });
 
-  const addSession = useCallback((session: Omit<GameSession, "id" | "createdAt">) => {
-    const newSession: GameSession = {
-      ...session,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    };
-    setSessions(prev => [...prev, newSession]);
-    return newSession;
-  }, []);
+    if (!sessionsData) { setLoading(false); return; }
 
-  const removeSession = useCallback((id: string) => {
+    const { data: resultsData } = await supabase
+      .from("results")
+      .select("*");
+
+    const resultsBySession = new Map<string, PlayerResult[]>();
+    (resultsData || []).forEach(r => {
+      const arr = resultsBySession.get(r.session_id) || [];
+      arr.push({ playerId: r.player_id, score: r.score, isWinner: r.is_winner });
+      resultsBySession.set(r.session_id, arr);
+    });
+
+    setSessions(sessionsData.map(s => ({
+      id: s.id,
+      name: s.name,
+      date: s.date,
+      gameName: s.game_name,
+      playerIds: (resultsBySession.get(s.id) || []).map(r => r.playerId),
+      results: resultsBySession.get(s.id) || [],
+      notes: s.notes || "",
+      customStats: s.custom_stats as Record<string, Record<string, string | number>> | undefined,
+      createdAt: s.created_at,
+    })));
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => { fetchSessions(); }, [fetchSessions]);
+
+  const addSession = useCallback(async (session: Omit<GameSession, "id" | "createdAt">) => {
+    if (!user) return;
+    const { data: sessionData } = await supabase
+      .from("sessions")
+      .insert({
+        user_id: user.id,
+        name: session.name,
+        game_name: session.gameName,
+        date: session.date,
+        notes: session.notes,
+        custom_stats: session.customStats as any,
+      })
+      .select()
+      .single();
+
+    if (!sessionData) return;
+
+    const resultsToInsert = session.results.map(r => ({
+      session_id: sessionData.id,
+      player_id: r.playerId,
+      score: r.score,
+      is_winner: r.isWinner,
+    }));
+
+    await supabase.from("results").insert(resultsToInsert);
+
+    setSessions(prev => [...prev, {
+      id: sessionData.id,
+      name: sessionData.name,
+      date: sessionData.date,
+      gameName: sessionData.game_name,
+      playerIds: session.playerIds,
+      results: session.results,
+      notes: sessionData.notes || "",
+      customStats: sessionData.custom_stats as any,
+      createdAt: sessionData.created_at,
+    }]);
+  }, [user]);
+
+  const removeSession = useCallback(async (id: string) => {
+    await supabase.from("results").delete().eq("session_id", id);
+    await supabase.from("sessions").delete().eq("id", id);
     setSessions(prev => prev.filter(s => s.id !== id));
   }, []);
 
-  const updateSession = useCallback((id: string, updates: Partial<GameSession>) => {
+  const updateSession = useCallback(async (id: string, updates: Partial<GameSession>) => {
+    const dbUpdates: Record<string, any> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.gameName !== undefined) dbUpdates.game_name = updates.gameName;
+    if (updates.date !== undefined) dbUpdates.date = updates.date;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+    if (updates.customStats !== undefined) dbUpdates.custom_stats = updates.customStats;
+
+    if (Object.keys(dbUpdates).length > 0) {
+      await supabase.from("sessions").update(dbUpdates).eq("id", id);
+    }
+
+    if (updates.results) {
+      await supabase.from("results").delete().eq("session_id", id);
+      const resultsToInsert = updates.results.map(r => ({
+        session_id: id,
+        player_id: r.playerId,
+        score: r.score,
+        is_winner: r.isWinner,
+      }));
+      await supabase.from("results").insert(resultsToInsert);
+    }
+
     setSessions(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
   }, []);
 
-  return { sessions, addSession, removeSession, updateSession };
+  return { sessions, addSession, removeSession, updateSession, loading };
 }
 
 export function getPlayerStats(players: Player[], sessions: GameSession[]): PlayerStats[] {
