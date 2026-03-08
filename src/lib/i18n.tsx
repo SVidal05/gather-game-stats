@@ -182,6 +182,15 @@ const translations = {
   "auth.newPassword": { es: "Nueva Contraseña", en: "New Password", fr: "Nouveau Mot de Passe" },
   "auth.newPasswordPlaceholder": { es: "Tu nueva contraseña", en: "Your new password", fr: "Votre nouveau mot de passe" },
   "auth.updatePassword": { es: "Actualizar Contraseña", en: "Update Password", fr: "Mettre à Jour" },
+  "auth.username": { es: "Nombre de usuario", en: "Username", fr: "Nom d'utilisateur" },
+  "auth.orWith": { es: "o con", en: "or with", fr: "ou avec" },
+
+  // Settings
+  "settings.title": { es: "Configuración", en: "Settings", fr: "Paramètres" },
+  "settings.subtitle": { es: "Personaliza tu experiencia", en: "Customize your experience", fr: "Personnalisez votre expérience" },
+  "settings.account": { es: "Cuenta", en: "Account", fr: "Compte" },
+  "settings.edit": { es: "Editar", en: "Edit", fr: "Modifier" },
+  "settings.usernameSaved": { es: "Nombre de usuario actualizado", en: "Username updated", fr: "Nom d'utilisateur mis à jour" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
