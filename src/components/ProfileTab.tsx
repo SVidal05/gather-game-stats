@@ -186,35 +186,10 @@ const ACHIEVEMENTS: Achievement[] = [
 ];
 
 export function ProfileTab({ players, sessions, isDark, onToggleDark }: ProfileTabProps) {
-  const { lang, setLang, t } = useI18n();
+  const { lang, t } = useI18n();
+  const { username } = useAuth();
   const uniqueGames = new Set(sessions.map(s => s.gameName)).size;
   const unlockedCount = ACHIEVEMENTS.filter(a => a.condition(players, sessions)).length;
-
-  // Find longest win streak per player
-  const getStreakInfo = () => {
-    let bestPlayer: Player | null = null;
-    let bestStreak = 0;
-    for (const player of players) {
-      let streak = 0;
-      let maxStreak = 0;
-      for (const session of sessions) {
-        const result = session.results.find(r => r.playerId === player.id);
-        if (result?.isWinner) {
-          streak++;
-          maxStreak = Math.max(maxStreak, streak);
-        } else if (result) {
-          streak = 0;
-        }
-      }
-      if (maxStreak > bestStreak) {
-        bestStreak = maxStreak;
-        bestPlayer = player;
-      }
-    }
-    return { bestPlayer, bestStreak };
-  };
-
-  const streakInfo = getStreakInfo();
 
   return (
     <div className="space-y-5">
