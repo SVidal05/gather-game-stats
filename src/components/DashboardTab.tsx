@@ -4,6 +4,7 @@ import { Player, GameSession, PlayerStats } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
+import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
 
@@ -79,7 +80,7 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
     {
       icon: Crown,
       label: t("dashboard.topWinner"),
-      value: topPlayer && topPlayer.wins > 0 ? topPlayer.player.avatar + " " + topPlayer.player.name : "—",
+      value: topPlayer && topPlayer.wins > 0 ? (isImageAvatar(topPlayer.player.avatar) ? topPlayer.player.name : topPlayer.player.avatar + " " + topPlayer.player.name) : "—",
       sub: topPlayer && topPlayer.wins > 0 ? `${topPlayer.wins} ${t("dashboard.wins")}` : "",
       gradient: "from-[hsl(var(--game-orange)/0.15)] to-[hsl(var(--game-yellow)/0.08)]",
       iconBg: "bg-[hsl(var(--game-orange)/0.2)]",
@@ -301,10 +302,12 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
               >
                 <span className="w-5 text-center font-bold text-muted-foreground">{medal}</span>
                 <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 overflow-hidden"
                   style={{ backgroundColor: p.color + "20", border: `1.5px solid ${p.color}40` }}
                 >
-                  {p.avatar}
+                  {isImageAvatar(p.avatar) ? (
+                    <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                  ) : p.avatar}
                 </div>
                 <span className="font-semibold text-foreground flex-1 truncate">{p.name}</span>
                 <span className="font-bold text-muted-foreground tabular-nums">{r.score} pts</span>
@@ -337,10 +340,12 @@ function LeaderboardRow({ stats, rank, sessions }: { stats: PlayerStats; rank: n
         )}
       </div>
       <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
+        className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0 overflow-hidden"
         style={{ backgroundColor: stats.player.color + "18", border: `1.5px solid ${stats.player.color}35` }}
       >
-        {stats.player.avatar}
+        {isImageAvatar(stats.player.avatar) ? (
+          <img src={stats.player.avatar} alt={stats.player.name} className="w-full h-full object-cover" />
+        ) : stats.player.avatar}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">{stats.player.name}</p>

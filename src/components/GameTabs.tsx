@@ -5,6 +5,8 @@ import { Player, GameSession, PlayerStats, PLAYER_COLORS, PLAYER_AVATARS, POPULA
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
+import { AvatarPicker } from "@/components/AvatarPicker";
+import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,10 +96,12 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
                         return p ? (
                           <div
                             key={r.playerId}
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs border-2 border-card"
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs border-2 border-card overflow-hidden"
                             style={{ backgroundColor: p.color + "22" }}
                           >
-                            {p.avatar}
+                            {isImageAvatar(p.avatar) ? (
+                              <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                            ) : p.avatar}
                           </div>
                         ) : null;
                       })}
@@ -197,16 +201,8 @@ export function PlayersTab({
               </div>
               <div>
                 <Label className="font-medium text-xs">{t("players.avatar")}</Label>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {PLAYER_AVATARS.map(a => (
-                    <button
-                      key={a}
-                      onClick={() => setAvatar(a)}
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all ${avatar === a ? "ring-2 ring-primary bg-primary/10 scale-105" : "bg-secondary hover:bg-secondary/80"}`}
-                    >
-                      {a}
-                    </button>
-                  ))}
+                <div className="mt-1">
+                  <AvatarPicker value={avatar} onChange={setAvatar} />
                 </div>
               </div>
               <div>
@@ -245,13 +241,7 @@ export function PlayersTab({
               {editingId === ps.player.id ? (
                 <div className="space-y-3">
                   <Input value={editName} onChange={e => setEditName(e.target.value)} className="rounded-lg h-10" />
-                  <div className="flex flex-wrap gap-1.5">
-                    {PLAYER_AVATARS.map(a => (
-                      <button key={a} onClick={() => setEditAvatar(a)}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-base ${editAvatar === a ? "ring-2 ring-primary bg-primary/10" : "bg-secondary"}`}
-                      >{a}</button>
-                    ))}
-                  </div>
+                  <AvatarPicker value={editAvatar} onChange={setEditAvatar} size="sm" />
                   <div className="flex flex-wrap gap-1.5">
                     {PLAYER_COLORS.map(c => (
                       <button key={c.value} onClick={() => setEditColor(c.value)}
@@ -269,10 +259,12 @@ export function PlayersTab({
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold overflow-hidden"
                       style={{ backgroundColor: ps.player.color + "15", border: `2px solid ${ps.player.color}` }}
                     >
-                      {ps.player.avatar}
+                      {isImageAvatar(ps.player.avatar) ? (
+                        <img src={ps.player.avatar} alt={ps.player.name} className="w-full h-full object-cover" />
+                      ) : ps.player.avatar}
                     </div>
                     <div>
                       <p className="font-semibold text-foreground text-sm">{ps.player.name}</p>
