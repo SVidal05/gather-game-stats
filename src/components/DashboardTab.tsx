@@ -55,7 +55,7 @@ const sectionVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { delay: 0.25 + i * 0.1, type: "spring", bounce: 0.2, duration: 0.5 },
+    transition: { delay: 0.25 + i * 0.1, type: "spring" as const, bounce: 0.2, duration: 0.5 },
   }),
 };
 
