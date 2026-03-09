@@ -5,6 +5,8 @@ import { Player, GameSession, PlayerStats, PLAYER_COLORS, PLAYER_AVATARS, POPULA
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
+import { AvatarPicker } from "@/components/AvatarPicker";
+import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
