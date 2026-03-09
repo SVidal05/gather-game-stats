@@ -96,10 +96,12 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
                         return p ? (
                           <div
                             key={r.playerId}
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs border-2 border-card"
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs border-2 border-card overflow-hidden"
                             style={{ backgroundColor: p.color + "22" }}
                           >
-                            {p.avatar}
+                            {isImageAvatar(p.avatar) ? (
+                              <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                            ) : p.avatar}
                           </div>
                         ) : null;
                       })}
