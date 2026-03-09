@@ -309,7 +309,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   if (view === "history") {
     return (
       <>
-        <SessionFormDialog />
+        {sessionFormDialog}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <button onClick={() => setView("catalog")} className="p-1.5 rounded-xl bg-secondary text-foreground active:scale-90 transition-transform">
