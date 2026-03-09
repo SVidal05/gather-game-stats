@@ -201,16 +201,8 @@ export function PlayersTab({
               </div>
               <div>
                 <Label className="font-medium text-xs">{t("players.avatar")}</Label>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {PLAYER_AVATARS.map(a => (
-                    <button
-                      key={a}
-                      onClick={() => setAvatar(a)}
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg transition-all ${avatar === a ? "ring-2 ring-primary bg-primary/10 scale-105" : "bg-secondary hover:bg-secondary/80"}`}
-                    >
-                      {a}
-                    </button>
-                  ))}
+                <div className="mt-1">
+                  <AvatarPicker value={avatar} onChange={setAvatar} />
                 </div>
               </div>
               <div>
