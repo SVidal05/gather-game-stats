@@ -80,7 +80,7 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
     {
       icon: Crown,
       label: t("dashboard.topWinner"),
-      value: topPlayer && topPlayer.wins > 0 ? topPlayer.player.avatar + " " + topPlayer.player.name : "—",
+      value: topPlayer && topPlayer.wins > 0 ? (isImageAvatar(topPlayer.player.avatar) ? topPlayer.player.name : topPlayer.player.avatar + " " + topPlayer.player.name) : "—",
       sub: topPlayer && topPlayer.wins > 0 ? `${topPlayer.wins} ${t("dashboard.wins")}` : "",
       gradient: "from-[hsl(var(--game-orange)/0.15)] to-[hsl(var(--game-yellow)/0.08)]",
       iconBg: "bg-[hsl(var(--game-orange)/0.2)]",
