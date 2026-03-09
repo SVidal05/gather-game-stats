@@ -159,7 +159,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   };
 
   // ─── Session Form Dialog ───
-  const SessionFormDialog = () => (
+  const sessionFormDialog = (
     <Dialog open={sessionDialogOpen} onOpenChange={(v) => { if (!v) { resetForm(); setSessionDialogOpen(false); } }}>
       <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
