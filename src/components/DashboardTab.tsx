@@ -302,10 +302,12 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
               >
                 <span className="w-5 text-center font-bold text-muted-foreground">{medal}</span>
                 <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 overflow-hidden"
                   style={{ backgroundColor: p.color + "20", border: `1.5px solid ${p.color}40` }}
                 >
-                  {p.avatar}
+                  {isImageAvatar(p.avatar) ? (
+                    <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                  ) : p.avatar}
                 </div>
                 <span className="font-semibold text-foreground flex-1 truncate">{p.name}</span>
                 <span className="font-bold text-muted-foreground tabular-nums">{r.score} pts</span>
