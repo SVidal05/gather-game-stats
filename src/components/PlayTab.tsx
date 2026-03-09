@@ -159,7 +159,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   };
 
   // ─── Session Form Dialog ───
-  const SessionFormDialog = () => (
+  const sessionFormDialog = (
     <Dialog open={sessionDialogOpen} onOpenChange={(v) => { if (!v) { resetForm(); setSessionDialogOpen(false); } }}>
       <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -293,7 +293,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   if (view === "detail" && selectedGame) {
     return (
       <>
-        <SessionFormDialog />
+        {sessionFormDialog}
         <GameDetailView
           gameName={selectedGame}
           players={players}
@@ -309,7 +309,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   if (view === "history") {
     return (
       <>
-        <SessionFormDialog />
+        {sessionFormDialog}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <button onClick={() => setView("catalog")} className="p-1.5 rounded-xl bg-secondary text-foreground active:scale-90 transition-transform">
@@ -435,7 +435,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   // ─── Main Catalog View ───
   return (
     <>
-      <SessionFormDialog />
+      {sessionFormDialog}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
