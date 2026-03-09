@@ -241,13 +241,7 @@ export function PlayersTab({
               {editingId === ps.player.id ? (
                 <div className="space-y-3">
                   <Input value={editName} onChange={e => setEditName(e.target.value)} className="rounded-lg h-10" />
-                  <div className="flex flex-wrap gap-1.5">
-                    {PLAYER_AVATARS.map(a => (
-                      <button key={a} onClick={() => setEditAvatar(a)}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-base ${editAvatar === a ? "ring-2 ring-primary bg-primary/10" : "bg-secondary"}`}
-                      >{a}</button>
-                    ))}
-                  </div>
+                  <AvatarPicker value={editAvatar} onChange={setEditAvatar} size="sm" />
                   <div className="flex flex-wrap gap-1.5">
                     {PLAYER_COLORS.map(c => (
                       <button key={c.value} onClick={() => setEditColor(c.value)}
