@@ -435,7 +435,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   // ─── Main Catalog View ───
   return (
     <>
-      <SessionFormDialog />
+      {sessionFormDialog}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
