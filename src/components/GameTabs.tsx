@@ -259,10 +259,12 @@ export function PlayersTab({
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold overflow-hidden"
                       style={{ backgroundColor: ps.player.color + "15", border: `2px solid ${ps.player.color}` }}
                     >
-                      {ps.player.avatar}
+                      {isImageAvatar(ps.player.avatar) ? (
+                        <img src={ps.player.avatar} alt={ps.player.name} className="w-full h-full object-cover" />
+                      ) : ps.player.avatar}
                     </div>
                     <div>
                       <p className="font-semibold text-foreground text-sm">{ps.player.name}</p>
