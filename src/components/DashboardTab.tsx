@@ -61,7 +61,7 @@ const cardVariants = {
   hidden: { opacity: 0, y: 24, scale: 0.96 },
   visible: (i: number) => ({
     opacity: 1, y: 0, scale: 1,
-    transition: { delay: i * 0.07, type: "spring", bounce: 0.3, duration: 0.5 },
+    transition: { delay: i * 0.07, type: "spring" as const, bounce: 0.3, duration: 0.5 },
   }),
 };
 
