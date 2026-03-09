@@ -340,10 +340,12 @@ function LeaderboardRow({ stats, rank, sessions }: { stats: PlayerStats; rank: n
         )}
       </div>
       <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0"
+        className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0 overflow-hidden"
         style={{ backgroundColor: stats.player.color + "18", border: `1.5px solid ${stats.player.color}35` }}
       >
-        {stats.player.avatar}
+        {isImageAvatar(stats.player.avatar) ? (
+          <img src={stats.player.avatar} alt={stats.player.name} className="w-full h-full object-cover" />
+        ) : stats.player.avatar}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">{stats.player.name}</p>
