@@ -293,7 +293,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   if (view === "detail" && selectedGame) {
     return (
       <>
-        <SessionFormDialog />
+        {sessionFormDialog}
         <GameDetailView
           gameName={selectedGame}
           players={players}
