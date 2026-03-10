@@ -65,22 +65,46 @@ export function useSessions(groupId: string | null) {
 
   const fetchSessions = useCallback(async () => {
     if (!user || !groupId) { setSessions([]); setLoading(false); return; }
-    const { data: sessionsData } = await supabase
-      .from("sessions")
-      .select("*")
-      .eq("group_id", groupId)
-      .order("created_at", { ascending: true });
 
-    if (!sessionsData) { setLoading(false); return; }
+    // Fetch all sessions with pagination to avoid 1000-row limit
+    let allSessionsData: any[] = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data: page } = await supabase
+        .from("sessions")
+        .select("*")
+        .eq("group_id", groupId)
+        .order("created_at", { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (!page || page.length === 0) break;
+      allSessionsData = allSessionsData.concat(page);
+      if (page.length < pageSize) break;
+      from += pageSize;
+    }
 
+    const sessionsData = allSessionsData;
+    if (sessionsData.length === 0) { setSessions([]); setLoading(false); return; }
+
+    // Fetch all results in batches to avoid 1000-row limit
     const sessionIds = sessionsData.map(s => s.id);
     let allResults: any[] = [];
-    if (sessionIds.length > 0) {
-      const { data: resultsData } = await supabase
-        .from("results")
-        .select("*")
-        .in("session_id", sessionIds);
-      allResults = resultsData || [];
+    // Also batch the IN clause to avoid overly large queries
+    const batchSize = 200;
+    for (let i = 0; i < sessionIds.length; i += batchSize) {
+      const batch = sessionIds.slice(i, i + batchSize);
+      let from = 0;
+      while (true) {
+        const { data: page } = await supabase
+          .from("results")
+          .select("*")
+          .in("session_id", batch)
+          .range(from, from + pageSize - 1);
+        if (!page || page.length === 0) break;
+        allResults = allResults.concat(page);
+        if (page.length < pageSize) break;
+        from += pageSize;
+      }
     }
 
     const resultsBySession = new Map<string, PlayerResult[]>();
