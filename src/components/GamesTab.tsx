@@ -1,11 +1,17 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, BarChart3 } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { useI18n } from "@/lib/i18n";
+import { useGames, useGameResultStats } from "@/lib/gameStore";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  PieChart, Pie, Cell, Area, AreaChart,
+} from "recharts";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
