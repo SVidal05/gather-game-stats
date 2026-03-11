@@ -235,7 +235,7 @@ export function usePendingInvites() {
   }, [user]);
 
   const declineInvite = useCallback(async (inviteId: string) => {
-    await supabase.from("group_invites").update({ status: "declined" }).eq("id", inviteId);
+    await supabase.rpc("update_invite_status", { _invite_id: inviteId, _status: "rejected" });
     setInvites(prev => prev.filter(i => i.id !== inviteId));
   }, []);
 
