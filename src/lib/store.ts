@@ -130,24 +130,27 @@ export function useSessions(groupId: string | null) {
 
   useEffect(() => { fetchSessions(); }, [fetchSessions]);
 
-  const addSession = useCallback(async (session: Omit<GameSession, "id" | "createdAt">) => {
-    if (!user || !groupId) return;
+  const addSession = useCallback(async (session: Omit<GameSession, "id" | "createdAt">): Promise<{ sessionId: string; resultIds: Record<string, string> } | null> => {
+    if (!user || !groupId) return null;
+    const insertData: Record<string, any> = {
+      user_id: user.id,
+      group_id: groupId,
+      created_by: user.id,
+      name: session.name,
+      game_name: session.gameName,
+      date: session.date,
+      notes: session.notes,
+      custom_stats: session.customStats as any,
+    };
+    if (session.gameId) insertData.game_id = session.gameId;
+
     const { data: sessionData } = await supabase
       .from("sessions")
-      .insert({
-        user_id: user.id,
-        group_id: groupId,
-        created_by: user.id,
-        name: session.name,
-        game_name: session.gameName,
-        date: session.date,
-        notes: session.notes,
-        custom_stats: session.customStats as any,
-      })
+      .insert(insertData)
       .select()
       .single();
 
-    if (!sessionData) return;
+    if (!sessionData) return null;
 
     const resultsToInsert = session.results.map(r => ({
       session_id: sessionData.id,
@@ -156,19 +159,27 @@ export function useSessions(groupId: string | null) {
       is_winner: r.isWinner,
     }));
 
-    await supabase.from("results").insert(resultsToInsert);
+    const { data: resultsData } = await supabase.from("results").insert(resultsToInsert).select();
+
+    const resultIds: Record<string, string> = {};
+    if (resultsData) {
+      resultsData.forEach(r => { resultIds[r.player_id] = r.id; });
+    }
 
     setSessions(prev => [...prev, {
       id: sessionData.id,
       name: sessionData.name,
       date: sessionData.date,
       gameName: sessionData.game_name,
+      gameId: sessionData.game_id || undefined,
       playerIds: session.playerIds,
       results: session.results,
       notes: sessionData.notes || "",
       customStats: sessionData.custom_stats as any,
       createdAt: sessionData.created_at,
     }]);
+
+    return { sessionId: sessionData.id, resultIds };
   }, [user, groupId]);
 
   const removeSession = useCallback(async (id: string) => {
