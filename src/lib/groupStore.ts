@@ -229,13 +229,13 @@ export function usePendingInvites() {
       user_id: user.id,
       role: "member",
     });
-    // Mark invite as accepted
-    await supabase.from("group_invites").update({ status: "accepted" }).eq("id", invite.id);
+    // Mark invite as accepted via secure function
+    await supabase.rpc("update_invite_status", { _invite_id: invite.id, _status: "accepted" });
     setInvites(prev => prev.filter(i => i.id !== invite.id));
   }, [user]);
 
   const declineInvite = useCallback(async (inviteId: string) => {
-    await supabase.from("group_invites").update({ status: "declined" }).eq("id", inviteId);
+    await supabase.rpc("update_invite_status", { _invite_id: inviteId, _status: "rejected" });
     setInvites(prev => prev.filter(i => i.id !== inviteId));
   }, []);
 
