@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      games: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       group_invites: {
         Row: {
           created_at: string
@@ -212,6 +233,7 @@ export type Database = {
           id: string
           is_winner: boolean
           player_id: string
+          position: number | null
           score: number
           session_id: string
         }
@@ -220,6 +242,7 @@ export type Database = {
           id?: string
           is_winner?: boolean
           player_id: string
+          position?: number | null
           score?: number
           session_id: string
         }
@@ -228,6 +251,7 @@ export type Database = {
           id?: string
           is_winner?: boolean
           player_id?: string
+          position?: number | null
           score?: number
           session_id?: string
         }
@@ -254,6 +278,7 @@ export type Database = {
           created_by: string | null
           custom_stats: Json | null
           date: string
+          game_id: string | null
           game_name: string
           group_id: string | null
           id: string
@@ -266,6 +291,7 @@ export type Database = {
           created_by?: string | null
           custom_stats?: Json | null
           date?: string
+          game_id?: string | null
           game_name: string
           group_id?: string | null
           id?: string
@@ -278,6 +304,7 @@ export type Database = {
           created_by?: string | null
           custom_stats?: Json | null
           date?: string
+          game_id?: string | null
           game_name?: string
           group_id?: string | null
           id?: string
@@ -286,6 +313,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sessions_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sessions_group_id_fkey"
             columns: ["group_id"]
