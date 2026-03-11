@@ -1,17 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2 } from "lucide-react";
 import { Player, GameSession, PlayerResult, POPULAR_GAMES } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
+import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
+import { useGames, useStatDefinitions, saveResultStats } from "@/lib/gameStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Switch } from "@/components/ui/switch";
 import confetti from "canvas-confetti";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -22,9 +26,18 @@ import {
 interface PlayTabProps {
   players: Player[];
   sessions: GameSession[];
-  onAddSession: (s: Omit<GameSession, "id" | "createdAt">) => void;
+  onAddSession: (s: Omit<GameSession, "id" | "createdAt">) => Promise<{ sessionId: string; resultIds: Record<string, string> } | null>;
   onRemoveSession: (id: string) => void;
   onUpdateSession: (id: string, updates: Partial<GameSession>) => void;
+}
+
+function PlayerAvatar({ player, className = "" }: { player: Player; className?: string }) {
+  const isImage = isImageAvatar(player.avatar);
+  return isImage ? (
+    <img src={player.avatar} alt={player.name} className={`object-cover rounded-lg ${className}`} />
+  ) : (
+    <span>{player.avatar}</span>
+  );
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -63,8 +76,31 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   const [customStats, setCustomStats] = useState<Record<string, Record<string, string | number>>>({});
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+
+  // Games & stat definitions integration
+  const { games, findOrCreateGame } = useGames();
+  const selectedGameDef = useMemo(() => {
+    return games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+  }, [games, gameName]);
+  const { statDefs, addStatDefinition } = useStatDefinitions(selectedGameDef?.id || null);
+
+  // Advanced stat values: playerId -> statDefId -> value
+  const [advancedStats, setAdvancedStats] = useState<Record<string, Record<string, any>>>({});
+
+  // New custom stat creation
+  const [showNewStat, setShowNewStat] = useState(false);
+  const [newStatKey, setNewStatKey] = useState("");
+  const [newStatLabel, setNewStatLabel] = useState("");
+  const [newStatType, setNewStatType] = useState("number");
+  const [newStatOptions, setNewStatOptions] = useState("");
 
   const currentTheme = gameName ? getGameTheme(gameName) : null;
+
+  // Reset advanced stats when game or players change
+  useEffect(() => {
+    setAdvancedStats({});
+  }, [gameName, selectedPlayerIds.length]);
 
   const gamesPlayed = useMemo(() => {
     const gameMap = new Map<string, { count: number; lastPlayed: string }>();
@@ -101,20 +137,46 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
     setView("detail");
   };
 
+  const handleAdvancedStat = (playerId: string, statDefId: string, value: any) => {
+    setAdvancedStats(prev => ({
+      ...prev,
+      [playerId]: { ...(prev[playerId] || {}), [statDefId]: value },
+    }));
+  };
+
   const handleCustomStat = (playerId: string, statKey: string, value: string | number) => {
     setCustomStats(prev => ({ ...prev, [playerId]: { ...(prev[playerId] || {}), [statKey]: value } }));
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!sessionName.trim() || !gameName.trim() || selectedPlayerIds.length === 0) return;
+
+    // Find or create game in DB
+    const gameId = await findOrCreateGame(gameName.trim());
+
     const results: PlayerResult[] = selectedPlayerIds.map(pid => ({
       playerId: pid, score: scores[pid] || 0, isWinner: pid === winnerId,
     }));
-    onAddSession({
+
+    const result = await onAddSession({
       name: sessionName.trim(), date, gameName: gameName.trim(),
+      gameId: gameId || undefined,
       playerIds: selectedPlayerIds, results, notes: notes.trim(),
       customStats: Object.keys(customStats).length > 0 ? customStats : undefined,
     });
+
+    // Save advanced stats to result_stats
+    if (result && Object.keys(advancedStats).length > 0) {
+      for (const [playerId, statsMap] of Object.entries(advancedStats)) {
+        const resultId = result.resultIds[playerId];
+        if (!resultId) continue;
+        const statsToSave = Object.entries(statsMap)
+          .filter(([, v]) => v !== "" && v !== undefined && v !== null)
+          .map(([statDefId, value]) => ({ statDefinitionId: statDefId, value }));
+        await saveResultStats(resultId, statsToSave);
+      }
+    }
+
     if (winnerId) confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     resetForm();
     setSessionDialogOpen(false);
@@ -152,13 +214,86 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
     setDate(new Date().toISOString().split("T")[0]);
     setSelectedPlayerIds([]); setScores({}); setWinnerId("");
     setNotes(""); setCustomStats({}); setEditingSessionId(null);
+    setAdvancedStats({}); setAdvancedOpen(false);
+    setShowNewStat(false); setNewStatKey(""); setNewStatLabel("");
+    setNewStatType("number"); setNewStatOptions("");
   };
 
   const togglePlayer = (id: string) => {
     setSelectedPlayerIds(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
   };
 
+  const handleAddNewStat = async () => {
+    if (!newStatKey.trim() || !newStatLabel.trim()) return;
+    const options = newStatType === "select" && newStatOptions.trim()
+      ? newStatOptions.split(",").map(o => o.trim()).filter(Boolean)
+      : undefined;
+    await addStatDefinition({
+      statKey: newStatKey.trim().toLowerCase().replace(/\s+/g, "_"),
+      label: newStatLabel.trim(),
+      type: newStatType,
+      options,
+    });
+    setShowNewStat(false);
+    setNewStatKey("");
+    setNewStatLabel("");
+    setNewStatType("number");
+    setNewStatOptions("");
+  };
+
+  // Render stat input based on type
+  const renderStatInput = (statDef: { id: string; type: string; label: string; options: string[] | null }, playerId: string) => {
+    const val = advancedStats[playerId]?.[statDef.id] ?? "";
+
+    if (statDef.type === "boolean") {
+      return (
+        <div className="flex items-center justify-between">
+          <label className="text-[10px] text-muted-foreground font-semibold">{statDef.label}</label>
+          <Switch
+            checked={!!val}
+            onCheckedChange={(v) => handleAdvancedStat(playerId, statDef.id, v)}
+          />
+        </div>
+      );
+    }
+
+    if (statDef.type === "select" && statDef.options) {
+      return (
+        <div>
+          <label className="text-[10px] text-muted-foreground font-semibold">{statDef.label}</label>
+          <Select value={String(val)} onValueChange={(v) => handleAdvancedStat(playerId, statDef.id, v)}>
+            <SelectTrigger className="rounded-lg h-8 text-xs mt-0.5">
+              <SelectValue placeholder="—" />
+            </SelectTrigger>
+            <SelectContent>
+              {statDef.options.map(opt => (
+                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <label className="text-[10px] text-muted-foreground font-semibold">{statDef.label}</label>
+        <Input
+          type={statDef.type === "number" ? "number" : "text"}
+          value={val}
+          onChange={e => handleAdvancedStat(playerId, statDef.id, statDef.type === "number" ? Number(e.target.value) : e.target.value)}
+          placeholder="—"
+          className="rounded-lg h-8 text-xs mt-0.5"
+        />
+      </div>
+    );
+  };
+
   // ─── Session Form Dialog ───
+  const hasStatDefs = statDefs.length > 0;
+  const hasThemeStats = currentTheme && currentTheme.customStats.length > 0;
+  const showAdvancedSection = selectedPlayerIds.length > 0 && (hasStatDefs || hasThemeStats || gameName.trim());
+
   const sessionFormDialog = (
     <Dialog open={sessionDialogOpen} onOpenChange={(v) => { if (!v) { resetForm(); setSessionDialogOpen(false); } }}>
       <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto">
@@ -168,10 +303,13 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {/* 1. Session Name */}
           <div>
             <Label className="font-semibold text-xs">{t("sessions.sessionName")}</Label>
             <Input value={sessionName} onChange={e => setSessionName(e.target.value)} placeholder={t("sessions.sessionNamePlaceholder")} className="rounded-xl mt-1 h-11" />
           </div>
+
+          {/* 2. Game Selector */}
           <div>
             <Label className="font-semibold text-xs">{t("sessions.game")}</Label>
             <Select value={gameName} onValueChange={setGameName}>
@@ -183,6 +321,10 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   const gt = getGameTheme(g);
                   return <SelectItem key={g} value={g}>{gt.emoji} {g}</SelectItem>;
                 })}
+                {/* Also show DB games not in POPULAR_GAMES */}
+                {games.filter(g => !POPULAR_GAMES.some(pg => pg.toLowerCase() === g.name.toLowerCase())).map(g => (
+                  <SelectItem key={g.id} value={g.name}>{g.icon || "🎮"} {g.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Input value={gameName} onChange={e => setGameName(e.target.value)} placeholder={t("sessions.customGame")} className="rounded-xl mt-2 h-11" />
@@ -201,10 +343,13 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             </motion.div>
           )}
 
+          {/* 3. Date */}
           <div>
             <Label className="font-semibold text-xs">{t("sessions.date")}</Label>
             <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="rounded-xl mt-1 h-11" />
           </div>
+
+          {/* 4. Players */}
           <div>
             <Label className="font-semibold text-xs">{t("sessions.players")}</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
@@ -215,7 +360,14 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   }`}
                   style={{ backgroundColor: p.color + "22", color: p.color, ...(selectedPlayerIds.includes(p.id) ? { ringColor: p.color } : {}) }}
                 >
-                  {p.avatar} {p.name}
+                  <span className="w-5 h-5 rounded-md overflow-hidden inline-flex items-center justify-center shrink-0" style={{ backgroundColor: p.color + "15" }}>
+                    {isImageAvatar(p.avatar) ? (
+                      <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs">{p.avatar}</span>
+                    )}
+                  </span>
+                  {p.name}
                 </button>
               ))}
             </div>
@@ -223,6 +375,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
           {selectedPlayerIds.length > 0 && (
             <>
+              {/* 5. Scores */}
               <div>
                 <Label className="font-semibold text-xs">{t("sessions.scores")}</Label>
                 <div className="space-y-1.5 mt-1">
@@ -237,49 +390,151 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   })}
                 </div>
               </div>
+
+              {/* 6. Winner */}
               <div>
                 <Label className="font-semibold text-xs">{t("sessions.winner")}</Label>
                 <Select value={winnerId} onValueChange={setWinnerId}>
                   <SelectTrigger className="rounded-xl mt-1 h-11"><SelectValue placeholder={t("sessions.selectWinner")} /></SelectTrigger>
                   <SelectContent>
-                    {selectedPlayerIds.map(pid => { const p = players.find(pl => pl.id === pid)!; return <SelectItem key={pid} value={pid}>{p.avatar} {p.name}</SelectItem>; })}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {currentTheme && (
-                <div>
-                  <Label className="font-semibold text-xs flex items-center gap-1">
-                    {currentTheme.emoji} {currentTheme.name} {t("sessions.stats")} <span className="text-muted-foreground">{t("sessions.optional")}</span>
-                  </Label>
-                  <div className="space-y-3 mt-2">
                     {selectedPlayerIds.map(pid => {
                       const p = players.find(pl => pl.id === pid)!;
                       return (
-                        <div key={pid} className="bg-secondary/50 rounded-xl p-2.5 space-y-1.5">
-                          <PlayerBadge player={p} size="sm" />
-                          <div className="grid grid-cols-2 gap-1.5">
-                            {currentTheme.customStats.map(stat => (
-                              <div key={stat.key}>
-                                <label className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">{stat.emoji} {stat.label}</label>
-                                <Input value={customStats[pid]?.[stat.key] || ""} onChange={e => handleCustomStat(pid, stat.key, e.target.value)} placeholder="—" className="rounded-lg h-8 text-xs mt-0.5" />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        <SelectItem key={pid} value={pid}>
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded overflow-hidden inline-flex items-center justify-center shrink-0">
+                              {isImageAvatar(p.avatar) ? (
+                                <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-xs">{p.avatar}</span>
+                              )}
+                            </span>
+                            {p.name}
+                          </span>
+                        </SelectItem>
                       );
                     })}
-                  </div>
-                </div>
-              )}
+                  </SelectContent>
+                </Select>
+              </div>
             </>
           )}
 
+          {/* 7. Advanced Statistics (collapsible) */}
+          {showAdvancedSection && (
+            <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+              <CollapsibleTrigger asChild>
+                <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-secondary/70 hover:bg-secondary transition-colors">
+                  <span className="flex items-center gap-2 text-xs font-bold text-foreground">
+                    <Settings2 className="w-3.5 h-3.5 text-muted-foreground" />
+                    {t("sessions.advancedStats") || "Advanced Statistics"}
+                  </span>
+                  {advancedOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 space-y-3">
+                  {/* DB stat definitions grouped by player */}
+                  {statDefs.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        {selectedGameDef?.name || gameName} Stats
+                      </p>
+                      {selectedPlayerIds.map(pid => {
+                        const p = players.find(pl => pl.id === pid)!;
+                        return (
+                          <div key={pid} className="bg-secondary/50 rounded-xl p-2.5 space-y-1.5">
+                            <PlayerBadge player={p} size="sm" />
+                            <div className="grid grid-cols-2 gap-1.5">
+                              {statDefs.map(sd => (
+                                <div key={sd.id}>
+                                  {renderStatInput(sd, pid)}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Theme-based custom stats (legacy) */}
+                  {hasThemeStats && statDefs.length === 0 && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        {currentTheme!.emoji} {currentTheme!.name} {t("sessions.stats")} {t("sessions.optional")}
+                      </p>
+                      {selectedPlayerIds.map(pid => {
+                        const p = players.find(pl => pl.id === pid)!;
+                        return (
+                          <div key={pid} className="bg-secondary/50 rounded-xl p-2.5 space-y-1.5">
+                            <PlayerBadge player={p} size="sm" />
+                            <div className="grid grid-cols-2 gap-1.5">
+                              {currentTheme!.customStats.map(stat => (
+                                <div key={stat.key}>
+                                  <label className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">{stat.emoji} {stat.label}</label>
+                                  <Input value={customStats[pid]?.[stat.key] || ""} onChange={e => handleCustomStat(pid, stat.key, e.target.value)} placeholder="—" className="rounded-lg h-8 text-xs mt-0.5" />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Add new stat definition */}
+                  {gameName.trim() && (
+                    <div className="border-t border-border pt-3">
+                      {!showNewStat ? (
+                        <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs w-full" onClick={() => setShowNewStat(true)}>
+                          <Plus className="w-3 h-3" /> {t("sessions.addCustomStat") || "Add Custom Stat"}
+                        </Button>
+                      ) : (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-2">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">New Stat Definition</p>
+                          <Input value={newStatLabel} onChange={e => {
+                            setNewStatLabel(e.target.value);
+                            setNewStatKey(e.target.value.toLowerCase().replace(/\s+/g, "_"));
+                          }} placeholder="Label (e.g. Blue Shells)" className="rounded-lg h-8 text-xs" />
+                          <Select value={newStatType} onValueChange={setNewStatType}>
+                            <SelectTrigger className="rounded-lg h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="number">Number</SelectItem>
+                              <SelectItem value="boolean">Boolean</SelectItem>
+                              <SelectItem value="text">Text</SelectItem>
+                              <SelectItem value="select">Select</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {newStatType === "select" && (
+                            <Input value={newStatOptions} onChange={e => setNewStatOptions(e.target.value)} placeholder="Options (comma separated)" className="rounded-lg h-8 text-xs" />
+                          )}
+                          <div className="flex gap-1.5">
+                            <Button size="sm" className="rounded-lg h-8 text-xs flex-1" onClick={handleAddNewStat} disabled={!newStatLabel.trim()}>
+                              <Check className="w-3 h-3 mr-1" /> Save
+                            </Button>
+                            <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs" onClick={() => setShowNewStat(false)}>
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {/* 8. Notes */}
           <div>
             <Label className="font-semibold text-xs">{t("sessions.notes")}</Label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t("sessions.notesPlaceholder")} className="rounded-xl mt-1" />
           </div>
 
+          {/* 9. Submit */}
           <Button onClick={editingSessionId ? handleSaveEdit : handleAdd} className="w-full rounded-2xl font-bold h-12" size="lg"
             disabled={!sessionName.trim() || !gameName.trim() || selectedPlayerIds.length < 2}>
             {editingSessionId ? t("sessions.saveChanges") : t("sessions.record")}
@@ -289,7 +544,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
     </Dialog>
   );
 
-  // ─── Game Detail View (with "Start Session" button) ───
+  // ─── Game Detail View ───
   if (view === "detail" && selectedGame) {
     return (
       <>
@@ -401,7 +656,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                                         <div className="flex flex-wrap gap-2 mt-1">
                                           {filledStats.map(([key, value]) => {
                                             const statDef = theme.customStats.find(s => s.key === key);
-                                            return <span key={key} className="text-[10px] text-foreground">{statDef?.emoji} {statDef?.label}: <strong>{value}</strong></span>;
+                                            return <span key={key} className="text-[10px] text-foreground">{statDef?.emoji} {statDef?.label || key}: <strong>{String(value)}</strong></span>;
                                           })}
                                         </div>
                                       </div>
@@ -812,7 +1067,7 @@ function GameDetailView({
                                 const statDef = theme.customStats.find(s => s.key === key);
                                 return (
                                   <div key={key} className="text-[10px]">
-                                    <span className="text-muted-foreground">{statDef?.emoji} {statDef?.label}</span>
+                                    <span className="text-muted-foreground">{statDef?.emoji} {statDef?.label || key}</span>
                                     <p className="font-bold text-foreground">
                                       {data.count > 0 ? `Total: ${data.total}` : data.values.join(", ")}
                                       {data.count > 1 && <span className="text-muted-foreground font-normal"> (avg: {(data.total / data.count).toFixed(1)})</span>}
