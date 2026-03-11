@@ -138,3 +138,120 @@ export async function saveResultStats(
     await supabase.from("result_stats").insert(rows);
   }
 }
+
+export interface AggregatedPlayerStat {
+  statKey: string;
+  label: string;
+  type: string;
+  total: number;
+  count: number;
+  avg: number;
+  textValues: string[];
+}
+
+export interface PlayerAggregatedStats {
+  playerId: string;
+  stats: AggregatedPlayerStat[];
+}
+
+export function useGameResultStats(gameId: string | null, sessionIds: string[]) {
+  const { user } = useAuth();
+  const [data, setData] = useState<PlayerAggregatedStats[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchStats = useCallback(async () => {
+    if (!user || !gameId || sessionIds.length === 0) { setData([]); return; }
+    setLoading(true);
+
+    // 1. Fetch stat definitions for this game
+    const { data: defs } = await supabase
+      .from("game_stat_definitions")
+      .select("*")
+      .eq("game_id", gameId);
+
+    if (!defs || defs.length === 0) { setData([]); setLoading(false); return; }
+
+    // 2. Fetch results for these sessions
+    const batchSize = 200;
+    let allResults: any[] = [];
+    for (let i = 0; i < sessionIds.length; i += batchSize) {
+      const batch = sessionIds.slice(i, i + batchSize);
+      const { data: results } = await supabase
+        .from("results")
+        .select("id, player_id")
+        .in("session_id", batch);
+      if (results) allResults = allResults.concat(results);
+    }
+
+    if (allResults.length === 0) { setData([]); setLoading(false); return; }
+
+    const resultIds = allResults.map(r => r.id);
+    const resultPlayerMap = new Map<string, string>();
+    allResults.forEach(r => resultPlayerMap.set(r.id, r.player_id));
+
+    // 3. Fetch result_stats
+    let allStats: any[] = [];
+    for (let i = 0; i < resultIds.length; i += batchSize) {
+      const batch = resultIds.slice(i, i + batchSize);
+      const { data: stats } = await supabase
+        .from("result_stats")
+        .select("*")
+        .in("result_id", batch);
+      if (stats) allStats = allStats.concat(stats);
+    }
+
+    // 4. Aggregate by player + stat definition
+    const defMap = new Map(defs.map(d => [d.id, d]));
+    const agg = new Map<string, Map<string, { total: number; count: number; textValues: string[] }>>();
+
+    allStats.forEach(rs => {
+      const playerId = resultPlayerMap.get(rs.result_id);
+      const def = defMap.get(rs.stat_definition_id);
+      if (!playerId || !def) return;
+
+      if (!agg.has(playerId)) agg.set(playerId, new Map());
+      const playerMap = agg.get(playerId)!;
+      if (!playerMap.has(def.id)) playerMap.set(def.id, { total: 0, count: 0, textValues: [] });
+      const entry = playerMap.get(def.id)!;
+
+      const val = rs.value;
+      const numVal = typeof val === "number" ? val : Number(val);
+      if (!isNaN(numVal) && val !== null && val !== "" && typeof val !== "boolean") {
+        entry.total += numVal;
+        entry.count++;
+      } else if (typeof val === "boolean") {
+        entry.total += val ? 1 : 0;
+        entry.count++;
+      } else if (typeof val === "string" && val) {
+        entry.textValues.push(val);
+        entry.count++;
+      }
+    });
+
+    const result: PlayerAggregatedStats[] = [];
+    agg.forEach((statsMap, playerId) => {
+      const playerStats: AggregatedPlayerStat[] = [];
+      statsMap.forEach((entry, defId) => {
+        const def = defMap.get(defId);
+        if (!def) return;
+        playerStats.push({
+          statKey: def.stat_key,
+          label: def.label,
+          type: def.type,
+          total: entry.total,
+          count: entry.count,
+          avg: entry.count > 0 ? entry.total / entry.count : 0,
+          textValues: entry.textValues,
+        });
+      });
+      result.push({ playerId, stats: playerStats });
+    });
+
+    setData(result);
+    setLoading(false);
+  }, [user, gameId, sessionIds.join(",")]);
+
+  useEffect(() => { fetchStats(); }, [fetchStats]);
+
+  return { data, loading, refetch: fetchStats };
+}
