@@ -154,6 +154,10 @@ const translations = {
   "chart.radar": { es: "Radar", en: "Radar", fr: "Radar" },
   "chart.history": { es: "Historial", en: "History", fr: "Historique" },
   "chart.stats": { es: "Stats", en: "Stats", fr: "Stats" },
+  "chart.advanced": { es: "Avanzado", en: "Advanced", fr: "Avancé" },
+  "chart.advancedTitle": { es: "Estadísticas Avanzadas por Jugador", en: "Advanced Stats by Player", fr: "Statistiques Avancées par Joueur" },
+  "chart.total": { es: "Total", en: "Total", fr: "Total" },
+  "common.loading": { es: "Cargando...", en: "Loading...", fr: "Chargement..." },
 
   // Common
   "common.noWinnersYet": { es: "Aún no hay ganadores registrados", en: "No winners recorded yet", fr: "Aucun gagnant enregistré" },
