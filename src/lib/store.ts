@@ -132,21 +132,20 @@ export function useSessions(groupId: string | null) {
 
   const addSession = useCallback(async (session: Omit<GameSession, "id" | "createdAt">): Promise<{ sessionId: string; resultIds: Record<string, string> } | null> => {
     if (!user || !groupId) return null;
-    const insertData: Record<string, any> = {
-      user_id: user.id,
-      group_id: groupId,
-      created_by: user.id,
-      name: session.name,
-      game_name: session.gameName,
-      date: session.date,
-      notes: session.notes,
-      custom_stats: session.customStats as any,
-    };
-    if (session.gameId) insertData.game_id = session.gameId;
 
     const { data: sessionData } = await supabase
       .from("sessions")
-      .insert(insertData)
+      .insert({
+        user_id: user.id,
+        group_id: groupId,
+        created_by: user.id,
+        name: session.name,
+        game_name: session.gameName,
+        game_id: session.gameId || null,
+        date: session.date,
+        notes: session.notes,
+        custom_stats: session.customStats as any,
+      })
       .select()
       .single();
 
