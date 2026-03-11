@@ -428,6 +428,10 @@ export type Database = {
         Returns: boolean
       }
       join_group_by_code: { Args: { _code: string }; Returns: string }
+      update_invite_status: {
+        Args: { _invite_id: string; _status: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
