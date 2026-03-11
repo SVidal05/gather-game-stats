@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      game_stat_definitions: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          label: string
+          options: Json | null
+          stat_key: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          label: string
+          options?: Json | null
+          stat_key: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          label?: string
+          options?: Json | null
+          stat_key?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_stat_definitions_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           created_at: string
@@ -226,6 +264,45 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      result_stats: {
+        Row: {
+          created_at: string
+          id: string
+          result_id: string
+          stat_definition_id: string
+          value: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          result_id: string
+          stat_definition_id: string
+          value?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          result_id?: string
+          stat_definition_id?: string
+          value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "result_stats_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_stats_stat_definition_id_fkey"
+            columns: ["stat_definition_id"]
+            isOneToOne: false
+            referencedRelation: "game_stat_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       results: {
         Row: {
