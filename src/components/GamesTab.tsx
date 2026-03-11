@@ -183,8 +183,16 @@ function GameDetailView({
   const gameSessions = sessions.filter(s => s.gameName === gameName);
   const gameStats = getPlayerStats(players, gameSessions);
   const activePlayers = gameStats.filter(s => s.gamesPlayed > 0);
-  const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom">("wins");
+  const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom" | "advanced">("wins");
   const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
+
+  // Find the game ID from the games table
+  const { games } = useGames();
+  const gameRecord = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+  const gameId = gameRecord?.id || null;
+  const sessionIds = gameSessions.map(s => s.id);
+  const { data: advancedStats, loading: advancedLoading } = useGameResultStats(gameId, sessionIds);
+  const hasAdvancedStats = advancedStats.length > 0;
 
   const topPlayer = activePlayers.length > 0 ? activePlayers.reduce((a, b) => a.wins > b.wins ? a : b) : null;
 
