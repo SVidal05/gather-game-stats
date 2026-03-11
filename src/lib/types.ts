@@ -17,6 +17,7 @@ export interface GameSession {
   name: string;
   date: string;
   gameName: string;
+  gameId?: string;
   playerIds: string[];
   results: PlayerResult[];
   notes: string;
