@@ -841,7 +841,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                         </div>
                       </button>
                       <div className="flex items-center gap-1">
-                        <Button size="sm" variant="ghost" className="rounded-xl h-8 px-2 text-xs font-bold gap-1" onClick={() => openNewSession(game.name)} disabled={players.length < 2}>
+                        <Button size="sm" variant="ghost" className="rounded-xl h-8 px-2 text-xs font-bold gap-1" onClick={() => openNewSession(game.name)} disabled={players.length < 1}>
                           <Plus className="w-3 h-3" /> {t("play.play")}
                         </Button>
                         <button onClick={() => openGameDetail(game.name)} className="text-muted-foreground p-1">
