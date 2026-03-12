@@ -358,6 +358,17 @@ export function GroupSelector({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Player Linking Dialog (after joining a group) */}
+      {joinedGroupId && (
+        <JoinGroupPlayerDialog
+          open={playerDialogOpen}
+          onOpenChange={setPlayerDialogOpen}
+          groupId={joinedGroupId}
+          groupName={joinedGroupName}
+          onComplete={() => { onRefetch(); setJoinedGroupId(null); }}
+        />
+      )}
     </div>
   );
 }
