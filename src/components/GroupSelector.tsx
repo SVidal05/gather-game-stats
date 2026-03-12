@@ -54,6 +54,7 @@ export function GroupSelector({
 
   const isAdmin = activeGroup && members.some(m => m.userId === user?.id && m.role === "admin");
   const isOwner = activeGroup?.ownerId === user?.id;
+  const isPersonalGroup = !!activeGroup?.isPersonal;
 
   const handleCreate = async () => {
     if (!newGroupName.trim()) return;
