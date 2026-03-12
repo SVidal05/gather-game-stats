@@ -8,6 +8,7 @@ export interface Group {
   ownerId: string;
   inviteCode: string;
   createdAt: string;
+  isPersonal: boolean;
 }
 
 export interface GroupMember {
