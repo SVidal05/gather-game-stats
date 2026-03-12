@@ -695,6 +695,8 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                 const winner = session.results.find(r => r.isWinner);
                 const winnerPlayer = winner ? players.find(p => p.id === winner.playerId) : null;
                 const theme = getGameTheme(session.gameName);
+                const sessionGame = games.find(g => g.name.toLowerCase() === session.gameName.toLowerCase());
+                const isSessionSolo = sessionGame?.gameMode === "solo" || (session.results.length === 1 && !session.results[0]?.isWinner);
                 return (
                   <motion.div key={session.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
                     className="game-card cursor-pointer !p-3" onClick={() => setExpandedId(isExpanded ? null : session.id)} whileTap={{ scale: 0.98 }}>
@@ -703,11 +705,18 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                         <span className="text-lg">{theme.emoji}</span>
                         <div>
                           <p className="font-bold text-sm text-foreground">{session.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{session.gameName} · {new Date(session.date).toLocaleDateString()}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {session.gameName} · {new Date(session.date).toLocaleDateString()}
+                            {isSessionSolo && <span className="ml-1 text-accent font-bold">Solo</span>}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        {winnerPlayer && (
+                        {isSessionSolo ? (
+                          <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+                            <User className="w-3 h-3" /> {players.find(p => p.id === session.results[0]?.playerId)?.name || "—"}
+                          </span>
+                        ) : winnerPlayer && (
                           <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"><Crown className="w-3 h-3" /> {winnerPlayer.name}</span>
                         )}
                         <button onClick={e => { e.stopPropagation(); startEditSession(session); }} className="text-muted-foreground hover:text-primary transition-colors p-1 active:scale-90">
