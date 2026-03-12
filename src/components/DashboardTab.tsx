@@ -524,7 +524,7 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
                 transition={{ delay: 0.3 + i * 0.08 }}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs ${r.isWinner ? "bg-[hsl(var(--gold)/0.08)]" : "bg-card/50"}`}
               >
-                <span className="w-5 text-center font-bold text-muted-foreground">{medal}</span>
+                <span className="w-5 text-center"><RankBadge rank={i + 1} size="sm" /></span>
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 overflow-hidden" style={{ backgroundColor: p.color + "20", border: `1.5px solid ${p.color}40` }}>
                   {isImageAvatar(p.avatar) ? <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" /> : p.avatar}
                 </div>
