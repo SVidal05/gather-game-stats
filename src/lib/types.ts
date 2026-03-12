@@ -56,3 +56,34 @@ export const POPULAR_GAMES = [
   "Smash Bros", "Chess", "Risk", "Codenames", "Jenga",
   "Pictionary", "Scrabble", "Trivial Pursuit", "Charades",
 ];
+
+// Extended list for autocomplete suggestions
+export const KNOWN_GAMES = [
+  // Board games
+  "Catan", "Monopoly", "Risk", "Chess", "Scrabble", "Trivial Pursuit", "Codenames",
+  "Jenga", "Pictionary", "Charades", "Ticket to Ride", "Pandemic", "Azul",
+  "Dixit", "7 Wonders", "Splendor", "Carcassonne", "Clue", "Battleship",
+  "Connect Four", "Dominion", "Terraforming Mars", "Wingspan", "Gloomhaven",
+  "Spirit Island", "Betrayal at House on the Hill", "Exploding Kittens",
+  "Cards Against Humanity", "Sequence", "Stratego", "Othello", "Backgammon",
+  "Checkers", "Go", "Mahjong", "Mancala", "Boggle",
+  // Card games
+  "Poker", "Uno", "Magic: The Gathering", "Yu-Gi-Oh!", "Hearthstone",
+  "Blackjack", "Bridge", "Rummy", "Solitaire", "Phase 10",
+  // Video games
+  "Fortnite", "League of Legends", "Valorant", "Counter-Strike 2", "Overwatch 2",
+  "Apex Legends", "Call of Duty", "FIFA", "EA FC", "Rocket League",
+  "Minecraft", "Among Us", "Fall Guys", "Roblox", "GTA V",
+  "Mario Kart", "Smash Bros", "Mario Party", "Splatoon", "Animal Crossing",
+  "Pokémon", "The Legend of Zelda", "Halo", "Destiny 2", "World of Warcraft",
+  "Dota 2", "Teamfight Tactics", "Clash Royale", "Clash of Clans", "Brawl Stars",
+  "Genshin Impact", "Honkai: Star Rail", "Elden Ring", "Dark Souls",
+  "Street Fighter", "Tekken", "Mortal Kombat", "Dragon Ball FighterZ",
+  "NBA 2K", "Madden NFL", "MLB The Show", "Gran Turismo", "Forza Horizon",
+  "F1", "iRacing", "Wii Sports", "Just Dance", "Beat Saber",
+  "Tetris", "Pac-Man", "Bomberman", "Puyo Puyo",
+  // Classics / party
+  "Monopoly Deal", "Dobble", "Spot It!", "Taboo", "Cranium",
+  "Apples to Apples", "Telestrations", "Werewolf", "Mafia", "The Resistance",
+  "Secret Hitler", "Coup", "Love Letter", "Sushi Go!", "King of Tokyo",
+];
