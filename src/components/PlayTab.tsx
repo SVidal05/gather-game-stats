@@ -84,8 +84,17 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   // Games & stat definitions integration
   const { games, findOrCreateGame } = useGames();
   const selectedGameDef = useMemo(() => {
-    return games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+    const found = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+    return found || null;
   }, [games, gameName]);
+
+  // Auto-set game mode from DB game when selecting an existing game
+  useEffect(() => {
+    if (selectedGameDef) {
+      setGameMode(selectedGameDef.gameMode);
+    }
+  }, [selectedGameDef]);
+
   const { statDefs, addStatDefinition } = useStatDefinitions(selectedGameDef?.id || null);
 
   // Advanced stat values: playerId -> statDefId -> value
