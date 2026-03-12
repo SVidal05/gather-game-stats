@@ -52,6 +52,9 @@ export function GroupSelector({
   const [editingName, setEditingName] = useState(false);
   const [editName, setEditName] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
+  const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
+  const [joinedGroupId, setJoinedGroupId] = useState<string | null>(null);
+  const [joinedGroupName, setJoinedGroupName] = useState("");
 
   const isAdmin = activeGroup && members.some(m => m.userId === user?.id && m.role === "admin");
   const isOwner = activeGroup?.ownerId === user?.id;
