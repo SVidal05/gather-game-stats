@@ -83,9 +83,31 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
   // Games & stat definitions integration
   const { games, findOrCreateGame } = useGames();
+  const [artworkPreviewByName, setArtworkPreviewByName] = useState<Record<string, { backgroundImage: string | null; coverImage: string | null }>>({});
+
   const selectedGameDef = useMemo(() => {
     const found = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
     return found || null;
+  }, [games, gameName]);
+
+  const gameSuggestions = useMemo(() => {
+    const query = gameName.toLowerCase().trim();
+    const allNames = new Map<string, string>();
+
+    games.forEach(g => allNames.set(g.name.toLowerCase(), g.name));
+    POPULAR_GAMES.forEach(g => {
+      if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g);
+    });
+    KNOWN_GAMES.forEach(g => {
+      if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g);
+    });
+
+    return Array.from(allNames.values())
+      .filter(name => {
+        if (query.length === 0) return true;
+        return name.toLowerCase().includes(query) && name.toLowerCase() !== query;
+      })
+      .slice(0, 8);
   }, [games, gameName]);
 
   // Auto-set game mode from DB game when selecting an existing game
@@ -94,6 +116,55 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
       setGameMode(selectedGameDef.gameMode);
     }
   }, [selectedGameDef]);
+
+  // Fetch artwork preview for typed game names that are not yet in DB
+  useEffect(() => {
+    const trimmedName = gameName.trim();
+    if (!trimmedName) return;
+
+    const key = trimmedName.toLowerCase();
+    const dbGame = games.find(g => g.name.toLowerCase() === key);
+    if (dbGame?.backgroundImage || dbGame?.coverImage || artworkPreviewByName[key]) return;
+
+    let cancelled = false;
+    searchGameArtwork(trimmedName).then((artwork) => {
+      if (cancelled || (!artwork.backgroundImage && !artwork.coverImage)) return;
+      setArtworkPreviewByName(prev => (prev[key] ? prev : { ...prev, [key]: artwork }));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gameName, games, artworkPreviewByName]);
+
+  // Prefetch artwork for visible suggestions to show artwork before first save
+  useEffect(() => {
+    if (!gameInputFocused || gameSuggestions.length === 0) return;
+
+    const toPrefetch = gameSuggestions.filter(name => {
+      const key = name.toLowerCase();
+      const dbGame = games.find(g => g.name.toLowerCase() === key);
+      return !dbGame?.backgroundImage && !dbGame?.coverImage && !artworkPreviewByName[key];
+    });
+
+    if (toPrefetch.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      for (const suggestionName of toPrefetch) {
+        const artwork = await searchGameArtwork(suggestionName);
+        if (cancelled) return;
+        if (!artwork.backgroundImage && !artwork.coverImage) continue;
+
+        const key = suggestionName.toLowerCase();
+        setArtworkPreviewByName(prev => (prev[key] ? prev : { ...prev, [key]: artwork }));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gameInputFocused, gameSuggestions, games, artworkPreviewByName]);
 
   const { statDefs, addStatDefinition } = useStatDefinitions(selectedGameDef?.id || null);
 
@@ -123,17 +194,26 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
       }
     });
     return Array.from(gameMap.entries())
-      .map(([name, data]) => ({ name, ...data, theme: getGameTheme(name) }))
+      .map(([name, data]) => {
+        const dbGame = games.find(g => g.name.toLowerCase() === name.toLowerCase());
+        return { name, ...data, theme: getGameTheme(name), dbGame };
+      })
       .sort((a, b) => b.count - a.count);
-  }, [sessions]);
+  }, [sessions, games]);
 
   const allGames = useMemo(() => {
     const played = new Set(gamesPlayed.map(g => g.name));
     const unplayed = Object.keys(GAME_THEMES)
       .filter(name => !played.has(name))
-      .map(name => ({ name, count: 0, lastPlayed: "", theme: getGameTheme(name) }));
+      .map(name => ({
+        name,
+        count: 0,
+        lastPlayed: "",
+        theme: getGameTheme(name),
+        dbGame: games.find(g => g.name.toLowerCase() === name.toLowerCase()) || null,
+      }));
     return [...gamesPlayed, ...unplayed];
-  }, [gamesPlayed]);
+  }, [gamesPlayed, games]);
 
   const openNewSession = (game?: string) => {
     resetForm();
