@@ -42,6 +42,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function GamesTab({ players, sessions }: GamesTabProps) {
   const { t } = useI18n();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const { games: dbGames } = useGames();
 
   const gamesPlayed = useMemo(() => {
     const gameMap = new Map<string, { count: number; lastPlayed: string }>();
@@ -55,9 +56,12 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
       }
     });
     return Array.from(gameMap.entries())
-      .map(([name, data]) => ({ name, ...data, theme: getGameTheme(name) }))
+      .map(([name, data]) => {
+        const dbGame = dbGames.find(g => g.name.toLowerCase() === name.toLowerCase());
+        return { name, ...data, theme: getGameTheme(name), dbGame };
+      })
       .sort((a, b) => b.count - a.count);
-  }, [sessions]);
+  }, [sessions, dbGames]);
 
   const allGames = useMemo(() => {
     const played = new Set(gamesPlayed.map(g => g.name));
