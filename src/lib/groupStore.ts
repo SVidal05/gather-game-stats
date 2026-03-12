@@ -41,10 +41,16 @@ export function useGroups() {
 
   const fetchGroups = useCallback(async () => {
     if (!user) { setGroups([]); setLoading(false); return; }
+
+    // Ensure every authenticated user has a personal workspace
+    await supabase.rpc("ensure_personal_group");
+
     const { data } = await supabase
       .from("groups")
       .select("*")
+      .order("is_personal", { ascending: false })
       .order("created_at", { ascending: true });
+
     if (data) {
       const mapped = data.map((g: any) => ({
         id: g.id,
@@ -52,14 +58,20 @@ export function useGroups() {
         ownerId: g.owner_id,
         inviteCode: g.invite_code,
         createdAt: g.created_at,
+        isPersonal: !!g.is_personal,
       }));
       setGroups(mapped);
-      // Auto-select first group if none selected
-      if (!activeGroupId && mapped.length > 0) {
-        setActiveGroupId(mapped[0].id);
-        localStorage.setItem("gamenight_active_group", mapped[0].id);
+
+      const activeStillExists = activeGroupId ? mapped.some(g => g.id === activeGroupId) : false;
+      if (!activeGroupId || !activeStillExists) {
+        const preferred = mapped.find(g => g.isPersonal) || mapped[0];
+        if (preferred) {
+          setActiveGroupId(preferred.id);
+          localStorage.setItem("gamenight_active_group", preferred.id);
+        }
       }
     }
+
     setLoading(false);
   }, [user, activeGroupId]);
 
