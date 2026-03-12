@@ -802,8 +802,16 @@ function GameDetailView({
   const gameSessions = sessions.filter(s => s.gameName === gameName);
   const gameStats = getPlayerStats(players, gameSessions);
   const activePlayers = gameStats.filter(s => s.gamesPlayed > 0);
-  const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom">("wins");
+  const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom" | "advanced">("wins");
   const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
+
+  // Advanced stats from DB
+  const { games: gamesForDetail } = useGames();
+  const gameRecordForDetail = gamesForDetail.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+  const gameIdForDetail = gameRecordForDetail?.id || null;
+  const sessionIdsForDetail = gameSessions.map(s => s.id);
+  const { data: advancedStatsData, loading: advancedStatsLoading } = useGameResultStats(gameIdForDetail, sessionIdsForDetail);
+  const hasAdvancedStatsData = advancedStatsData.length > 0;
 
   const topPlayer = activePlayers.length > 0 ? activePlayers.reduce((a, b) => a.wins > b.wins ? a : b) : null;
 
