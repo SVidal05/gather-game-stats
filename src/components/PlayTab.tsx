@@ -866,6 +866,7 @@ function GameDetailView({
     { id: "radar" as const, label: t("chart.radar"), emoji: "🎯" },
     { id: "history" as const, label: t("chart.history"), emoji: "📈" },
     ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), emoji: theme.emoji }] : []),
+    ...(hasAdvancedStatsData ? [{ id: "advanced" as const, label: t("chart.advanced"), emoji: "📋" }] : []),
   ];
 
   return (
