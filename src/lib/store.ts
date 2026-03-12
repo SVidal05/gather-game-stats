@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Player, GameSession, PlayerStats, PlayerResult } from "./types";
 
 export function usePlayers(groupId: string | null) {
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
 
