@@ -54,18 +54,24 @@ export type Database = {
       }
       games: {
         Row: {
+          background_image: string | null
+          cover_image: string | null
           created_at: string
           icon: string | null
           id: string
           name: string
         }
         Insert: {
+          background_image?: string | null
+          cover_image?: string | null
           created_at?: string
           icon?: string | null
           id?: string
           name: string
         }
         Update: {
+          background_image?: string | null
+          cover_image?: string | null
           created_at?: string
           icon?: string | null
           id?: string
