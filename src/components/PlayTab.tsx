@@ -1095,7 +1095,7 @@ function GameDetailView({
                 {activeChart === "advanced" && (
                   <>
                     <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5">
-                      📋 {t("chart.advancedTitle")}
+                      <Medal className="w-3.5 h-3.5 text-primary" /> {t("chart.advancedTitle")}
                     </h3>
                     {advancedStatsLoading ? (
                       <p className="text-xs text-muted-foreground text-center py-4">{t("common.loading")}</p>
