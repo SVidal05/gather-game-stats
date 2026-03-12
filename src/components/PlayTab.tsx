@@ -250,10 +250,11 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
     // Find or create game in DB with mode and category
     const gameId = await findOrCreateGame(gameName.trim(), gameMode, gameCategory);
 
+    const effectiveWinner = (winnerId && winnerId !== "none") ? winnerId : "";
     const results: PlayerResult[] = selectedPlayerIds.map(pid => ({
       playerId: pid,
       score: isSolo ? 0 : (scores[pid] || 0),
-      isWinner: isSolo ? false : pid === winnerId,
+      isWinner: isSolo ? false : (gameCategory === "coop" ? false : pid === effectiveWinner),
     }));
 
     const result = await onAddSession({
