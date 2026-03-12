@@ -437,25 +437,42 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
           {/* 4. Players */}
           <div>
-            <Label className="font-semibold text-xs">{t("sessions.players")}</Label>
+            <Label className="font-semibold text-xs">
+              {isSolo ? "Jugador" : t("sessions.players")}
+            </Label>
+            {isSolo && (
+              <p className="text-[10px] text-muted-foreground mt-0.5">Selecciona un jugador para esta sesión solo</p>
+            )}
             <div className="flex flex-wrap gap-1.5 mt-1">
-              {players.map(p => (
-                <button key={p.id} onClick={() => togglePlayer(p.id)}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
-                    selectedPlayerIds.includes(p.id) ? "ring-2 ring-offset-1" : "opacity-40"
-                  }`}
-                  style={{ backgroundColor: p.color + "22", color: p.color, ...(selectedPlayerIds.includes(p.id) ? { ringColor: p.color } : {}) }}
-                >
-                  <span className="w-5 h-5 rounded-md overflow-hidden inline-flex items-center justify-center shrink-0" style={{ backgroundColor: p.color + "15" }}>
-                    {isImageAvatar(p.avatar) ? (
-                      <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xs">{p.avatar}</span>
-                    )}
-                  </span>
-                  {p.name}
-                </button>
-              ))}
+              {players.map(p => {
+                const isSelected = selectedPlayerIds.includes(p.id);
+                const isDisabled = isSolo && selectedPlayerIds.length >= 1 && !isSelected;
+                return (
+                  <button key={p.id} onClick={() => {
+                    if (isSolo) {
+                      // In solo mode, only one player at a time
+                      setSelectedPlayerIds(isSelected ? [] : [p.id]);
+                    } else {
+                      togglePlayer(p.id);
+                    }
+                  }}
+                    disabled={isDisabled}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
+                      isSelected ? "ring-2 ring-offset-1" : isDisabled ? "opacity-20 cursor-not-allowed" : "opacity-40"
+                    }`}
+                    style={{ backgroundColor: p.color + "22", color: p.color, ...(isSelected ? { ringColor: p.color } : {}) }}
+                  >
+                    <span className="w-5 h-5 rounded-md overflow-hidden inline-flex items-center justify-center shrink-0" style={{ backgroundColor: p.color + "15" }}>
+                      {isImageAvatar(p.avatar) ? (
+                        <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs">{p.avatar}</span>
+                      )}
+                    </span>
+                    {p.name}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
