@@ -7,7 +7,7 @@ import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
-import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode } from "@/lib/gameStore";
+import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode, searchGameArtwork } from "@/lib/gameStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,9 +83,31 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
   // Games & stat definitions integration
   const { games, findOrCreateGame } = useGames();
+  const [artworkPreviewByName, setArtworkPreviewByName] = useState<Record<string, { backgroundImage: string | null; coverImage: string | null }>>({});
+
   const selectedGameDef = useMemo(() => {
     const found = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
     return found || null;
+  }, [games, gameName]);
+
+  const gameSuggestions = useMemo(() => {
+    const query = gameName.toLowerCase().trim();
+    const allNames = new Map<string, string>();
+
+    games.forEach(g => allNames.set(g.name.toLowerCase(), g.name));
+    POPULAR_GAMES.forEach(g => {
+      if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g);
+    });
+    KNOWN_GAMES.forEach(g => {
+      if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g);
+    });
+
+    return Array.from(allNames.values())
+      .filter(name => {
+        if (query.length === 0) return true;
+        return name.toLowerCase().includes(query) && name.toLowerCase() !== query;
+      })
+      .slice(0, 8);
   }, [games, gameName]);
 
   // Auto-set game mode from DB game when selecting an existing game
@@ -94,6 +116,55 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
       setGameMode(selectedGameDef.gameMode);
     }
   }, [selectedGameDef]);
+
+  // Fetch artwork preview for typed game names that are not yet in DB
+  useEffect(() => {
+    const trimmedName = gameName.trim();
+    if (!trimmedName) return;
+
+    const key = trimmedName.toLowerCase();
+    const dbGame = games.find(g => g.name.toLowerCase() === key);
+    if (dbGame?.backgroundImage || dbGame?.coverImage || artworkPreviewByName[key]) return;
+
+    let cancelled = false;
+    searchGameArtwork(trimmedName).then((artwork) => {
+      if (cancelled || (!artwork.backgroundImage && !artwork.coverImage)) return;
+      setArtworkPreviewByName(prev => (prev[key] ? prev : { ...prev, [key]: artwork }));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gameName, games, artworkPreviewByName]);
+
+  // Prefetch artwork for visible suggestions to show artwork before first save
+  useEffect(() => {
+    if (!gameInputFocused || gameSuggestions.length === 0) return;
+
+    const toPrefetch = gameSuggestions.filter(name => {
+      const key = name.toLowerCase();
+      const dbGame = games.find(g => g.name.toLowerCase() === key);
+      return !dbGame?.backgroundImage && !dbGame?.coverImage && !artworkPreviewByName[key];
+    });
+
+    if (toPrefetch.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      for (const suggestionName of toPrefetch) {
+        const artwork = await searchGameArtwork(suggestionName);
+        if (cancelled) return;
+        if (!artwork.backgroundImage && !artwork.coverImage) continue;
+
+        const key = suggestionName.toLowerCase();
+        setArtworkPreviewByName(prev => (prev[key] ? prev : { ...prev, [key]: artwork }));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gameInputFocused, gameSuggestions, games, artworkPreviewByName]);
 
   const { statDefs, addStatDefinition } = useStatDefinitions(selectedGameDef?.id || null);
 
@@ -123,17 +194,26 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
       }
     });
     return Array.from(gameMap.entries())
-      .map(([name, data]) => ({ name, ...data, theme: getGameTheme(name) }))
+      .map(([name, data]) => {
+        const dbGame = games.find(g => g.name.toLowerCase() === name.toLowerCase());
+        return { name, ...data, theme: getGameTheme(name), dbGame };
+      })
       .sort((a, b) => b.count - a.count);
-  }, [sessions]);
+  }, [sessions, games]);
 
   const allGames = useMemo(() => {
     const played = new Set(gamesPlayed.map(g => g.name));
     const unplayed = Object.keys(GAME_THEMES)
       .filter(name => !played.has(name))
-      .map(name => ({ name, count: 0, lastPlayed: "", theme: getGameTheme(name) }));
+      .map(name => ({
+        name,
+        count: 0,
+        lastPlayed: "",
+        theme: getGameTheme(name),
+        dbGame: games.find(g => g.name.toLowerCase() === name.toLowerCase()) || null,
+      }));
     return [...gamesPlayed, ...unplayed];
-  }, [gamesPlayed]);
+  }, [gamesPlayed, games]);
 
   const openNewSession = (game?: string) => {
     resetForm();
@@ -338,53 +418,50 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
               className="rounded-xl mt-1 h-11"
               autoComplete="off"
             />
-            {gameInputFocused && (() => {
-              const query = gameName.toLowerCase().trim();
-              // Combine: DB games, POPULAR_GAMES, KNOWN_GAMES — deduplicate
-              const allNames = new Map<string, string>();
-              games.forEach(g => allNames.set(g.name.toLowerCase(), g.name));
-              POPULAR_GAMES.forEach(g => { if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g); });
-              KNOWN_GAMES.forEach(g => { if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g); });
-              const suggestions = Array.from(allNames.values())
-                .filter(name => {
-                  if (query.length === 0) return true;
-                  return name.toLowerCase().includes(query) && name.toLowerCase() !== query;
-                })
-                .slice(0, 8);
-              if (suggestions.length === 0) return null;
-              return (
-                <div className="absolute z-50 left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
-                  {suggestions.map(name => {
-                    const gt = getGameTheme(name);
-                    const dbGame = games.find(g => g.name.toLowerCase() === name.toLowerCase());
-                    return (
-                      <button
-                        key={name}
-                        type="button"
-                        onMouseDown={e => e.preventDefault()}
-                        onClick={() => { setGameName(name); setGameInputFocused(false); }}
-                        className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent transition-colors text-sm"
-                      >
-                        {dbGame?.coverImage ? (
-                          <img src={dbGame.coverImage} alt={name} className="w-6 h-6 rounded object-cover" />
-                        ) : (
-                          <div className="w-6 h-6 rounded overflow-hidden relative shrink-0">
-                            <img src={gt.image} alt={name} className="w-full h-full object-cover" />
-                          </div>
-                        )}
-                        <span className="font-medium text-foreground">{name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })()}
+            {gameInputFocused && gameSuggestions.length > 0 && (
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                {gameSuggestions.map(name => {
+                  const key = name.toLowerCase();
+                  const gt = getGameTheme(name);
+                  const dbGame = games.find(g => g.name.toLowerCase() === key);
+                  const previewArtwork = artworkPreviewByName[key];
+                  const suggestionImage =
+                    dbGame?.coverImage ||
+                    dbGame?.backgroundImage ||
+                    previewArtwork?.coverImage ||
+                    previewArtwork?.backgroundImage ||
+                    gt.image;
+
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => { setGameName(name); setGameInputFocused(false); }}
+                      className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent transition-colors text-sm"
+                    >
+                      <div className="w-6 h-6 rounded overflow-hidden relative shrink-0">
+                        <img src={suggestionImage} alt={name} className="w-full h-full object-cover" />
+                      </div>
+                      <span className="font-medium text-foreground">{name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {gameName.trim() && (() => {
-            // Show banner for all games - use DB artwork if available, otherwise use theme image
-            const dbGame = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
-            const bannerImg = dbGame?.backgroundImage || dbGame?.coverImage || getGameTheme(gameName).image;
+            const key = gameName.toLowerCase().trim();
+            const dbGame = games.find(g => g.name.toLowerCase() === key);
+            const previewArtwork = artworkPreviewByName[key];
+            const bannerImg =
+              dbGame?.backgroundImage ||
+              dbGame?.coverImage ||
+              previewArtwork?.backgroundImage ||
+              previewArtwork?.coverImage ||
+              getGameTheme(gameName).image;
+
             if (!bannerImg) return null;
             return (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
@@ -403,7 +480,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           {/* Game Mode Selector */}
           {gameName.trim() && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-              <Label className="font-semibold text-xs">Game Mode</Label>
+              <Label className="font-semibold text-xs">{t("solo.gameMode")}</Label>
               <div className="flex gap-2 mt-1">
                 <button
                   type="button"
@@ -415,7 +492,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   }`}
                 >
                   <Users className="w-4 h-4" />
-                  Multiplayer
+                  {t("solo.modeMultiplayer")}
                 </button>
                 <button
                   type="button"
@@ -427,7 +504,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   }`}
                 >
                   <User className="w-4 h-4" />
-                  Solo
+                  {t("solo.modeSolo")}
                 </button>
               </div>
             </motion.div>
@@ -442,10 +519,10 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           {/* 4. Players */}
           <div>
             <Label className="font-semibold text-xs">
-              {isSolo ? "Player" : t("sessions.players")}
+              {isSolo ? t("solo.playerLabel") : t("sessions.players")}
             </Label>
             {isSolo && (
-              <p className="text-[10px] text-muted-foreground mt-0.5">Select a player for this solo session</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t("solo.selectPlayerHint")}</p>
             )}
             <div className="flex flex-wrap gap-1.5 mt-1">
               {players.map(p => {
@@ -711,7 +788,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                           <p className="font-bold text-sm text-foreground">{session.name}</p>
                           <p className="text-[10px] text-muted-foreground">
                             {session.gameName} · {new Date(session.date).toLocaleDateString()}
-                            {isSessionSolo && <span className="ml-1 text-accent font-bold">Solo</span>}
+                            {isSessionSolo && <span className="ml-1 text-accent font-bold">{t("solo.sessionTag")}</span>}
                           </p>
                         </div>
                       </div>
@@ -739,7 +816,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                               <div className="space-y-2">
                                 <div className="flex items-center gap-2 text-xs">
                                   <User className="w-3.5 h-3.5 text-accent" />
-                                  <span className="font-bold text-foreground">Sesión personal</span>
+                                  <span className="font-bold text-foreground">{t("solo.personalSession")}</span>
                                 </div>
                                 {session.results[0] && (() => {
                                   const p = players.find(pl => pl.id === session.results[0].playerId);
@@ -849,7 +926,11 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   className="game-card w-full !p-0 overflow-hidden">
                   <div className="flex items-stretch">
                     <button onClick={() => openGameDetail(game.name)} className="w-16 h-16 shrink-0 relative overflow-hidden">
-                      <img src={game.theme.image} alt={game.name} className="w-full h-full object-cover" />
+                      <img
+                        src={game.dbGame?.coverImage || game.dbGame?.backgroundImage || artworkPreviewByName[game.name.toLowerCase()]?.coverImage || artworkPreviewByName[game.name.toLowerCase()]?.backgroundImage || game.theme.image}
+                        alt={game.name}
+                        className="w-full h-full object-cover"
+                      />
                       <div className="absolute inset-0" style={{ background: game.theme.gradient, opacity: 0.3 }} />
                     </button>
                     <div className="flex-1 p-2.5 flex items-center justify-between">
@@ -893,7 +974,11 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
               <motion.div key={game.name} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
                 className="game-card !p-0 overflow-hidden text-left">
                 <div className="relative h-20 overflow-hidden">
-                  <img src={game.theme.image} alt={game.name} className="w-full h-full object-cover" />
+                  <img
+                    src={game.dbGame?.coverImage || game.dbGame?.backgroundImage || artworkPreviewByName[game.name.toLowerCase()]?.coverImage || artworkPreviewByName[game.name.toLowerCase()]?.backgroundImage || game.theme.image}
+                    alt={game.name}
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
                   <div className="absolute bottom-1.5 left-2 right-2 flex items-end justify-between">
                     <button onClick={() => openGameDetail(game.name)} className="font-bold text-foreground text-xs flex items-center gap-1">
