@@ -139,7 +139,7 @@ export function GroupSelector({
               {t("groups.personalWorkspace")}
             </h3>
             <p className="text-xs text-muted-foreground">
-              This private workspace is optimized for solo tracking and cannot be deleted.
+              {t("groups.personalWorkspaceHint")}
             </p>
           </motion.div>
         ) : (
