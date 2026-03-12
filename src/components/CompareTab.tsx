@@ -50,7 +50,7 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
   const [player1Id, setPlayer1Id] = useState<string>("");
   const [player2Id, setPlayer2Id] = useState<string>("");
 
-  const stats = getPlayerStats(players, sessions);
+  const stats = getPlayerStats(players, sessions.filter(s => !isSoloSession(s)));
   const p1Stats = stats.find(s => s.player.id === player1Id);
   const p2Stats = stats.find(s => s.player.id === player2Id);
 
