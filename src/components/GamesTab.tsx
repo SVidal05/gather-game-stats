@@ -184,14 +184,47 @@ function GameDetailView({
   const activePlayers = gameStats.filter(s => s.gamesPlayed > 0);
   const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom" | "advanced">("wins");
   const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
+  const [statsManagementOpen, setStatsManagementOpen] = useState(false);
 
-  // Find the game ID from the games table
+  // Stat definitions management
   const { games } = useGames();
   const gameRecord = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
   const gameId = gameRecord?.id || null;
+  const { statDefs, addStatDefinition, updateStatDefinition, deleteStatDefinition } = useStatDefinitions(gameId);
   const sessionIds = gameSessions.map(s => s.id);
   const { data: advancedStats, loading: advancedLoading } = useGameResultStats(gameId, sessionIds);
   const hasAdvancedStats = advancedStats.length > 0;
+
+  // New stat form
+  const [showNewStat, setShowNewStat] = useState(false);
+  const [newStatLabel, setNewStatLabel] = useState("");
+  const [newStatType, setNewStatType] = useState("number");
+  const [newStatOptions, setNewStatOptions] = useState("");
+  const [editingStatId, setEditingStatId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+
+  const handleAddStat = async () => {
+    if (!newStatLabel.trim()) return;
+    const options = newStatType === "select" && newStatOptions.trim()
+      ? newStatOptions.split(",").map(o => o.trim()).filter(Boolean) : undefined;
+    await addStatDefinition({
+      statKey: newStatLabel.trim().toLowerCase().replace(/\s+/g, "_"),
+      label: newStatLabel.trim(),
+      type: newStatType,
+      options,
+    });
+    setShowNewStat(false);
+    setNewStatLabel("");
+    setNewStatType("number");
+    setNewStatOptions("");
+  };
+
+  const handleSaveEditStat = async (id: string) => {
+    if (!editLabel.trim()) return;
+    await updateStatDefinition(id, { label: editLabel.trim() });
+    setEditingStatId(null);
+    setEditLabel("");
+  };
 
   const topPlayer = activePlayers.length > 0 ? activePlayers.reduce((a, b) => a.wins > b.wins ? a : b) : null;
 
