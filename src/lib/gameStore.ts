@@ -68,15 +68,22 @@ export function useGames() {
 
   useEffect(() => { fetchGames(); }, [fetchGames]);
 
-  const findOrCreateGame = useCallback(async (name: string): Promise<string | null> => {
+  const findOrCreateGame = useCallback(async (name: string, gameMode: GameMode = "multiplayer"): Promise<string | null> => {
     if (!user) return null;
     const existing = games.find(g => g.name.toLowerCase() === name.toLowerCase());
-    if (existing) return existing.id;
+    if (existing) {
+      // Update game mode if different
+      if (existing.gameMode !== gameMode) {
+        await supabase.from("games").update({ game_mode: gameMode } as any).eq("id", existing.id);
+        setGames(prev => prev.map(g => g.id === existing.id ? { ...g, gameMode } : g));
+      }
+      return existing.id;
+    }
 
     // Search RAWG for artwork
     const artwork = await searchGameArtwork(name);
 
-    const insertData: any = { name };
+    const insertData: any = { name, game_mode: gameMode };
     if (artwork.backgroundImage) insertData.background_image = artwork.backgroundImage;
     if (artwork.coverImage) insertData.cover_image = artwork.coverImage;
 
@@ -92,6 +99,7 @@ export function useGames() {
         icon: data.icon,
         backgroundImage: (data as any).background_image || null,
         coverImage: (data as any).cover_image || null,
+        gameMode,
         createdAt: data.created_at,
       };
       setGames(prev => [...prev, newGame]);
