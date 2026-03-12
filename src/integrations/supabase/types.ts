@@ -225,6 +225,7 @@ export type Database = {
           created_at: string
           group_id: string | null
           id: string
+          linked_user_id: string | null
           name: string
           user_id: string
         }
@@ -234,6 +235,7 @@ export type Database = {
           created_at?: string
           group_id?: string | null
           id?: string
+          linked_user_id?: string | null
           name: string
           user_id: string
         }
@@ -243,6 +245,7 @@ export type Database = {
           created_at?: string
           group_id?: string | null
           id?: string
+          linked_user_id?: string | null
           name?: string
           user_id?: string
         }
