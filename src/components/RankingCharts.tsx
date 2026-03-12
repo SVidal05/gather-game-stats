@@ -441,7 +441,37 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
         </motion.div>
       )}
 
-      {/* Most Played Games */}
+      {/* Category Distribution */}
+      {categoryData.length > 1 && (
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="game-card !p-4">
+          <h3 className="font-display font-semibold text-foreground text-sm mb-4 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-primary" />
+            Category Distribution
+          </h3>
+          <div className="flex items-center gap-4">
+            <ResponsiveContainer width="50%" height={160}>
+              <PieChart>
+                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} innerRadius={30} strokeWidth={2} stroke="hsl(var(--card))">
+                  {categoryData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex-1 space-y-2">
+              {categoryData.map(entry => (
+                <div key={entry.name} className="flex items-center gap-2 text-xs">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                  <span className="text-foreground font-medium flex-1">{entry.name}</span>
+                  <span className="font-bold text-foreground">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {gamesData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="game-card !p-4">
           <h3 className="font-display font-semibold text-foreground text-sm mb-4 flex items-center gap-2">
