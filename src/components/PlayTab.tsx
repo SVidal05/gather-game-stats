@@ -635,7 +635,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                                     <tr key={r.playerId} className="border-t border-border/50">
                                       <td className="py-1.5"><PlayerBadge player={p} size="sm" /></td>
                                       <td className="text-right font-bold">{r.score}</td>
-                                      <td className="text-right">{r.isWinner ? "🏆" : ""}</td>
+                                      <td className="text-right">{r.isWinner ? <Crown className="w-3 h-3 text-[hsl(var(--gold))] inline" /> : ""}</td>
                                     </tr>
                                   );
                                 })}
