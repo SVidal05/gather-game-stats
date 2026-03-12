@@ -310,25 +310,56 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             <Input value={sessionName} onChange={e => setSessionName(e.target.value)} placeholder={t("sessions.sessionNamePlaceholder")} className="rounded-xl mt-1 h-11" />
           </div>
 
-          {/* 2. Game Selector */}
-          <div>
+          {/* 2. Game Selector with Autocomplete */}
+          <div className="relative">
             <Label className="font-semibold text-xs">{t("sessions.game")}</Label>
-            <Select value={gameName} onValueChange={setGameName}>
-              <SelectTrigger className="rounded-xl mt-1 h-11">
-                <SelectValue placeholder={t("sessions.selectGame")} />
-              </SelectTrigger>
-              <SelectContent>
-                {POPULAR_GAMES.map(g => {
-                  const gt = getGameTheme(g);
-                  return <SelectItem key={g} value={g}>{gt.emoji} {g}</SelectItem>;
-                })}
-                {/* Also show DB games not in POPULAR_GAMES */}
-                {games.filter(g => !POPULAR_GAMES.some(pg => pg.toLowerCase() === g.name.toLowerCase())).map(g => (
-                  <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input value={gameName} onChange={e => setGameName(e.target.value)} placeholder={t("sessions.customGame")} className="rounded-xl mt-2 h-11" />
+            <Input
+              value={gameName}
+              onChange={e => { setGameName(e.target.value); setGameInputFocused(true); }}
+              onFocus={() => setGameInputFocused(true)}
+              onBlur={() => setTimeout(() => setGameInputFocused(false), 200)}
+              placeholder={t("sessions.selectGame")}
+              className="rounded-xl mt-1 h-11"
+              autoComplete="off"
+            />
+            {gameInputFocused && gameName.trim().length > 0 && (() => {
+              const query = gameName.toLowerCase();
+              // Combine: DB games, POPULAR_GAMES, KNOWN_GAMES — deduplicate
+              const allNames = new Map<string, string>();
+              games.forEach(g => allNames.set(g.name.toLowerCase(), g.name));
+              POPULAR_GAMES.forEach(g => { if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g); });
+              KNOWN_GAMES.forEach(g => { if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g); });
+              const suggestions = Array.from(allNames.values())
+                .filter(name => name.toLowerCase().includes(query) && name.toLowerCase() !== query)
+                .slice(0, 8);
+              if (suggestions.length === 0) return null;
+              return (
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                  {suggestions.map(name => {
+                    const gt = getGameTheme(name);
+                    const dbGame = games.find(g => g.name.toLowerCase() === name.toLowerCase());
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => { setGameName(name); setGameInputFocused(false); }}
+                        className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent transition-colors text-sm"
+                      >
+                        {dbGame?.coverImage ? (
+                          <img src={dbGame.coverImage} alt={name} className="w-6 h-6 rounded object-cover" />
+                        ) : (
+                          <div className="w-6 h-6 rounded overflow-hidden relative shrink-0">
+                            <img src={gt.image} alt={name} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <span className="font-medium text-foreground">{name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
           {currentTheme && (
