@@ -136,7 +136,7 @@ export function GroupSelector({
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="game-card space-y-2">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Shield className="w-4 h-4 text-primary" />
-              Personal Workspace
+              {t("groups.personalWorkspace")}
             </h3>
             <p className="text-xs text-muted-foreground">
               This private workspace is optimized for solo tracking and cannot be deleted.
