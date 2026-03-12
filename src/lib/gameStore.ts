@@ -80,6 +80,7 @@ export function useGames() {
         backgroundImage: g.background_image || null,
         coverImage: g.cover_image || null,
         gameMode: (g.game_mode as GameMode) || "multiplayer",
+        category: (g.category as GameCategory) || "competitive",
         createdAt: g.created_at,
       })));
     }
