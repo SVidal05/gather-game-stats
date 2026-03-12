@@ -56,7 +56,7 @@ const Index = () => {
   const { players, addPlayer, removePlayer, updatePlayer, loading: playersLoading } = usePlayers(activeGroupId);
   const { sessions, addSession, removeSession, updateSession, loading: sessionsLoading } = useSessions(activeGroupId);
 
-  const [activeTab, setActiveTab] = useState<Tab>("groups");
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [groupSelectorOpen, setGroupSelectorOpen] = useState(false);

@@ -1019,9 +1019,32 @@ function GameDetailView({
   const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom" | "advanced">("wins");
   const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
 
-  // Advanced stats from DB
+  // Advanced stats + artwork from DB
   const { games: gamesForDetail } = useGames();
   const gameRecordForDetail = gamesForDetail.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+  const [detailArtwork, setDetailArtwork] = useState<{ backgroundImage: string | null; coverImage: string | null } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!gameRecordForDetail?.backgroundImage && !gameRecordForDetail?.coverImage) {
+      searchGameArtwork(gameName).then((art) => {
+        if (!cancelled && (art.backgroundImage || art.coverImage)) {
+          setDetailArtwork(art);
+        }
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [gameName, gameRecordForDetail?.backgroundImage, gameRecordForDetail?.coverImage]);
+
+  const heroImage =
+    gameRecordForDetail?.backgroundImage ||
+    gameRecordForDetail?.coverImage ||
+    detailArtwork?.backgroundImage ||
+    detailArtwork?.coverImage ||
+    theme.image;
+
   const gameIdForDetail = gameRecordForDetail?.id || null;
   const sessionIdsForDetail = gameSessions.map(s => s.id);
   const { data: advancedStatsData, loading: advancedStatsLoading } = useGameResultStats(gameIdForDetail, sessionIdsForDetail);
@@ -1087,7 +1110,7 @@ function GameDetailView({
     <div className="space-y-4">
       {/* Hero Banner */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-2xl overflow-hidden">
-        <img src={theme.image} alt={theme.name} className="w-full h-36 object-cover" />
+        <img src={heroImage} alt={theme.name} className="w-full h-36 object-cover" />
         <div className="absolute inset-0" style={{ background: `${theme.gradient}`, opacity: 0.5 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
         <button onClick={onBack} className="absolute top-2.5 left-2.5 bg-card/80 backdrop-blur-sm rounded-xl p-1.5 text-foreground active:scale-90 transition-transform">

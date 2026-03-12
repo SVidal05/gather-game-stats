@@ -54,6 +54,7 @@ export function GroupSelector({
 
   const isAdmin = activeGroup && members.some(m => m.userId === user?.id && m.role === "admin");
   const isOwner = activeGroup?.ownerId === user?.id;
+  const isPersonalGroup = !!activeGroup?.isPersonal;
 
   const handleCreate = async () => {
     if (!newGroupName.trim()) return;
@@ -130,27 +131,39 @@ export function GroupSelector({
           </div>
         </div>
 
-        {/* Invite Code */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="game-card space-y-3">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Link2 className="w-4 h-4 text-primary" />
-            {t("groups.inviteCode")}
-          </h3>
-          <div className="flex gap-2">
-            <code className="flex-1 bg-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-foreground select-all">
-              {activeGroup.inviteCode}
-            </code>
-            <Button size="sm" variant="outline" className="rounded-lg gap-2" onClick={copyInviteCode}>
-              {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copiedCode ? t("groups.copied") : t("groups.copyCode")}
-            </Button>
-          </div>
-          {isAdmin && (
-            <Button size="sm" className="rounded-lg gap-2 w-full" onClick={() => setInviteDialogOpen(true)}>
-              <Mail className="w-4 h-4" /> {t("groups.inviteByEmail")}
-            </Button>
-          )}
-        </motion.div>
+        {/* Invite Code / Personal note */}
+        {isPersonalGroup ? (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="game-card space-y-2">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              {t("groups.personalWorkspace")}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {t("groups.personalWorkspaceHint")}
+            </p>
+          </motion.div>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="game-card space-y-3">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Link2 className="w-4 h-4 text-primary" />
+              {t("groups.inviteCode")}
+            </h3>
+            <div className="flex gap-2">
+              <code className="flex-1 bg-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-foreground select-all">
+                {activeGroup.inviteCode}
+              </code>
+              <Button size="sm" variant="outline" className="rounded-lg gap-2" onClick={copyInviteCode}>
+                {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copiedCode ? t("groups.copied") : t("groups.copyCode")}
+              </Button>
+            </div>
+            {isAdmin && (
+              <Button size="sm" className="rounded-lg gap-2 w-full" onClick={() => setInviteDialogOpen(true)}>
+                <Mail className="w-4 h-4" /> {t("groups.inviteByEmail")}
+              </Button>
+            )}
+          </motion.div>
+        )}
 
         {/* Members */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="game-card space-y-3">
@@ -187,18 +200,20 @@ export function GroupSelector({
         </motion.div>
 
         {/* Danger Zone */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-2">
-          {!isOwner && (
-            <Button variant="outline" className="w-full rounded-lg gap-2 text-destructive border-destructive/30" onClick={() => onLeaveGroup(activeGroup.id)}>
-              <LogOut className="w-4 h-4" /> {t("groups.leaveGroup")}
-            </Button>
-          )}
-          {isOwner && (
-            <Button variant="destructive" className="w-full rounded-lg gap-2" onClick={() => { onDeleteGroup(activeGroup.id); setView("list"); }}>
-              <Trash2 className="w-4 h-4" /> {t("groups.deleteGroup")}
-            </Button>
-          )}
-        </motion.div>
+        {!isPersonalGroup && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-2">
+            {!isOwner && (
+              <Button variant="outline" className="w-full rounded-lg gap-2 text-destructive border-destructive/30" onClick={() => onLeaveGroup(activeGroup.id)}>
+                <LogOut className="w-4 h-4" /> {t("groups.leaveGroup")}
+              </Button>
+            )}
+            {isOwner && (
+              <Button variant="destructive" className="w-full rounded-lg gap-2" onClick={() => { onDeleteGroup(activeGroup.id); setView("list"); }}>
+                <Trash2 className="w-4 h-4" /> {t("groups.deleteGroup")}
+              </Button>
+            )}
+          </motion.div>
+        )}
 
         {/* Invite Dialog */}
         <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
@@ -272,8 +287,9 @@ export function GroupSelector({
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-lg">🎮</div>
                 <div>
                   <p className="font-semibold text-sm text-foreground">{group.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {group.ownerId === user?.id ? t("groups.owner") : t("groups.member")}
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    {group.isPersonal ? t("groups.personalLabel") : (group.ownerId === user?.id ? t("groups.owner") : t("groups.member"))}
+                    {group.isPersonal && <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-semibold">{t("groups.soloTag")}</span>}
                   </p>
                 </div>
               </div>
