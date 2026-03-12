@@ -8,6 +8,7 @@ import { PlayerBadge } from "@/components/PlayerBadge";
 import { useI18n } from "@/lib/i18n";
 import { useGames, useStatDefinitions, useGameResultStats } from "@/lib/gameStore";
 import { RankBadge } from "@/components/RankBadge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -118,7 +119,7 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
                           className="px-1 py-px rounded-full font-bold"
                           style={{ backgroundColor: getCategoryColor(game.theme.category) + "22", color: getCategoryColor(game.theme.category) }}
                         >
-                          {getCategoryEmoji(game.theme.category)} {game.theme.category}
+                          {game.theme.category}
                         </span>
                       </div>
                     </div>
