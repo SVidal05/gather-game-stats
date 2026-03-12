@@ -19,6 +19,7 @@ import { SettingsTab } from "@/components/SettingsTab";
 import { GroupSelector } from "@/components/GroupSelector";
 import { TournamentTab } from "@/components/TournamentTab";
 import { CompareTab } from "@/components/CompareTab";
+import { GameStatsPage } from "@/components/GameStatsPage";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
