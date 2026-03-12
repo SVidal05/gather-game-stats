@@ -759,8 +759,9 @@ function GameDetailView({
                   <th className="text-left p-2.5">#</th>
                   <th className="text-left p-2.5">{t("ranking.player")}</th>
                   <th className="text-right p-2.5">W</th>
+                  <th className="text-right p-2.5">L</th>
                   <th className="text-right p-2.5">Win%</th>
-                  <th className="text-right p-2.5">Pts</th>
+                  <th className="text-right p-2.5">🏅</th>
                 </tr>
               </thead>
               <tbody>
@@ -773,8 +774,9 @@ function GameDetailView({
                       </td>
                       <td className="p-2.5"><PlayerBadge player={ps.player} size="sm" /></td>
                       <td className="p-2.5 text-right font-bold">{ps.wins}</td>
+                      <td className="p-2.5 text-right font-bold text-muted-foreground">{ps.losses}</td>
                       <td className="p-2.5 text-right font-bold">{ps.winRate.toFixed(0)}%</td>
-                      <td className="p-2.5 text-right font-bold">{ps.totalPoints}</td>
+                      <td className="p-2.5 text-right font-bold">{ps.podiums}</td>
                     </tr>
                   ))}
               </tbody>
