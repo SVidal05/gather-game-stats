@@ -731,28 +731,41 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                       {isExpanded && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="mt-3 pt-3 border-t border-border">
-                            <table className="w-full text-xs">
-                              <thead>
-                                <tr className="text-muted-foreground text-[10px]">
-                                  <th className="text-left pb-1.5">{t("ranking.player")}</th>
-                                  <th className="text-right pb-1.5">{t("sessions.score")}</th>
-                                  <th className="text-right pb-1.5">{t("sessions.result")}</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {session.results.sort((a, b) => b.score - a.score).map(r => {
-                                  const p = players.find(pl => pl.id === r.playerId);
-                                  if (!p) return null;
-                                  return (
-                                    <tr key={r.playerId} className="border-t border-border/50">
-                                      <td className="py-1.5"><PlayerBadge player={p} size="sm" /></td>
-                                      <td className="text-right font-bold">{r.score}</td>
-                                      <td className="text-right">{r.isWinner ? <Crown className="w-3 h-3 text-[hsl(var(--gold))] inline" /> : ""}</td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
+                            {isSessionSolo ? (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-xs">
+                                  <User className="w-3.5 h-3.5 text-accent" />
+                                  <span className="font-bold text-foreground">Sesión personal</span>
+                                </div>
+                                {session.results[0] && (() => {
+                                  const p = players.find(pl => pl.id === session.results[0].playerId);
+                                  return p ? <PlayerBadge player={p} size="sm" /> : null;
+                                })()}
+                              </div>
+                            ) : (
+                              <table className="w-full text-xs">
+                                <thead>
+                                  <tr className="text-muted-foreground text-[10px]">
+                                    <th className="text-left pb-1.5">{t("ranking.player")}</th>
+                                    <th className="text-right pb-1.5">{t("sessions.score")}</th>
+                                    <th className="text-right pb-1.5">{t("sessions.result")}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {session.results.sort((a, b) => b.score - a.score).map(r => {
+                                    const p = players.find(pl => pl.id === r.playerId);
+                                    if (!p) return null;
+                                    return (
+                                      <tr key={r.playerId} className="border-t border-border/50">
+                                        <td className="py-1.5"><PlayerBadge player={p} size="sm" /></td>
+                                        <td className="text-right font-bold">{r.score}</td>
+                                        <td className="text-right">{r.isWinner ? <Crown className="w-3 h-3 text-[hsl(var(--gold))] inline" /> : ""}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            )}
                             {session.customStats && Object.keys(session.customStats).length > 0 && (
                               <div className="mt-3 pt-2 border-t border-border/50">
                                 <p className="text-[10px] font-bold text-muted-foreground mb-1.5">{theme.emoji} {t("sessions.gameStats")}</p>
