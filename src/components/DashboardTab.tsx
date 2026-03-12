@@ -553,18 +553,8 @@ function LeaderboardRow({ stats, rank, sessions, index }: { stats: PlayerStats; 
       transition={{ delay: 0.4 + index * 0.08, type: "spring", bounce: 0.2 }}
       className={`flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-0 ${rowClass}`}
     >
-      <div className="w-6 text-center">
-        {rank <= 3 ? (
-          <motion.span
-            initial={{ scale: 0 }} animate={{ scale: 1 }}
-            transition={{ delay: 0.5 + index * 0.1, type: "spring", bounce: 0.6 }}
-            className="text-base inline-block"
-          >
-            {rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}
-          </motion.span>
-        ) : (
-          <span className="text-xs font-bold text-muted-foreground">#{rank}</span>
-        )}
+      <div className="w-6 text-center flex items-center justify-center">
+        <RankBadge rank={rank} size="md" />
       </div>
       <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0 overflow-hidden" style={{ backgroundColor: stats.player.color + "18", border: `1.5px solid ${stats.player.color}35` }}>
         {isImageAvatar(stats.player.avatar) ? <img src={stats.player.avatar} alt={stats.player.name} className="w-full h-full object-cover" /> : stats.player.avatar}
