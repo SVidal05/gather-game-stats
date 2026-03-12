@@ -46,11 +46,16 @@ export function usePlayers(groupId: string | null) {
     if (!user || !groupId) return;
     const { data } = await supabase
       .from("players")
-      .insert({ user_id: user.id, group_id: groupId, name: player.name, color: player.color, avatar: player.avatar })
+      .insert({ user_id: user.id, group_id: groupId, name: player.name, color: player.color, avatar: player.avatar, linked_user_id: player.linkedUserId || null })
       .select()
       .single();
     if (data) {
-      setPlayers(prev => [...prev, { id: data.id, name: data.name, color: data.color, avatar: data.avatar, createdAt: data.created_at }]);
+      setPlayers(prev => [...prev, {
+        id: data.id, name: data.name, color: data.color, avatar: data.avatar,
+        createdAt: data.created_at,
+        linkedUserId: data.linked_user_id || null,
+        linkedUsername: data.linked_user_id === user.id ? (username || null) : null,
+      }]);
     }
   }, [user, groupId]);
 
