@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem } from "lucide-react";
-import { Player, GameSession } from "@/lib/types";
+import { Player, GameSession, isSoloSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { RankBadge } from "@/components/RankBadge";
