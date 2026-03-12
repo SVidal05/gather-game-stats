@@ -121,11 +121,15 @@ export function useGroups() {
   }, []);
 
   const deleteGroup = useCallback(async (groupId: string) => {
+    const target = groups.find(g => g.id === groupId);
+    if (target?.isPersonal) return;
+
     await supabase.from("groups").delete().eq("id", groupId);
     setGroups(prev => prev.filter(g => g.id !== groupId));
+
     if (activeGroupId === groupId) {
       const remaining = groups.filter(g => g.id !== groupId);
-      const next = remaining[0]?.id || null;
+      const next = remaining.find(g => g.isPersonal)?.id || remaining[0]?.id || null;
       setActiveGroupId(next);
       if (next) localStorage.setItem("gamenight_active_group", next);
       else localStorage.removeItem("gamenight_active_group");
@@ -134,11 +138,14 @@ export function useGroups() {
 
   const leaveGroup = useCallback(async (groupId: string) => {
     if (!user) return;
+    const target = groups.find(g => g.id === groupId);
+    if (target?.isPersonal) return;
+
     await supabase.from("group_members").delete().eq("group_id", groupId).eq("user_id", user.id);
     setGroups(prev => prev.filter(g => g.id !== groupId));
     if (activeGroupId === groupId) {
       const remaining = groups.filter(g => g.id !== groupId);
-      const next = remaining[0]?.id || null;
+      const next = remaining.find(g => g.isPersonal)?.id || remaining[0]?.id || null;
       setActiveGroupId(next);
       if (next) localStorage.setItem("gamenight_active_group", next);
       else localStorage.removeItem("gamenight_active_group");
