@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Star, Flame, Gamepad2, Users, Dice5, Lock, Sparkles, Shield, Globe, UsersRound, ChevronDown, ChevronUp } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
+import { isImageAvatar } from "@/lib/avatarOptions";
 import { getPlayerStats } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
