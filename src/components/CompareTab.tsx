@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { GitCompareArrows, TrendingUp, Swords, BarChart3 } from "lucide-react";
-import { Player, GameSession } from "@/lib/types";
+import { Player, GameSession, isSoloSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { PlayerBadge } from "@/components/PlayerBadge";
