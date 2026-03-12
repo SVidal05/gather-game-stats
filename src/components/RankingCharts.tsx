@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem, Users, User, Filter, TrendingUp } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem, Users, User, Filter, TrendingUp, Layers } from "lucide-react";
 import { Player, GameSession, isSoloSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { PlayerBadge } from "@/components/PlayerBadge";
@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getGameTheme } from "@/lib/gameThemes";
+import { useGames, GameCategory } from "@/lib/gameStore";
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
