@@ -154,6 +154,7 @@ export type Database = {
           created_at: string
           id: string
           invite_code: string
+          is_personal: boolean
           name: string
           owner_id: string
         }
@@ -161,6 +162,7 @@ export type Database = {
           created_at?: string
           id?: string
           invite_code?: string
+          is_personal?: boolean
           name: string
           owner_id: string
         }
@@ -168,6 +170,7 @@ export type Database = {
           created_at?: string
           id?: string
           invite_code?: string
+          is_personal?: boolean
           name?: string
           owner_id?: string
         }
@@ -530,6 +533,7 @@ export type Database = {
     }
     Functions: {
       create_group_with_owner: { Args: { _name: string }; Returns: Json }
+      ensure_personal_group: { Args: never; Returns: string }
       get_current_user_email: { Args: never; Returns: string }
       get_group_by_invite_code: {
         Args: { _code: string }
