@@ -7,6 +7,7 @@ import { getGameTheme } from "@/lib/gameThemes";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
 import { useCountUp } from "@/hooks/useCountUp";
+import { RankBadge } from "@/components/RankBadge";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
 
 // ─── Helpers ────────────────────────────────
