@@ -74,7 +74,25 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
           <h2 className="text-2xl font-display font-bold text-foreground">{t("ranking.title")}</h2>
           <p className="text-muted-foreground text-sm mt-1">{t("ranking.subtitle")}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {uniqueGames.length > 0 && (
+            <Select value={gameFilter} onValueChange={setGameFilter}>
+              <SelectTrigger className="w-[160px] h-9 rounded-lg text-xs font-bold">
+                <div className="flex items-center gap-1.5">
+                  <Trophy className="w-3.5 h-3.5 text-primary" />
+                  <SelectValue placeholder="Global" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <span className="flex items-center gap-1.5 font-bold">Global</span>
+                </SelectItem>
+                {uniqueGames.map(g => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {sorted.length > 0 && (
             <Button size="sm" variant="outline" className="rounded-lg gap-1.5 text-xs" onClick={() => exportToCSV(players, sessions, "leaderboard")}>
               <Download className="w-3.5 h-3.5" /> CSV
@@ -82,40 +100,6 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
           )}
         </div>
       </div>
-
-      {/* Game Filter */}
-      {uniqueGames.length > 0 && (
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
-          <button
-            onClick={() => setGameFilter("all")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${
-              gameFilter === "all"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-secondary text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Trophy className="w-3 h-3" /> Global
-          </button>
-          {uniqueGames.map(g => {
-            const gt = getGameTheme(g);
-            return (
-              <button
-                key={g}
-                onClick={() => setGameFilter(g)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${
-                  gameFilter === g
-                    ? "text-primary-foreground shadow-md"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
-                }`}
-                style={gameFilter === g ? { background: gt.gradient } : {}}
-              >
-                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: gt.primaryColor }} />
-                {g}
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       {sorted.length === 0 ? (
         <div className="text-center py-12">
