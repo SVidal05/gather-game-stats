@@ -442,10 +442,10 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           {/* 4. Players */}
           <div>
             <Label className="font-semibold text-xs">
-              {isSolo ? "Jugador" : t("sessions.players")}
+              {isSolo ? "Player" : t("sessions.players")}
             </Label>
             {isSolo && (
-              <p className="text-[10px] text-muted-foreground mt-0.5">Selecciona un jugador para esta sesión solo</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Select a player for this solo session</p>
             )}
             <div className="flex flex-wrap gap-1.5 mt-1">
               {players.map(p => {
