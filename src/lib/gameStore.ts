@@ -24,20 +24,38 @@ export interface StatDefinition {
   createdAt: string;
 }
 
-async function searchGameArtwork(name: string): Promise<{ backgroundImage: string | null; coverImage: string | null }> {
+const artworkSearchCache = new Map<string, { backgroundImage: string | null; coverImage: string | null }>();
+
+export async function searchGameArtwork(name: string): Promise<{ backgroundImage: string | null; coverImage: string | null }> {
+  const normalizedName = name.trim().toLowerCase();
+  if (!normalizedName) {
+    return { backgroundImage: null, coverImage: null };
+  }
+
+  const cached = artworkSearchCache.get(normalizedName);
+  if (cached) return cached;
+
   try {
     const { data, error } = await supabase.functions.invoke("search-game", {
       body: { name },
     });
+
     if (error || !data?.success || !data?.found) {
-      return { backgroundImage: null, coverImage: null };
+      const emptyArtwork = { backgroundImage: null, coverImage: null };
+      artworkSearchCache.set(normalizedName, emptyArtwork);
+      return emptyArtwork;
     }
-    return {
+
+    const artwork = {
       backgroundImage: data.background_image || null,
       coverImage: data.cover_image || null,
     };
+    artworkSearchCache.set(normalizedName, artwork);
+    return artwork;
   } catch {
-    return { backgroundImage: null, coverImage: null };
+    const emptyArtwork = { backgroundImage: null, coverImage: null };
+    artworkSearchCache.set(normalizedName, emptyArtwork);
+    return emptyArtwork;
   }
 }
 
