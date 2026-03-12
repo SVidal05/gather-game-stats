@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export type GameMode = "multiplayer" | "solo";
+export type GameCategory = "competitive" | "party" | "solo" | "coop";
 
 export interface GameDef {
   id: string;
@@ -11,6 +12,7 @@ export interface GameDef {
   backgroundImage: string | null;
   coverImage: string | null;
   gameMode: GameMode;
+  category: GameCategory;
   createdAt: string;
 }
 
