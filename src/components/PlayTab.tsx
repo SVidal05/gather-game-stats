@@ -861,12 +861,12 @@ function GameDetailView({
   const hasCustomStats = Object.keys(aggregatedCustomStats).length > 0;
 
   const chartTabs = [
-    { id: "wins" as const, label: t("chart.wins"), emoji: "🏆" },
-    { id: "performance" as const, label: t("chart.avg"), emoji: "📊" },
-    { id: "radar" as const, label: t("chart.radar"), emoji: "🎯" },
-    { id: "history" as const, label: t("chart.history"), emoji: "📈" },
-    ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), emoji: theme.emoji }] : []),
-    ...(hasAdvancedStatsData ? [{ id: "advanced" as const, label: t("chart.advanced"), emoji: "📋" }] : []),
+    { id: "wins" as const, label: t("chart.wins"), icon: Trophy },
+    { id: "performance" as const, label: t("chart.avg"), icon: BarChart3 },
+    { id: "radar" as const, label: t("chart.radar"), icon: Crosshair },
+    { id: "history" as const, label: t("chart.history"), icon: TrendingUp },
+    ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), icon: Target }] : []),
+    ...(hasAdvancedStatsData ? [{ id: "advanced" as const, label: t("chart.advanced"), icon: Medal }] : []),
   ];
 
   return (
