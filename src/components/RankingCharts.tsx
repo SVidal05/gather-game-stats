@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpDown, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { PlayerBadge } from "@/components/PlayerBadge";
+import { RankBadge } from "@/components/RankBadge";
 import { useI18n } from "@/lib/i18n";
 import { exportToCSV } from "@/lib/exportUtils";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,11 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
   const { t } = useI18n();
   const [sortBy, setSortBy] = useState<SortKey>("wins");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const stats = getPlayerStats(players, sessions);
+  const [gameFilter, setGameFilter] = useState<string>("all");
+
+  const uniqueGames = Array.from(new Set(sessions.map(s => s.gameName)));
+  const filteredSessions = gameFilter === "all" ? sessions : sessions.filter(s => s.gameName === gameFilter);
+  const stats = getPlayerStats(players, filteredSessions);
 
   const sorted = [...stats].sort((a, b) => {
     const diff = a[sortBy] - b[sortBy];
@@ -69,16 +74,52 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
           <h2 className="text-2xl font-display font-bold text-foreground">{t("ranking.title")}</h2>
           <p className="text-muted-foreground text-sm mt-1">{t("ranking.subtitle")}</p>
         </div>
-        {sorted.length > 0 && (
-          <Button size="sm" variant="outline" className="rounded-lg gap-1.5 text-xs" onClick={() => exportToCSV(players, sessions, "leaderboard")}>
-            <Download className="w-3.5 h-3.5" /> CSV
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {sorted.length > 0 && (
+            <Button size="sm" variant="outline" className="rounded-lg gap-1.5 text-xs" onClick={() => exportToCSV(players, sessions, "leaderboard")}>
+              <Download className="w-3.5 h-3.5" /> CSV
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Game Filter */}
+      {uniqueGames.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+          <button
+            onClick={() => setGameFilter("all")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${
+              gameFilter === "all"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-secondary text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Trophy className="w-3 h-3" /> Global
+          </button>
+          {uniqueGames.map(g => {
+            const gt = getGameTheme(g);
+            return (
+              <button
+                key={g}
+                onClick={() => setGameFilter(g)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${
+                  gameFilter === g
+                    ? "text-primary-foreground shadow-md"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+                style={gameFilter === g ? { background: gt.gradient } : {}}
+              >
+                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: gt.primaryColor }} />
+                {g}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {sorted.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-4xl mb-2">🏅</div>
+          <Trophy className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-muted-foreground font-medium text-sm">{t("ranking.noRanking")}</p>
         </div>
       ) : (
@@ -111,8 +152,8 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
                   transition={{ delay: i * 0.04 }}
                   className={`border-b border-border/50 last:border-0 hover:bg-secondary/30 transition-colors ${getRowClass(i)}`}
                 >
-                  <td className="p-3 font-bold text-muted-foreground text-xs">
-                    {i === 0 && sortDir === "desc" ? "🥇" : i === 1 && sortDir === "desc" ? "🥈" : i === 2 && sortDir === "desc" ? "🥉" : i + 1}
+                  <td className="p-3">
+                    {sortDir === "desc" ? <RankBadge rank={i + 1} size="sm" /> : <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>}
                   </td>
                   <td className="p-3"><PlayerBadge player={ps.player} size="sm" /></td>
                   <td className="p-3 text-right font-semibold">{ps.gamesPlayed}</td>
@@ -161,7 +202,7 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
       <div className="space-y-6">
         <h2 className="text-2xl font-display font-bold text-foreground">{t("charts.title")}</h2>
         <div className="text-center py-12">
-          <div className="text-4xl mb-2">📊</div>
+          <BarChart3 className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-muted-foreground font-medium text-sm">{t("charts.noCharts")}</p>
         </div>
       </div>
@@ -184,7 +225,14 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
               <SelectItem value="all">{t("charts.allGames")}</SelectItem>
               {uniqueGames.map(g => {
                 const gt = getGameTheme(g);
-                return <SelectItem key={g} value={g}>{gt.emoji} {g}</SelectItem>;
+                return (
+                  <SelectItem key={g} value={g}>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: gt.primaryColor }} />
+                      {g}
+                    </span>
+                  </SelectItem>
+                );
               })}
             </SelectContent>
           </Select>
@@ -193,7 +241,10 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
 
       {winsData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="game-card !p-4">
-          <h3 className="font-display font-semibold text-foreground text-sm mb-4">🏆 {t("charts.winsPerPlayer")}</h3>
+          <h3 className="font-display font-semibold text-foreground text-sm mb-4 flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-[hsl(var(--gold))]" />
+            {t("charts.winsPerPlayer")}
+          </h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={winsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -218,7 +269,10 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
 
       {timeData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="game-card !p-4">
-          <h3 className="font-display font-semibold text-foreground text-sm mb-4">📅 {t("charts.sessionsOverTime")}</h3>
+          <h3 className="font-display font-semibold text-foreground text-sm mb-4 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary" />
+            {t("charts.sessionsOverTime")}
+          </h3>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={timeData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -235,7 +289,10 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
 
       {pointsData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }} className="game-card !p-4">
-          <h3 className="font-display font-semibold text-foreground text-sm mb-4">💎 {t("charts.totalPoints")}</h3>
+          <h3 className="font-display font-semibold text-foreground text-sm mb-4 flex items-center gap-2">
+            <Gem className="w-4 h-4 text-primary" />
+            {t("charts.totalPoints")}
+          </h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={pointsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

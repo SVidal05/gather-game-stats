@@ -1,13 +1,13 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, BarChart3, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2 } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, BarChart3, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, Crosshair, Medal, Lightbulb, Gamepad2 } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
-import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
+import { getGameTheme, GAME_THEMES, getCategoryColor } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { useI18n } from "@/lib/i18n";
 import { useGames, useStatDefinitions, useGameResultStats } from "@/lib/gameStore";
-import { Button } from "@/components/ui/button";
+import { RankBadge } from "@/components/RankBadge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";

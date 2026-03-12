@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2 } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, BarChart3, Crosshair, FileText, Gamepad2, Medal } from "lucide-react";
 import { Player, GameSession, PlayerResult, POPULAR_GAMES } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
@@ -323,7 +323,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                 })}
                 {/* Also show DB games not in POPULAR_GAMES */}
                 {games.filter(g => !POPULAR_GAMES.some(pg => pg.toLowerCase() === g.name.toLowerCase())).map(g => (
-                  <SelectItem key={g.id} value={g.name}>{g.icon || "🎮"} {g.name}</SelectItem>
+                  <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -605,7 +605,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                       </div>
                       <div className="flex items-center gap-1.5">
                         {winnerPlayer && (
-                          <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5">🏆 {winnerPlayer.name}</span>
+                          <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"><Crown className="w-3 h-3" /> {winnerPlayer.name}</span>
                         )}
                         <button onClick={e => { e.stopPropagation(); startEditSession(session); }} className="text-muted-foreground hover:text-primary transition-colors p-1 active:scale-90">
                           <Edit3 className="w-3.5 h-3.5" />
@@ -635,7 +635,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                                     <tr key={r.playerId} className="border-t border-border/50">
                                       <td className="py-1.5"><PlayerBadge player={p} size="sm" /></td>
                                       <td className="text-right font-bold">{r.score}</td>
-                                      <td className="text-right">{r.isWinner ? "🏆" : ""}</td>
+                                      <td className="text-right">{r.isWinner ? <Crown className="w-3 h-3 text-[hsl(var(--gold))] inline" /> : ""}</td>
                                     </tr>
                                   );
                                 })}
@@ -665,7 +665,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                                 </div>
                               </div>
                             )}
-                            {session.notes && <p className="text-[10px] text-muted-foreground mt-2 italic">📝 {session.notes}</p>}
+                            {session.notes && <p className="text-[10px] text-muted-foreground mt-2 italic flex items-center gap-1"><FileText className="w-3 h-3" /> {session.notes}</p>}
                           </div>
                         </motion.div>
                       )}
@@ -678,7 +678,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
           {sessions.length === 0 && players.length >= 2 && (
             <div className="text-center py-10">
-              <div className="text-5xl mb-3">🎮</div>
+              <Gamepad2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground font-semibold text-sm">{t("sessions.noSessions")}</p>
             </div>
           )}
@@ -782,7 +782,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
         {sessions.length === 0 && (
           <div className="text-center py-8">
-            <div className="text-4xl mb-2">🎮</div>
+            <Gamepad2 className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
             <p className="text-muted-foreground font-semibold text-sm">{t("games.noSessions")}</p>
           </div>
         )}
@@ -861,12 +861,12 @@ function GameDetailView({
   const hasCustomStats = Object.keys(aggregatedCustomStats).length > 0;
 
   const chartTabs = [
-    { id: "wins" as const, label: t("chart.wins"), emoji: "🏆" },
-    { id: "performance" as const, label: t("chart.avg"), emoji: "📊" },
-    { id: "radar" as const, label: t("chart.radar"), emoji: "🎯" },
-    { id: "history" as const, label: t("chart.history"), emoji: "📈" },
-    ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), emoji: theme.emoji }] : []),
-    ...(hasAdvancedStatsData ? [{ id: "advanced" as const, label: t("chart.advanced"), emoji: "📋" }] : []),
+    { id: "wins" as const, label: t("chart.wins"), icon: Trophy },
+    { id: "performance" as const, label: t("chart.avg"), icon: BarChart3 },
+    { id: "radar" as const, label: t("chart.radar"), icon: Crosshair },
+    { id: "history" as const, label: t("chart.history"), icon: TrendingUp },
+    ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), icon: Target }] : []),
+    ...(hasAdvancedStatsData ? [{ id: "advanced" as const, label: t("chart.advanced"), icon: Medal }] : []),
   ];
 
   return (
@@ -941,7 +941,7 @@ function GameDetailView({
                     activeChart === tab.id ? "text-primary-foreground shadow-md" : "bg-secondary text-muted-foreground"
                   }`}
                   style={activeChart === tab.id ? { background: theme.gradient } : {}}>
-                  {tab.emoji} {tab.label}
+                  {tab.icon && <tab.icon className="w-3 h-3" />} {tab.label}
                 </button>
               ))}
             </div>
@@ -950,7 +950,7 @@ function GameDetailView({
               <motion.div key={activeChart} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }} className="game-card !p-3">
                 {activeChart === "wins" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">🏆 {t("games.winDistribution")}</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-[hsl(var(--gold))]" /> {t("games.winDistribution")}</h3>
                     {winDistribution.length > 0 ? (
                       <div className="flex gap-3">
                         <ResponsiveContainer width="50%" height={160}>
@@ -985,7 +985,7 @@ function GameDetailView({
 
                 {activeChart === "performance" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">📊 {t("games.avgScore")}</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5 text-primary" /> {t("games.avgScore")}</h3>
                     <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -1006,7 +1006,7 @@ function GameDetailView({
 
                 {activeChart === "radar" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">🎯 {t("games.playerComparison")}</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5"><Crosshair className="w-3.5 h-3.5 text-primary" /> {t("games.playerComparison")}</h3>
                     {radarData.length > 0 && activePlayers.length <= 6 ? (
                       <ResponsiveContainer width="100%" height={220}>
                         <RadarChart data={radarData}>
@@ -1038,7 +1038,7 @@ function GameDetailView({
 
                 {activeChart === "history" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">📈 {t("games.scoreHistory")}</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5 text-primary" /> {t("games.scoreHistory")}</h3>
                     {scoreHistory.length > 0 ? (
                       <ResponsiveContainer width="100%" height={180}>
                         <AreaChart data={scoreHistory}>
@@ -1095,7 +1095,7 @@ function GameDetailView({
                 {activeChart === "advanced" && (
                   <>
                     <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5">
-                      📋 {t("chart.advancedTitle")}
+                      <Medal className="w-3.5 h-3.5 text-primary" /> {t("chart.advancedTitle")}
                     </h3>
                     {advancedStatsLoading ? (
                       <p className="text-xs text-muted-foreground text-center py-4">{t("common.loading")}</p>

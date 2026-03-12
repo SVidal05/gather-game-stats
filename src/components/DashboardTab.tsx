@@ -1,12 +1,13 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Gamepad2, Users, Flame, Crown, Calendar, Medal, TrendingUp, Target, Zap, Star, BarChart3 } from "lucide-react";
+import { Trophy, Gamepad2, Users, Flame, Crown, Calendar, Medal, TrendingUp, Target, Zap, Star, BarChart3, Award } from "lucide-react";
 import { Player, GameSession, PlayerStats } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme } from "@/lib/gameThemes";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
 import { useCountUp } from "@/hooks/useCountUp";
+import { RankBadge } from "@/components/RankBadge";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
 
 // ─── Helpers ────────────────────────────────
@@ -343,9 +344,10 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
           <motion.div
             animate={{ y: [0, -8, 0] }}
             transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            className="text-6xl mb-4"
-          >🎲</motion.div>
-          <h3 className="text-xl font-display font-bold text-foreground">{t("dashboard.welcome")}</h3>
+          >
+            <Gamepad2 className="w-16 h-16 text-primary/40 mx-auto" />
+          </motion.div>
+          <h3 className="text-xl font-display font-bold text-foreground mt-4">{t("dashboard.welcome")}</h3>
           <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">{t("dashboard.welcomeMsg")}</p>
         </motion.div>
       </div>
@@ -487,10 +489,12 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
       <div className="p-4 pb-3 flex items-center gap-3">
         <motion.div
           whileHover={{ rotate: 10, scale: 1.1 }}
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0"
+          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
           style={{ background: `${theme.primaryColor}18`, border: `1.5px solid ${theme.primaryColor}30` }}
         >
-          {theme.emoji}
+          <div className="w-full h-full relative">
+            <img src={theme.image} alt={theme.name} className="w-full h-full object-cover" />
+          </div>
         </motion.div>
         <div className="flex-1 min-w-0">
           <p className="font-display font-bold text-sm text-foreground truncate">{session.name}</p>
@@ -501,7 +505,7 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
             initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5, type: "spring", bounce: 0.5 }}
             className="flex items-center gap-1.5 bg-[hsl(var(--gold)/0.12)] px-2.5 py-1 rounded-lg shrink-0"
           >
-            <span className="text-sm">👑</span>
+            <Crown className="w-3.5 h-3.5 text-[hsl(var(--gold))]" />
             <span className="text-xs font-bold text-foreground">{winnerPlayer.name}</span>
           </motion.div>
         )}
@@ -511,7 +515,7 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
           {sortedResults.map((r, i) => {
             const p = players.find(pl => pl.id === r.playerId);
             if (!p) return null;
-            const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
+            const medal = i === 0 ? null : i === 1 ? null : i === 2 ? null : null;
             return (
               <motion.div
                 key={r.playerId}
@@ -520,7 +524,7 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
                 transition={{ delay: 0.3 + i * 0.08 }}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs ${r.isWinner ? "bg-[hsl(var(--gold)/0.08)]" : "bg-card/50"}`}
               >
-                <span className="w-5 text-center font-bold text-muted-foreground">{medal}</span>
+                <span className="w-5 text-center"><RankBadge rank={i + 1} size="sm" /></span>
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 overflow-hidden" style={{ backgroundColor: p.color + "20", border: `1.5px solid ${p.color}40` }}>
                   {isImageAvatar(p.avatar) ? <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" /> : p.avatar}
                 </div>
@@ -549,18 +553,8 @@ function LeaderboardRow({ stats, rank, sessions, index }: { stats: PlayerStats; 
       transition={{ delay: 0.4 + index * 0.08, type: "spring", bounce: 0.2 }}
       className={`flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-0 ${rowClass}`}
     >
-      <div className="w-6 text-center">
-        {rank <= 3 ? (
-          <motion.span
-            initial={{ scale: 0 }} animate={{ scale: 1 }}
-            transition={{ delay: 0.5 + index * 0.1, type: "spring", bounce: 0.6 }}
-            className="text-base inline-block"
-          >
-            {rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}
-          </motion.span>
-        ) : (
-          <span className="text-xs font-bold text-muted-foreground">#{rank}</span>
-        )}
+      <div className="w-6 text-center flex items-center justify-center">
+        <RankBadge rank={rank} size="md" />
       </div>
       <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base shrink-0 overflow-hidden" style={{ backgroundColor: stats.player.color + "18", border: `1.5px solid ${stats.player.color}35` }}>
         {isImageAvatar(stats.player.avatar) ? <img src={stats.player.avatar} alt={stats.player.name} className="w-full h-full object-cover" /> : stats.player.avatar}
