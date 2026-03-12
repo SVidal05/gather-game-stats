@@ -68,6 +68,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   // Session form state
   const [sessionName, setSessionName] = useState("");
   const [gameName, setGameName] = useState("");
+  const [gameMode, setGameMode] = useState<GameMode>("multiplayer");
   const [gameInputFocused, setGameInputFocused] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
@@ -78,6 +79,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const isSolo = gameMode === "solo";
 
   // Games & stat definitions integration
   const { games, findOrCreateGame } = useGames();
