@@ -55,6 +55,7 @@ export type Database = {
       games: {
         Row: {
           background_image: string | null
+          category: string
           cover_image: string | null
           created_at: string
           game_mode: string
@@ -64,6 +65,7 @@ export type Database = {
         }
         Insert: {
           background_image?: string | null
+          category?: string
           cover_image?: string | null
           created_at?: string
           game_mode?: string
@@ -73,6 +75,7 @@ export type Database = {
         }
         Update: {
           background_image?: string | null
+          category?: string
           cover_image?: string | null
           created_at?: string
           game_mode?: string
