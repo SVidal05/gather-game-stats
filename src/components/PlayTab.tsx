@@ -974,7 +974,11 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
               <motion.div key={game.name} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
                 className="game-card !p-0 overflow-hidden text-left">
                 <div className="relative h-20 overflow-hidden">
-                  <img src={game.theme.image} alt={game.name} className="w-full h-full object-cover" />
+                  <img
+                    src={game.dbGame?.coverImage || game.dbGame?.backgroundImage || artworkPreviewByName[game.name.toLowerCase()]?.coverImage || artworkPreviewByName[game.name.toLowerCase()]?.backgroundImage || game.theme.image}
+                    alt={game.name}
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
                   <div className="absolute bottom-1.5 left-2 right-2 flex items-end justify-between">
                     <button onClick={() => openGameDetail(game.name)} className="font-bold text-foreground text-xs flex items-center gap-1">
