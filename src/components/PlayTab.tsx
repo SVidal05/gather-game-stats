@@ -338,15 +338,18 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
               className="rounded-xl mt-1 h-11"
               autoComplete="off"
             />
-            {gameInputFocused && gameName.trim().length > 0 && (() => {
-              const query = gameName.toLowerCase();
+            {gameInputFocused && (() => {
+              const query = gameName.toLowerCase().trim();
               // Combine: DB games, POPULAR_GAMES, KNOWN_GAMES — deduplicate
               const allNames = new Map<string, string>();
               games.forEach(g => allNames.set(g.name.toLowerCase(), g.name));
               POPULAR_GAMES.forEach(g => { if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g); });
               KNOWN_GAMES.forEach(g => { if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g); });
               const suggestions = Array.from(allNames.values())
-                .filter(name => name.toLowerCase().includes(query) && name.toLowerCase() !== query)
+                .filter(name => {
+                  if (query.length === 0) return true;
+                  return name.toLowerCase().includes(query) && name.toLowerCase() !== query;
+                })
                 .slice(0, 8);
               if (suggestions.length === 0) return null;
               return (
@@ -379,14 +382,15 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           </div>
 
           {gameName.trim() && (() => {
+            // Only show banner for games already played (exist in DB with artwork)
             const dbGame = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
-            const bannerImg = dbGame?.backgroundImage || dbGame?.coverImage || currentTheme?.image;
+            const bannerImg = dbGame?.backgroundImage || dbGame?.coverImage;
             if (!bannerImg) return null;
             return (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
                 <div className="h-16 relative">
                   <img src={bannerImg} alt={gameName} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0" style={{ background: dbGame?.backgroundImage ? 'linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.1))' : (currentTheme?.gradient || 'transparent'), opacity: dbGame?.backgroundImage ? 1 : 0.4 }} />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.1))' }} />
                   <div className="absolute inset-0 flex items-center px-3 bg-gradient-to-r from-card/80 to-transparent">
                     <Gamepad2 className="w-5 h-5 mr-2 text-foreground" />
                     <span className="font-bold text-sm text-foreground">{gameName}</span>
