@@ -489,10 +489,12 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
       <div className="p-4 pb-3 flex items-center gap-3">
         <motion.div
           whileHover={{ rotate: 10, scale: 1.1 }}
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0"
+          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
           style={{ background: `${theme.primaryColor}18`, border: `1.5px solid ${theme.primaryColor}30` }}
         >
-          {theme.emoji}
+          <div className="w-full h-full relative">
+            <img src={theme.image} alt={theme.name} className="w-full h-full object-cover" />
+          </div>
         </motion.div>
         <div className="flex-1 min-w-0">
           <p className="font-display font-bold text-sm text-foreground truncate">{session.name}</p>
