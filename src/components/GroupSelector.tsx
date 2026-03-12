@@ -131,27 +131,39 @@ export function GroupSelector({
           </div>
         </div>
 
-        {/* Invite Code */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="game-card space-y-3">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Link2 className="w-4 h-4 text-primary" />
-            {t("groups.inviteCode")}
-          </h3>
-          <div className="flex gap-2">
-            <code className="flex-1 bg-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-foreground select-all">
-              {activeGroup.inviteCode}
-            </code>
-            <Button size="sm" variant="outline" className="rounded-lg gap-2" onClick={copyInviteCode}>
-              {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copiedCode ? t("groups.copied") : t("groups.copyCode")}
-            </Button>
-          </div>
-          {isAdmin && (
-            <Button size="sm" className="rounded-lg gap-2 w-full" onClick={() => setInviteDialogOpen(true)}>
-              <Mail className="w-4 h-4" /> {t("groups.inviteByEmail")}
-            </Button>
-          )}
-        </motion.div>
+        {/* Invite Code / Personal note */}
+        {isPersonalGroup ? (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="game-card space-y-2">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              Personal Workspace
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              This private workspace is optimized for solo tracking and cannot be deleted.
+            </p>
+          </motion.div>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="game-card space-y-3">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Link2 className="w-4 h-4 text-primary" />
+              {t("groups.inviteCode")}
+            </h3>
+            <div className="flex gap-2">
+              <code className="flex-1 bg-secondary rounded-lg px-3 py-2.5 text-sm font-mono text-foreground select-all">
+                {activeGroup.inviteCode}
+              </code>
+              <Button size="sm" variant="outline" className="rounded-lg gap-2" onClick={copyInviteCode}>
+                {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copiedCode ? t("groups.copied") : t("groups.copyCode")}
+              </Button>
+            </div>
+            {isAdmin && (
+              <Button size="sm" className="rounded-lg gap-2 w-full" onClick={() => setInviteDialogOpen(true)}>
+                <Mail className="w-4 h-4" /> {t("groups.inviteByEmail")}
+              </Button>
+            )}
+          </motion.div>
+        )}
 
         {/* Members */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="game-card space-y-3">
