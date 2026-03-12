@@ -1091,6 +1091,53 @@ function GameDetailView({
                     </div>
                   </>
                 )}
+
+                {activeChart === "advanced" && (
+                  <>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5">
+                      📋 {t("chart.advancedTitle")}
+                    </h3>
+                    {advancedStatsLoading ? (
+                      <p className="text-xs text-muted-foreground text-center py-4">{t("common.loading")}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {advancedStatsData.map(({ playerId, stats: pStats }) => {
+                          const p = players.find(pl => pl.id === playerId);
+                          if (!p || pStats.length === 0) return null;
+                          return (
+                            <motion.div key={playerId} className="bg-secondary/50 rounded-xl p-2.5" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
+                              <PlayerBadge player={p} size="sm" />
+                              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2">
+                                {pStats.map(st => (
+                                  <div key={st.statKey} className="text-[10px]">
+                                    <span className="text-muted-foreground font-medium">{st.label}</span>
+                                    {st.textValues.length > 0 ? (
+                                      <p className="font-bold text-foreground truncate">{st.textValues.join(", ")}</p>
+                                    ) : st.type === "boolean" ? (
+                                      <p className="font-bold text-foreground">
+                                        {st.total}/{st.count} ✓
+                                        <span className="text-muted-foreground font-normal ml-1">({(st.avg * 100).toFixed(0)}%)</span>
+                                      </p>
+                                    ) : (
+                                      <p className="font-bold text-foreground">
+                                        {t("chart.total")}: {Number.isInteger(st.total) ? st.total : st.total.toFixed(1)}
+                                        {st.count > 1 && (
+                                          <span className="text-muted-foreground font-normal ml-1">
+                                            ({t("chart.avg")}: {st.avg.toFixed(1)})
+                                          </span>
+                                        )}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
               </motion.div>
             </AnimatePresence>
           </motion.div>
