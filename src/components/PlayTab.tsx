@@ -68,6 +68,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   // Session form state
   const [sessionName, setSessionName] = useState("");
   const [gameName, setGameName] = useState("");
+  const [gameInputFocused, setGameInputFocused] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
