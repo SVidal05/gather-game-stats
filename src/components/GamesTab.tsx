@@ -108,8 +108,8 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
               >
                 <div className="flex items-stretch">
                   <div className="w-16 h-16 shrink-0 relative overflow-hidden">
-                    <img src={game.theme.image} alt={game.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0" style={{ background: game.theme.gradient, opacity: 0.3 }} />
+                    <img src={game.dbGame?.coverImage || game.theme.image} alt={game.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0" style={{ background: game.dbGame?.coverImage ? 'transparent' : game.theme.gradient, opacity: 0.3 }} />
                   </div>
                   <div className="flex-1 p-2.5 flex items-center justify-between">
                     <div>
