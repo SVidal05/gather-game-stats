@@ -59,6 +59,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [groupSelectorOpen, setGroupSelectorOpen] = useState(false);
   const [gameStatsName, setGameStatsName] = useState<string | null>(null);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
