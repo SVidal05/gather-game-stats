@@ -665,7 +665,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                                 </div>
                               </div>
                             )}
-                            {session.notes && <p className="text-[10px] text-muted-foreground mt-2 italic">📝 {session.notes}</p>}
+                            {session.notes && <p className="text-[10px] text-muted-foreground mt-2 italic flex items-center gap-1"><FileText className="w-3 h-3" /> {session.notes}</p>}
                           </div>
                         </motion.div>
                       )}
