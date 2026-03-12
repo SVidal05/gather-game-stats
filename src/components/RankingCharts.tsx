@@ -156,12 +156,27 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
 // ─── Charts Tab ───────────────────────────────────
 type ModeFilter = "all" | "multiplayer" | "solo";
 type TimeFilter = "all" | "30d" | "90d" | "year";
+type CategoryFilter = "all" | GameCategory;
 
 const CHART_COLORS = [
   "hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--game-orange))",
   "hsl(var(--game-pink))", "hsl(var(--game-blue))", "hsl(var(--game-cyan))",
   "hsl(var(--game-purple))", "hsl(var(--game-red))",
 ];
+
+const CATEGORY_COLORS: Record<string, string> = {
+  competitive: "hsl(var(--primary))",
+  party: "hsl(var(--game-orange))",
+  solo: "hsl(var(--accent))",
+  coop: "hsl(var(--game-pink))",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  competitive: "Competitive",
+  party: "Party",
+  solo: "Solo",
+  coop: "Co-op",
+};
 
 export function ChartsTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
