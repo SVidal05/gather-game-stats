@@ -323,7 +323,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                 })}
                 {/* Also show DB games not in POPULAR_GAMES */}
                 {games.filter(g => !POPULAR_GAMES.some(pg => pg.toLowerCase() === g.name.toLowerCase())).map(g => (
-                  <SelectItem key={g.id} value={g.name}>{g.icon || "🎮"} {g.name}</SelectItem>
+                  <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
