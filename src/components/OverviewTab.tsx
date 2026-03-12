@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Gamepad2, Users, Crown, Calendar, Medal, Target, Zap, Star, User, Trophy, TrendingUp } from "lucide-react";
 import { Player, GameSession, PlayerStats, isSoloSession } from "@/lib/types";
@@ -7,6 +7,7 @@ import { getGameTheme } from "@/lib/gameThemes";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
+import { useGames, searchGameArtwork } from "@/lib/gameStore";
 
 // ─── Helpers ────────────────────────────────
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
@@ -49,6 +50,8 @@ function MetricCard({ icon: Icon, label, value, iconClass, delay }: {
 
 // ─── Game Spotlight ─────────────────────────
 function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSession[]; players: Player[]; onGameClick?: (gameName: string) => void }) {
+  const { games } = useGames();
+
   const spotlight = useMemo(() => {
     if (sessions.length === 0) return null;
     const counts: Record<string, { count: number; playerIds: Set<string> }> = {};
@@ -60,10 +63,22 @@ function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSessi
     const top = Object.entries(counts).sort((a, b) => b[1].count - a[1].count)[0];
     if (!top) return null;
     const theme = getGameTheme(top[0]);
-    return { name: top[0], count: top[1].count, playerCount: top[1].playerIds.size, theme };
-  }, [sessions]);
+    const dbGame = games.find(g => g.name.toLowerCase() === top[0].toLowerCase());
+    return { name: top[0], count: top[1].count, playerCount: top[1].playerIds.size, theme, dbGame };
+  }, [sessions, games]);
+
+  const [rawgImage, setRawgImage] = useState<string | null>(null);
+  useEffect(() => {
+    if (spotlight && !spotlight.dbGame?.backgroundImage && !spotlight.dbGame?.coverImage) {
+      searchGameArtwork(spotlight.name).then(art => {
+        setRawgImage(art.backgroundImage || art.coverImage || null);
+      });
+    }
+  }, [spotlight?.name, spotlight?.dbGame]);
 
   if (!spotlight) return null;
+
+  const bannerImage = spotlight.dbGame?.backgroundImage || spotlight.dbGame?.coverImage || rawgImage || spotlight.theme.image;
 
   return (
     <motion.div
@@ -77,7 +92,7 @@ function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSessi
       {/* Banner */}
       <div className="relative h-32 overflow-hidden">
         <img
-          src={spotlight.theme.image}
+          src={bannerImage}
           alt={spotlight.name}
           className="w-full h-full object-cover"
         />
@@ -214,6 +229,7 @@ function ActivityHeatmap({ sessions }: { sessions: GameSession[] }) {
 
 // ─── Recent Sessions List ───────────────────
 function RecentSessionsList({ sessions, players }: { sessions: GameSession[]; players: Player[] }) {
+  const { games } = useGames();
   const recent = useMemo(
     () => [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 3),
     [sessions]
@@ -230,6 +246,8 @@ function RecentSessionsList({ sessions, players }: { sessions: GameSession[]; pl
       <div className="space-y-1.5">
         {recent.map((session, i) => {
           const theme = getGameTheme(session.gameName);
+          const dbGame = games.find(g => g.name.toLowerCase() === session.gameName.toLowerCase());
+          const imgSrc = dbGame?.backgroundImage || dbGame?.coverImage || theme.image;
           const winner = session.results.find(r => r.isWinner);
           const winnerPlayer = winner ? players.find(p => p.id === winner.playerId) : null;
           const solo = isSoloSession(session);
@@ -246,7 +264,7 @@ function RecentSessionsList({ sessions, players }: { sessions: GameSession[]; pl
                 className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 overflow-hidden"
                 style={{ background: `${theme.primaryColor}15` }}
               >
-                <img src={theme.image} alt={session.gameName} className="w-full h-full object-cover rounded-md" />
+                <img src={imgSrc} alt={session.gameName} className="w-full h-full object-cover rounded-md" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-foreground truncate">{session.gameName}</p>

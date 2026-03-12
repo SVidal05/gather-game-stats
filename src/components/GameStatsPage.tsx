@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Gamepad2, Users, Trophy, Calendar, Crown, TrendingUp, Target } from "lucide-react";
 import { Player, GameSession, isSoloSession } from "@/lib/types";
@@ -7,6 +7,7 @@ import { getPlayerStats } from "@/lib/store";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
+import { useGames, searchGameArtwork } from "@/lib/gameStore";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
@@ -31,6 +32,20 @@ interface GameStatsPageProps {
 
 export function GameStatsPage({ gameName, players, sessions, onBack }: GameStatsPageProps) {
   const theme = getGameTheme(gameName);
+  const { games } = useGames();
+  const dbGame = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+
+  // Try to get RAWG artwork if DB game doesn't have it
+  const [rawgImage, setRawgImage] = useState<string | null>(null);
+  useEffect(() => {
+    if (!dbGame?.backgroundImage && !dbGame?.coverImage) {
+      searchGameArtwork(gameName).then(art => {
+        setRawgImage(art.backgroundImage || art.coverImage || null);
+      });
+    }
+  }, [gameName, dbGame]);
+
+  const bannerImage = dbGame?.backgroundImage || dbGame?.coverImage || rawgImage || theme.image;
 
   const gameSessions = useMemo(
     () => sessions.filter(s => s.gameName === gameName).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
@@ -87,7 +102,7 @@ export function GameStatsPage({ gameName, players, sessions, onBack }: GameStats
         className="rounded-xl border border-border overflow-hidden"
       >
         <div className="relative h-40 overflow-hidden">
-          <img src={theme.image} alt={gameName} className="w-full h-full object-cover" />
+          <img src={bannerImage} alt={gameName} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between">
             <div>
