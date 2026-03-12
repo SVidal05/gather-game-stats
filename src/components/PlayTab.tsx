@@ -396,6 +396,39 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             );
           })()}
 
+          {/* Game Mode Selector */}
+          {gameName.trim() && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+              <Label className="font-semibold text-xs">Modo de juego</Label>
+              <div className="flex gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => { setGameMode("multiplayer"); setSelectedPlayerIds([]); setWinnerId(""); }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                    gameMode === "multiplayer"
+                      ? "bg-primary/10 border-primary text-primary ring-1 ring-primary/30"
+                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  Multijugador
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setGameMode("solo"); setSelectedPlayerIds([]); setWinnerId(""); setScores({}); }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                    gameMode === "solo"
+                      ? "bg-accent/10 border-accent text-accent ring-1 ring-accent/30"
+                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  Solo
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {/* 3. Date */}
           <div>
             <Label className="font-semibold text-xs">{t("sessions.date")}</Label>
