@@ -59,7 +59,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 type View = "catalog" | "detail" | "history";
 
 export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUpdateSession }: PlayTabProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [view, setView] = useState<View>("catalog");
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
