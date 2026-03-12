@@ -985,7 +985,7 @@ function GameDetailView({
 
                 {activeChart === "performance" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">📊 {t("games.avgScore")}</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5 text-primary" /> {t("games.avgScore")}</h3>
                     <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
