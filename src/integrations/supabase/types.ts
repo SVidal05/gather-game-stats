@@ -57,6 +57,7 @@ export type Database = {
           background_image: string | null
           cover_image: string | null
           created_at: string
+          game_mode: string
           icon: string | null
           id: string
           name: string
@@ -65,6 +66,7 @@ export type Database = {
           background_image?: string | null
           cover_image?: string | null
           created_at?: string
+          game_mode?: string
           icon?: string | null
           id?: string
           name: string
@@ -73,6 +75,7 @@ export type Database = {
           background_image?: string | null
           cover_image?: string | null
           created_at?: string
+          game_mode?: string
           icon?: string | null
           id?: string
           name?: string
