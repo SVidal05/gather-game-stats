@@ -677,7 +677,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
               <h2 className="text-xl font-extrabold text-foreground">{t("sessions.title")}</h2>
               <p className="text-muted-foreground text-xs">{sessions.length} {sessions.length !== 1 ? t("sessions.sessionPlural") : t("sessions.session")}</p>
             </div>
-            <Button size="lg" className="rounded-2xl gap-2 font-bold h-11 text-sm" disabled={players.length < 2} onClick={() => openNewSession()}>
+            <Button size="lg" className="rounded-2xl gap-2 font-bold h-11 text-sm" disabled={players.length < 1} onClick={() => openNewSession()}>
               <Plus className="w-4 h-4" /> {t("sessions.new")}
             </Button>
           </div>
