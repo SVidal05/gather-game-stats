@@ -476,7 +476,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             </div>
           </div>
 
-          {selectedPlayerIds.length > 0 && (
+          {selectedPlayerIds.length > 0 && !isSolo && (
             <>
               {/* 5. Scores */}
               <div>
