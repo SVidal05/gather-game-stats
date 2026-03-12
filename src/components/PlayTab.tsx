@@ -950,7 +950,7 @@ function GameDetailView({
               <motion.div key={activeChart} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }} className="game-card !p-3">
                 {activeChart === "wins" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">🏆 {t("games.winDistribution")}</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-[hsl(var(--gold))]" /> {t("games.winDistribution")}</h3>
                     {winDistribution.length > 0 ? (
                       <div className="flex gap-3">
                         <ResponsiveContainer width="50%" height={160}>
