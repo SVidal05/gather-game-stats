@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
+export type GameMode = "multiplayer" | "solo";
+
 export interface GameDef {
   id: string;
   name: string;
   icon: string | null;
   backgroundImage: string | null;
   coverImage: string | null;
+  gameMode: GameMode;
   createdAt: string;
 }
 
@@ -56,6 +59,7 @@ export function useGames() {
         icon: g.icon,
         backgroundImage: g.background_image || null,
         coverImage: g.cover_image || null,
+        gameMode: (g.game_mode as GameMode) || "multiplayer",
         createdAt: g.created_at,
       })));
     }
@@ -64,15 +68,22 @@ export function useGames() {
 
   useEffect(() => { fetchGames(); }, [fetchGames]);
 
-  const findOrCreateGame = useCallback(async (name: string): Promise<string | null> => {
+  const findOrCreateGame = useCallback(async (name: string, gameMode: GameMode = "multiplayer"): Promise<string | null> => {
     if (!user) return null;
     const existing = games.find(g => g.name.toLowerCase() === name.toLowerCase());
-    if (existing) return existing.id;
+    if (existing) {
+      // Update game mode if different
+      if (existing.gameMode !== gameMode) {
+        await supabase.from("games").update({ game_mode: gameMode } as any).eq("id", existing.id);
+        setGames(prev => prev.map(g => g.id === existing.id ? { ...g, gameMode } : g));
+      }
+      return existing.id;
+    }
 
     // Search RAWG for artwork
     const artwork = await searchGameArtwork(name);
 
-    const insertData: any = { name };
+    const insertData: any = { name, game_mode: gameMode };
     if (artwork.backgroundImage) insertData.background_image = artwork.backgroundImage;
     if (artwork.coverImage) insertData.cover_image = artwork.coverImage;
 
@@ -88,6 +99,7 @@ export function useGames() {
         icon: data.icon,
         backgroundImage: (data as any).background_image || null,
         coverImage: (data as any).cover_image || null,
+        gameMode,
         createdAt: data.created_at,
       };
       setGames(prev => [...prev, newGame]);

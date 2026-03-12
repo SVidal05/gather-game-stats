@@ -25,6 +25,10 @@ export interface GameSession {
   createdAt: string;
 }
 
+export function isSoloSession(session: GameSession): boolean {
+  return session.results.length === 1 && !session.results[0]?.isWinner;
+}
+
 export interface PlayerStats {
   player: Player;
   gamesPlayed: number;

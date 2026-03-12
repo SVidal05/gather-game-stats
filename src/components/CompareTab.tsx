@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { GitCompareArrows, TrendingUp, Swords, BarChart3 } from "lucide-react";
-import { Player, GameSession } from "@/lib/types";
+import { Player, GameSession, isSoloSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { PlayerBadge } from "@/components/PlayerBadge";
@@ -50,7 +50,7 @@ export function CompareTab({ players, sessions }: CompareTabProps) {
   const [player1Id, setPlayer1Id] = useState<string>("");
   const [player2Id, setPlayer2Id] = useState<string>("");
 
-  const stats = getPlayerStats(players, sessions);
+  const stats = getPlayerStats(players, sessions.filter(s => !isSoloSession(s)));
   const p1Stats = stats.find(s => s.player.id === player1Id);
   const p2Stats = stats.find(s => s.player.id === player2Id);
 

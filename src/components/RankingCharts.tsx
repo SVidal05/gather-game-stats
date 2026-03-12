@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem } from "lucide-react";
-import { Player, GameSession } from "@/lib/types";
+import { Player, GameSession, isSoloSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { RankBadge } from "@/components/RankBadge";
@@ -41,7 +41,7 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
   const [gameFilter, setGameFilter] = useState<string>("all");
 
   const uniqueGames = Array.from(new Set(sessions.map(s => s.gameName)));
-  const filteredSessions = gameFilter === "all" ? sessions : sessions.filter(s => s.gameName === gameFilter);
+  const filteredSessions = (gameFilter === "all" ? sessions : sessions.filter(s => s.gameName === gameFilter)).filter(s => !isSoloSession(s));
   const stats = getPlayerStats(players, filteredSessions);
 
   const sorted = [...stats].sort((a, b) => {

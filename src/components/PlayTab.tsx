@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, BarChart3, Crosshair, FileText, Gamepad2, Medal } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, BarChart3, Crosshair, FileText, Gamepad2, Medal, User } from "lucide-react";
 import { Player, GameSession, PlayerResult, POPULAR_GAMES, KNOWN_GAMES } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
-import { useGames, useStatDefinitions, saveResultStats, useGameResultStats } from "@/lib/gameStore";
+import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode } from "@/lib/gameStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +68,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   // Session form state
   const [sessionName, setSessionName] = useState("");
   const [gameName, setGameName] = useState("");
+  const [gameMode, setGameMode] = useState<GameMode>("multiplayer");
   const [gameInputFocused, setGameInputFocused] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
@@ -78,12 +79,22 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const isSolo = gameMode === "solo";
 
   // Games & stat definitions integration
   const { games, findOrCreateGame } = useGames();
   const selectedGameDef = useMemo(() => {
-    return games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+    const found = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+    return found || null;
   }, [games, gameName]);
+
+  // Auto-set game mode from DB game when selecting an existing game
+  useEffect(() => {
+    if (selectedGameDef) {
+      setGameMode(selectedGameDef.gameMode);
+    }
+  }, [selectedGameDef]);
+
   const { statDefs, addStatDefinition } = useStatDefinitions(selectedGameDef?.id || null);
 
   // Advanced stat values: playerId -> statDefId -> value
@@ -150,13 +161,17 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   };
 
   const handleAdd = async () => {
-    if (!sessionName.trim() || !gameName.trim() || selectedPlayerIds.length === 0) return;
+    if (!sessionName.trim() || !gameName.trim()) return;
+    if (isSolo && selectedPlayerIds.length !== 1) return;
+    if (!isSolo && selectedPlayerIds.length < 2) return;
 
-    // Find or create game in DB
-    const gameId = await findOrCreateGame(gameName.trim());
+    // Find or create game in DB with mode
+    const gameId = await findOrCreateGame(gameName.trim(), gameMode);
 
     const results: PlayerResult[] = selectedPlayerIds.map(pid => ({
-      playerId: pid, score: scores[pid] || 0, isWinner: pid === winnerId,
+      playerId: pid,
+      score: isSolo ? 0 : (scores[pid] || 0),
+      isWinner: isSolo ? false : pid === winnerId,
     }));
 
     const result = await onAddSession({
@@ -178,7 +193,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
       }
     }
 
-    if (winnerId) confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    if (!isSolo && winnerId) confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     resetForm();
     setSessionDialogOpen(false);
   };
@@ -212,6 +227,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
   const resetForm = () => {
     setSessionName(""); setGameName(""); setPreselectedGame("");
+    setGameMode("multiplayer");
     setDate(new Date().toISOString().split("T")[0]);
     setSelectedPlayerIds([]); setScores({}); setWinnerId("");
     setNotes(""); setCustomStats({}); setEditingSessionId(null);
@@ -380,6 +396,39 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             );
           })()}
 
+          {/* Game Mode Selector */}
+          {gameName.trim() && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+              <Label className="font-semibold text-xs">Modo de juego</Label>
+              <div className="flex gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => { setGameMode("multiplayer"); setSelectedPlayerIds([]); setWinnerId(""); }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                    gameMode === "multiplayer"
+                      ? "bg-primary/10 border-primary text-primary ring-1 ring-primary/30"
+                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  Multijugador
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setGameMode("solo"); setSelectedPlayerIds([]); setWinnerId(""); setScores({}); }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                    gameMode === "solo"
+                      ? "bg-accent/10 border-accent text-accent ring-1 ring-accent/30"
+                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  Solo
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {/* 3. Date */}
           <div>
             <Label className="font-semibold text-xs">{t("sessions.date")}</Label>
@@ -388,29 +437,46 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
           {/* 4. Players */}
           <div>
-            <Label className="font-semibold text-xs">{t("sessions.players")}</Label>
+            <Label className="font-semibold text-xs">
+              {isSolo ? "Jugador" : t("sessions.players")}
+            </Label>
+            {isSolo && (
+              <p className="text-[10px] text-muted-foreground mt-0.5">Selecciona un jugador para esta sesión solo</p>
+            )}
             <div className="flex flex-wrap gap-1.5 mt-1">
-              {players.map(p => (
-                <button key={p.id} onClick={() => togglePlayer(p.id)}
-                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
-                    selectedPlayerIds.includes(p.id) ? "ring-2 ring-offset-1" : "opacity-40"
-                  }`}
-                  style={{ backgroundColor: p.color + "22", color: p.color, ...(selectedPlayerIds.includes(p.id) ? { ringColor: p.color } : {}) }}
-                >
-                  <span className="w-5 h-5 rounded-md overflow-hidden inline-flex items-center justify-center shrink-0" style={{ backgroundColor: p.color + "15" }}>
-                    {isImageAvatar(p.avatar) ? (
-                      <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xs">{p.avatar}</span>
-                    )}
-                  </span>
-                  {p.name}
-                </button>
-              ))}
+              {players.map(p => {
+                const isSelected = selectedPlayerIds.includes(p.id);
+                const isDisabled = isSolo && selectedPlayerIds.length >= 1 && !isSelected;
+                return (
+                  <button key={p.id} onClick={() => {
+                    if (isSolo) {
+                      // In solo mode, only one player at a time
+                      setSelectedPlayerIds(isSelected ? [] : [p.id]);
+                    } else {
+                      togglePlayer(p.id);
+                    }
+                  }}
+                    disabled={isDisabled}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 ${
+                      isSelected ? "ring-2 ring-offset-1" : isDisabled ? "opacity-20 cursor-not-allowed" : "opacity-40"
+                    }`}
+                    style={{ backgroundColor: p.color + "22", color: p.color, ...(isSelected ? { ringColor: p.color } : {}) }}
+                  >
+                    <span className="w-5 h-5 rounded-md overflow-hidden inline-flex items-center justify-center shrink-0" style={{ backgroundColor: p.color + "15" }}>
+                      {isImageAvatar(p.avatar) ? (
+                        <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs">{p.avatar}</span>
+                      )}
+                    </span>
+                    {p.name}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {selectedPlayerIds.length > 0 && (
+          {selectedPlayerIds.length > 0 && !isSolo && (
             <>
               {/* 5. Scores */}
               <div>
@@ -573,7 +639,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
           {/* 9. Submit */}
           <Button onClick={editingSessionId ? handleSaveEdit : handleAdd} className="w-full rounded-2xl font-bold h-12" size="lg"
-            disabled={!sessionName.trim() || !gameName.trim() || selectedPlayerIds.length < 2}>
+            disabled={!sessionName.trim() || !gameName.trim() || (isSolo ? selectedPlayerIds.length !== 1 : selectedPlayerIds.length < 2)}>
             {editingSessionId ? t("sessions.saveChanges") : t("sessions.record")}
           </Button>
         </div>
@@ -611,12 +677,12 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
               <h2 className="text-xl font-extrabold text-foreground">{t("sessions.title")}</h2>
               <p className="text-muted-foreground text-xs">{sessions.length} {sessions.length !== 1 ? t("sessions.sessionPlural") : t("sessions.session")}</p>
             </div>
-            <Button size="lg" className="rounded-2xl gap-2 font-bold h-11 text-sm" disabled={players.length < 2} onClick={() => openNewSession()}>
+            <Button size="lg" className="rounded-2xl gap-2 font-bold h-11 text-sm" disabled={players.length < 1} onClick={() => openNewSession()}>
               <Plus className="w-4 h-4" /> {t("sessions.new")}
             </Button>
           </div>
 
-          {players.length < 2 && (
+          {players.length < 1 && (
             <div className="game-card bg-secondary/50 text-center !p-3">
               <p className="text-xs text-muted-foreground font-semibold">{t("sessions.minPlayers")}</p>
             </div>
@@ -629,6 +695,8 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                 const winner = session.results.find(r => r.isWinner);
                 const winnerPlayer = winner ? players.find(p => p.id === winner.playerId) : null;
                 const theme = getGameTheme(session.gameName);
+                const sessionGame = games.find(g => g.name.toLowerCase() === session.gameName.toLowerCase());
+                const isSessionSolo = sessionGame?.gameMode === "solo" || (session.results.length === 1 && !session.results[0]?.isWinner);
                 return (
                   <motion.div key={session.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
                     className="game-card cursor-pointer !p-3" onClick={() => setExpandedId(isExpanded ? null : session.id)} whileTap={{ scale: 0.98 }}>
@@ -637,11 +705,18 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                         <span className="text-lg">{theme.emoji}</span>
                         <div>
                           <p className="font-bold text-sm text-foreground">{session.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{session.gameName} · {new Date(session.date).toLocaleDateString()}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {session.gameName} · {new Date(session.date).toLocaleDateString()}
+                            {isSessionSolo && <span className="ml-1 text-accent font-bold">Solo</span>}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        {winnerPlayer && (
+                        {isSessionSolo ? (
+                          <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+                            <User className="w-3 h-3" /> {players.find(p => p.id === session.results[0]?.playerId)?.name || "—"}
+                          </span>
+                        ) : winnerPlayer && (
                           <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"><Crown className="w-3 h-3" /> {winnerPlayer.name}</span>
                         )}
                         <button onClick={e => { e.stopPropagation(); startEditSession(session); }} className="text-muted-foreground hover:text-primary transition-colors p-1 active:scale-90">
@@ -656,28 +731,41 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                       {isExpanded && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="mt-3 pt-3 border-t border-border">
-                            <table className="w-full text-xs">
-                              <thead>
-                                <tr className="text-muted-foreground text-[10px]">
-                                  <th className="text-left pb-1.5">{t("ranking.player")}</th>
-                                  <th className="text-right pb-1.5">{t("sessions.score")}</th>
-                                  <th className="text-right pb-1.5">{t("sessions.result")}</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {session.results.sort((a, b) => b.score - a.score).map(r => {
-                                  const p = players.find(pl => pl.id === r.playerId);
-                                  if (!p) return null;
-                                  return (
-                                    <tr key={r.playerId} className="border-t border-border/50">
-                                      <td className="py-1.5"><PlayerBadge player={p} size="sm" /></td>
-                                      <td className="text-right font-bold">{r.score}</td>
-                                      <td className="text-right">{r.isWinner ? <Crown className="w-3 h-3 text-[hsl(var(--gold))] inline" /> : ""}</td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
+                            {isSessionSolo ? (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-xs">
+                                  <User className="w-3.5 h-3.5 text-accent" />
+                                  <span className="font-bold text-foreground">Sesión personal</span>
+                                </div>
+                                {session.results[0] && (() => {
+                                  const p = players.find(pl => pl.id === session.results[0].playerId);
+                                  return p ? <PlayerBadge player={p} size="sm" /> : null;
+                                })()}
+                              </div>
+                            ) : (
+                              <table className="w-full text-xs">
+                                <thead>
+                                  <tr className="text-muted-foreground text-[10px]">
+                                    <th className="text-left pb-1.5">{t("ranking.player")}</th>
+                                    <th className="text-right pb-1.5">{t("sessions.score")}</th>
+                                    <th className="text-right pb-1.5">{t("sessions.result")}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {session.results.sort((a, b) => b.score - a.score).map(r => {
+                                    const p = players.find(pl => pl.id === r.playerId);
+                                    if (!p) return null;
+                                    return (
+                                      <tr key={r.playerId} className="border-t border-border/50">
+                                        <td className="py-1.5"><PlayerBadge player={p} size="sm" /></td>
+                                        <td className="text-right font-bold">{r.score}</td>
+                                        <td className="text-right">{r.isWinner ? <Crown className="w-3 h-3 text-[hsl(var(--gold))] inline" /> : ""}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            )}
                             {session.customStats && Object.keys(session.customStats).length > 0 && (
                               <div className="mt-3 pt-2 border-t border-border/50">
                                 <p className="text-[10px] font-bold text-muted-foreground mb-1.5">{theme.emoji} {t("sessions.gameStats")}</p>
@@ -738,7 +826,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             <Button variant="outline" size="sm" className="rounded-2xl gap-1.5 font-bold text-xs h-9" onClick={() => setView("history")}>
               <Calendar className="w-3.5 h-3.5" /> {t("play.history")}
             </Button>
-            <Button size="sm" className="rounded-2xl gap-1.5 font-bold text-xs h-9" disabled={players.length < 2} onClick={() => openNewSession()}>
+            <Button size="sm" className="rounded-2xl gap-1.5 font-bold text-xs h-9" disabled={players.length < 1} onClick={() => openNewSession()}>
               <Plus className="w-3.5 h-3.5" /> {t("play.newGame")}
             </Button>
           </div>
@@ -775,7 +863,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                         </div>
                       </button>
                       <div className="flex items-center gap-1">
-                        <Button size="sm" variant="ghost" className="rounded-xl h-8 px-2 text-xs font-bold gap-1" onClick={() => openNewSession(game.name)} disabled={players.length < 2}>
+                        <Button size="sm" variant="ghost" className="rounded-xl h-8 px-2 text-xs font-bold gap-1" onClick={() => openNewSession(game.name)} disabled={players.length < 1}>
                           <Plus className="w-3 h-3" /> {t("play.play")}
                         </Button>
                         <button onClick={() => openGameDetail(game.name)} className="text-muted-foreground p-1">
@@ -807,7 +895,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                     <button onClick={() => openGameDetail(game.name)} className="font-bold text-foreground text-xs flex items-center gap-1">
                       {game.theme.emoji} {game.name}
                     </button>
-                    <Button size="sm" variant="secondary" className="rounded-lg h-6 px-2 text-[9px] font-bold gap-0.5" onClick={() => openNewSession(game.name)} disabled={players.length < 2}>
+                    <Button size="sm" variant="secondary" className="rounded-lg h-6 px-2 text-[9px] font-bold gap-0.5" onClick={() => openNewSession(game.name)} disabled={players.length < 1}>
                       <Plus className="w-2.5 h-2.5" /> {t("play.play")}
                     </Button>
                   </div>
