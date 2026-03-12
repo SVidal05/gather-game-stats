@@ -443,7 +443,12 @@ const Index = () => {
             {activeTab === "settings" && <SettingsTab isDark={isDark} onToggleDark={cycleTheme} themeMode={themeMode} onSetThemeMode={setThemeMode} />}
             {activeGroup && !dataLoading && (
               <>
-                {activeTab === "overview" && <OverviewTab players={players} sessions={sessions} />}
+                {activeTab === "overview" && !gameStatsName && (
+                  <OverviewTab players={players} sessions={sessions} onGameClick={(name) => setGameStatsName(name)} />
+                )}
+                {activeTab === "overview" && gameStatsName && (
+                  <GameStatsPage gameName={gameStatsName} players={players} sessions={sessions} onBack={() => setGameStatsName(null)} />
+                )}
                 {activeTab === "players" && (
                   <PlayersTab players={players} sessions={sessions} onAddPlayer={addPlayer} onRemovePlayer={removePlayer} onUpdatePlayer={updatePlayer} />
                 )}
