@@ -41,7 +41,7 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
   const [gameFilter, setGameFilter] = useState<string>("all");
 
   const uniqueGames = Array.from(new Set(sessions.map(s => s.gameName)));
-  const filteredSessions = gameFilter === "all" ? sessions : sessions.filter(s => s.gameName === gameFilter);
+  const filteredSessions = (gameFilter === "all" ? sessions : sessions.filter(s => s.gameName === gameFilter)).filter(s => !isSoloSession(s));
   const stats = getPlayerStats(players, filteredSessions);
 
   const sorted = [...stats].sort((a, b) => {

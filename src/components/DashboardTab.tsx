@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Gamepad2, Users, Flame, Crown, Calendar, Medal, TrendingUp, Target, Zap, Star, BarChart3, Award } from "lucide-react";
-import { Player, GameSession, PlayerStats } from "@/lib/types";
+import { Player, GameSession, PlayerStats, isSoloSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme } from "@/lib/gameThemes";
 import { isImageAvatar } from "@/lib/avatarOptions";
