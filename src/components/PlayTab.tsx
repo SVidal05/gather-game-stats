@@ -873,7 +873,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                     <button onClick={() => openGameDetail(game.name)} className="font-bold text-foreground text-xs flex items-center gap-1">
                       {game.theme.emoji} {game.name}
                     </button>
-                    <Button size="sm" variant="secondary" className="rounded-lg h-6 px-2 text-[9px] font-bold gap-0.5" onClick={() => openNewSession(game.name)} disabled={players.length < 2}>
+                    <Button size="sm" variant="secondary" className="rounded-lg h-6 px-2 text-[9px] font-bold gap-0.5" onClick={() => openNewSession(game.name)} disabled={players.length < 1}>
                       <Plus className="w-2.5 h-2.5" /> {t("play.play")}
                     </Button>
                   </div>
