@@ -605,7 +605,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                       </div>
                       <div className="flex items-center gap-1.5">
                         {winnerPlayer && (
-                          <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5">🏆 {winnerPlayer.name}</span>
+                          <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5"><Crown className="w-3 h-3" /> {winnerPlayer.name}</span>
                         )}
                         <button onClick={e => { e.stopPropagation(); startEditSession(session); }} className="text-muted-foreground hover:text-primary transition-colors p-1 active:scale-90">
                           <Edit3 className="w-3.5 h-3.5" />
