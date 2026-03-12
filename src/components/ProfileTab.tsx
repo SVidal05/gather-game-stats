@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Star, Flame, Gamepad2, Users, Dice5, Lock, Sparkles, Shield, Globe, UsersRound, ChevronDown, ChevronUp } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
+import { isImageAvatar } from "@/lib/avatarOptions";
 import { getPlayerStats } from "@/lib/store";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
@@ -356,8 +357,12 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
                     <span className="text-xs font-black text-muted-foreground w-5 text-center">
                       {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
                     </span>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm" style={{ backgroundColor: entry.player.color + "22" }}>
-                      {entry.player.avatar}
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm overflow-hidden" style={{ backgroundColor: entry.player.color + "22", border: `2px solid ${entry.player.color}` }}>
+                      {isImageAvatar(entry.player.avatar) ? (
+                        <img src={entry.player.avatar} alt={entry.player.name} className="w-full h-full object-cover" />
+                      ) : (
+                        entry.player.avatar
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-foreground truncate">{entry.player.name}</p>
