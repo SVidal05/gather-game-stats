@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem, Users, User, Filter, TrendingUp, Layers } from "lucide-react";
 import { Player, GameSession, isSoloSession } from "@/lib/types";
@@ -32,21 +32,72 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 // ─── Ranking Tab (Leaderboard) ──────────────────────
-type SortKey = "wins" | "winRate" | "totalPoints" | "gamesPlayed";
+type SortKey = "wins" | "winRate" | "totalPoints" | "gamesPlayed" | "sessions" | "coopSessions" | "uniquePartners";
+type LeaderboardMode = "all" | "competitive" | "party" | "coop";
 
 export function RankingTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
   const [sortBy, setSortBy] = useState<SortKey>("wins");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [gameFilter, setGameFilter] = useState<string>("all");
+  const [categoryMode, setCategoryMode] = useState<LeaderboardMode>("all");
+
+  const { games } = useGames();
+  const gameCategoryMap = useMemo(() => {
+    const map = new Map<string, GameCategory>();
+    games.forEach(g => map.set(g.name.toLowerCase(), g.category));
+    return map;
+  }, [games]);
+  const getSessionCategory = (s: GameSession): GameCategory =>
+    gameCategoryMap.get(s.gameName.toLowerCase()) || "competitive";
 
   const uniqueGames = Array.from(new Set(sessions.map(s => s.gameName)));
-  const filteredSessions = (gameFilter === "all" ? sessions : sessions.filter(s => s.gameName === gameFilter)).filter(s => !isSoloSession(s));
-  const stats = getPlayerStats(players, filteredSessions);
 
-  const sorted = [...stats].sort((a, b) => {
-    const diff = a[sortBy] - b[sortBy];
-    return sortDir === "desc" ? -diff : diff;
-  });
+  // Filter sessions by game + category
+  const filteredSessions = useMemo(() => {
+    let result = gameFilter === "all" ? sessions : sessions.filter(s => s.gameName === gameFilter);
+    if (categoryMode !== "all") {
+      result = result.filter(s => getSessionCategory(s) === categoryMode);
+    }
+    return result.filter(s => !isSoloSession(s));
+  }, [sessions, gameFilter, categoryMode, getSessionCategory]);
+
+  // Compute stats based on category mode
+  const competitiveStats = useMemo(() => getPlayerStats(players, filteredSessions), [players, filteredSessions]);
+
+  // Party: participation-focused
+  const partyStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filteredSessions.forEach(s => s.results.forEach(r => { counts[r.playerId] = (counts[r.playerId] || 0) + 1; }));
+    return players
+      .map(p => ({ player: p, sessions: counts[p.id] || 0 }))
+      .filter(x => x.sessions > 0)
+      .sort((a, b) => b.sessions - a.sessions);
+  }, [players, filteredSessions]);
+
+  // Coop: sessions completed together + unique partners
+  const coopStats = useMemo(() => {
+    const sessionCount: Record<string, number> = {};
+    const partnerSets: Record<string, Set<string>> = {};
+    filteredSessions.forEach(s => {
+      const pids = s.results.map(r => r.playerId);
+      pids.forEach(pid => {
+        sessionCount[pid] = (sessionCount[pid] || 0) + 1;
+        if (!partnerSets[pid]) partnerSets[pid] = new Set();
+        pids.forEach(other => { if (other !== pid) partnerSets[pid].add(other); });
+      });
+    });
+    return players
+      .map(p => ({ player: p, coopSessions: sessionCount[p.id] || 0, uniquePartners: partnerSets[p.id]?.size || 0 }))
+      .filter(x => x.coopSessions > 0)
+      .sort((a, b) => b.coopSessions - a.coopSessions);
+  }, [players, filteredSessions]);
+
+  // Reset sort when changing category
+  useEffect(() => {
+    if (categoryMode === "party") { setSortBy("sessions"); setSortDir("desc"); }
+    else if (categoryMode === "coop") { setSortBy("coopSessions"); setSortDir("desc"); }
+    else { setSortBy("wins"); setSortDir("desc"); }
+  }, [categoryMode]);
 
   const toggleSort = (key: SortKey) => {
     if (sortBy === key) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -66,6 +117,37 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
     return "";
   };
 
+  const categoryModeOptions: { value: LeaderboardMode; label: string; icon: typeof Trophy }[] = [
+    { value: "all", label: "All", icon: BarChart3 },
+    { value: "competitive", label: "Competitive", icon: Trophy },
+    { value: "party", label: "Party", icon: Users },
+    { value: "coop", label: "Co-op", icon: Users },
+  ];
+
+  // Sort helpers per mode
+  const sortedCompetitive = useMemo(() => {
+    const key = sortBy as "wins" | "winRate" | "totalPoints" | "gamesPlayed";
+    if (!["wins", "winRate", "totalPoints", "gamesPlayed"].includes(key)) return competitiveStats;
+    return [...competitiveStats].sort((a, b) => {
+      const diff = (a as any)[key] - (b as any)[key];
+      return sortDir === "desc" ? -diff : diff;
+    });
+  }, [competitiveStats, sortBy, sortDir]);
+
+  const sortedParty = useMemo(() => {
+    return [...partyStats].sort((a, b) => sortDir === "desc" ? b.sessions - a.sessions : a.sessions - b.sessions);
+  }, [partyStats, sortDir]);
+
+  const sortedCoop = useMemo(() => {
+    const key = sortBy === "uniquePartners" ? "uniquePartners" : "coopSessions";
+    return [...coopStats].sort((a, b) => sortDir === "desc" ? (b as any)[key] - (a as any)[key] : (a as any)[key] - (b as any)[key]);
+  }, [coopStats, sortBy, sortDir]);
+
+  const isEmpty = (categoryMode === "all" || categoryMode === "competitive")
+    ? sortedCompetitive.length === 0
+    : categoryMode === "party" ? sortedParty.length === 0
+    : sortedCoop.length === 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -76,23 +158,19 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
         <div className="flex items-center gap-2">
           {uniqueGames.length > 0 && (
             <Select value={gameFilter} onValueChange={setGameFilter}>
-              <SelectTrigger className="w-[160px] h-9 rounded-lg text-xs font-bold">
+              <SelectTrigger className="w-[140px] h-9 rounded-lg text-xs font-bold">
                 <div className="flex items-center gap-1.5">
                   <Trophy className="w-3.5 h-3.5 text-primary" />
                   <SelectValue placeholder="Global" />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
-                  <span className="flex items-center gap-1.5 font-bold">Global</span>
-                </SelectItem>
-                {uniqueGames.map(g => (
-                  <SelectItem key={g} value={g}>{g}</SelectItem>
-                ))}
+                <SelectItem value="all"><span className="font-bold">Global</span></SelectItem>
+                {uniqueGames.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
               </SelectContent>
             </Select>
           )}
-          {sorted.length > 0 && (
+          {!isEmpty && (
             <Button size="sm" variant="outline" className="rounded-lg gap-1.5 text-xs" onClick={() => exportToCSV(players, sessions, "leaderboard")}>
               <Download className="w-3.5 h-3.5" /> CSV
             </Button>
@@ -100,7 +178,25 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
         </div>
       </div>
 
-      {sorted.length === 0 ? (
+      {/* Category mode tabs */}
+      <div className="flex gap-1 p-1 rounded-xl bg-secondary/50">
+        {categoryModeOptions.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setCategoryMode(opt.value)}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+              categoryMode === opt.value
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <opt.icon className="w-3.5 h-3.5" />
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {isEmpty ? (
         <div className="text-center py-12">
           <Trophy className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-muted-foreground font-medium text-sm">Play some games to see rankings!</p>
@@ -112,37 +208,74 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
               <tr className="text-muted-foreground text-xs border-b border-border">
                 <th className="text-left p-3">#</th>
                 <th className="text-left p-3">Player</th>
-                <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("gamesPlayed")}>
-                  <span className="inline-flex items-center gap-1">Games <SortIcon field="gamesPlayed" /></span>
-                </th>
-                <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("wins")}>
-                  <span className="inline-flex items-center gap-1">Wins <SortIcon field="wins" /></span>
-                </th>
-                <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("winRate")}>
-                  <span className="inline-flex items-center gap-1">Win% <SortIcon field="winRate" /></span>
-                </th>
-                <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("totalPoints")}>
-                  <span className="inline-flex items-center gap-1">Pts <SortIcon field="totalPoints" /></span>
-                </th>
+
+                {/* Competitive / All columns */}
+                {(categoryMode === "all" || categoryMode === "competitive") && (
+                  <>
+                    <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("gamesPlayed")}>
+                      <span className="inline-flex items-center gap-1">Games <SortIcon field="gamesPlayed" /></span>
+                    </th>
+                    <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("wins")}>
+                      <span className="inline-flex items-center gap-1">Wins <SortIcon field="wins" /></span>
+                    </th>
+                    <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("winRate")}>
+                      <span className="inline-flex items-center gap-1">Win% <SortIcon field="winRate" /></span>
+                    </th>
+                    <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("totalPoints")}>
+                      <span className="inline-flex items-center gap-1">Pts <SortIcon field="totalPoints" /></span>
+                    </th>
+                  </>
+                )}
+
+                {/* Party columns */}
+                {categoryMode === "party" && (
+                  <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("sessions")}>
+                    <span className="inline-flex items-center gap-1">Sessions <SortIcon field="sessions" /></span>
+                  </th>
+                )}
+
+                {/* Coop columns */}
+                {categoryMode === "coop" && (
+                  <>
+                    <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("coopSessions")}>
+                      <span className="inline-flex items-center gap-1">Sessions <SortIcon field="coopSessions" /></span>
+                    </th>
+                    <th className="text-right p-3 cursor-pointer select-none" onClick={() => toggleSort("uniquePartners")}>
+                      <span className="inline-flex items-center gap-1">Partners <SortIcon field="uniquePartners" /></span>
+                    </th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
-              {sorted.map((ps, i) => (
-                <motion.tr
-                  key={ps.player.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 0.04 }}
-                  className={`border-b border-border/50 last:border-0 hover:bg-secondary/30 transition-colors ${getRowClass(i)}`}
-                >
-                  <td className="p-3">
-                    {sortDir === "desc" ? <RankBadge rank={i + 1} size="sm" /> : <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>}
-                  </td>
+              {(categoryMode === "all" || categoryMode === "competitive") && sortedCompetitive.map((ps, i) => (
+                <motion.tr key={ps.player.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
+                  className={`border-b border-border/50 last:border-0 hover:bg-secondary/30 transition-colors ${getRowClass(i)}`}>
+                  <td className="p-3">{sortDir === "desc" ? <RankBadge rank={i + 1} size="sm" /> : <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>}</td>
                   <td className="p-3"><PlayerBadge player={ps.player} size="sm" /></td>
                   <td className="p-3 text-right font-semibold">{ps.gamesPlayed}</td>
                   <td className="p-3 text-right font-semibold">{ps.wins}</td>
                   <td className="p-3 text-right font-semibold">{ps.winRate.toFixed(0)}%</td>
                   <td className="p-3 text-right font-semibold">{ps.totalPoints}</td>
+                </motion.tr>
+              ))}
+
+              {categoryMode === "party" && sortedParty.map((ps, i) => (
+                <motion.tr key={ps.player.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
+                  className={`border-b border-border/50 last:border-0 hover:bg-secondary/30 transition-colors ${getRowClass(i)}`}>
+                  <td className="p-3">{sortDir === "desc" ? <RankBadge rank={i + 1} size="sm" /> : <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>}</td>
+                  <td className="p-3"><PlayerBadge player={ps.player} size="sm" /></td>
+                  <td className="p-3 text-right font-semibold">{ps.sessions}</td>
+                </motion.tr>
+              ))}
+
+              {categoryMode === "coop" && sortedCoop.map((ps, i) => (
+                <motion.tr key={ps.player.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
+                  className={`border-b border-border/50 last:border-0 hover:bg-secondary/30 transition-colors ${getRowClass(i)}`}>
+                  <td className="p-3">{sortDir === "desc" ? <RankBadge rank={i + 1} size="sm" /> : <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>}</td>
+                  <td className="p-3"><PlayerBadge player={ps.player} size="sm" /></td>
+                  <td className="p-3 text-right font-semibold">{ps.coopSessions}</td>
+                  <td className="p-3 text-right font-semibold">{ps.uniquePartners}</td>
                 </motion.tr>
               ))}
             </tbody>
