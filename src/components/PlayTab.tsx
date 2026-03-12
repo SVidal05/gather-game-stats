@@ -788,7 +788,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                           <p className="font-bold text-sm text-foreground">{session.name}</p>
                           <p className="text-[10px] text-muted-foreground">
                             {session.gameName} · {new Date(session.date).toLocaleDateString()}
-                            {isSessionSolo && <span className="ml-1 text-accent font-bold">Solo</span>}
+                            {isSessionSolo && <span className="ml-1 text-accent font-bold">{t("solo.sessionTag")}</span>}
                           </p>
                         </div>
                       </div>
@@ -816,7 +816,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                               <div className="space-y-2">
                                 <div className="flex items-center gap-2 text-xs">
                                   <User className="w-3.5 h-3.5 text-accent" />
-                                  <span className="font-bold text-foreground">Sesión personal</span>
+                                  <span className="font-bold text-foreground">{t("solo.personalSession")}</span>
                                 </div>
                                 {session.results[0] && (() => {
                                   const p = players.find(pl => pl.id === session.results[0].playerId);
