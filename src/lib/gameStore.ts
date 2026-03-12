@@ -158,6 +158,9 @@ export function useGames() {
       .select()
       .single();
     if (data) {
+      // Auto-create category-specific default stat definitions
+      await createDefaultStats(data.id, category);
+
       const newGame: GameDef = {
         id: data.id,
         name: data.name,
