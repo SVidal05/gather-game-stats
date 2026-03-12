@@ -48,7 +48,7 @@ function MetricCard({ icon: Icon, label, value, iconClass, delay }: {
 }
 
 // ─── Game Spotlight ─────────────────────────
-function GameSpotlight({ sessions, players }: { sessions: GameSession[]; players: Player[] }) {
+function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSession[]; players: Player[]; onGameClick?: (gameName: string) => void }) {
   const spotlight = useMemo(() => {
     if (sessions.length === 0) return null;
     const counts: Record<string, { count: number; playerIds: Set<string> }> = {};
@@ -71,7 +71,8 @@ function GameSpotlight({ sessions, players }: { sessions: GameSession[]; players
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="rounded-xl border border-border overflow-hidden"
+      className="rounded-xl border border-border overflow-hidden cursor-pointer hover:border-primary/40 transition-colors"
+      onClick={() => onGameClick?.(spotlight.name)}
     >
       {/* Banner */}
       <div className="relative h-32 overflow-hidden">
