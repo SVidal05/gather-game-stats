@@ -1019,9 +1019,32 @@ function GameDetailView({
   const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom" | "advanced">("wins");
   const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
 
-  // Advanced stats from DB
+  // Advanced stats + artwork from DB
   const { games: gamesForDetail } = useGames();
   const gameRecordForDetail = gamesForDetail.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+  const [detailArtwork, setDetailArtwork] = useState<{ backgroundImage: string | null; coverImage: string | null } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!gameRecordForDetail?.backgroundImage && !gameRecordForDetail?.coverImage) {
+      searchGameArtwork(gameName).then((art) => {
+        if (!cancelled && (art.backgroundImage || art.coverImage)) {
+          setDetailArtwork(art);
+        }
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [gameName, gameRecordForDetail?.backgroundImage, gameRecordForDetail?.coverImage]);
+
+  const heroImage =
+    gameRecordForDetail?.backgroundImage ||
+    gameRecordForDetail?.coverImage ||
+    detailArtwork?.backgroundImage ||
+    detailArtwork?.coverImage ||
+    theme.image;
+
   const gameIdForDetail = gameRecordForDetail?.id || null;
   const sessionIdsForDetail = gameSessions.map(s => s.id);
   const { data: advancedStatsData, loading: advancedStatsLoading } = useGameResultStats(gameIdForDetail, sessionIdsForDetail);
