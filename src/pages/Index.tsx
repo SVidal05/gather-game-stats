@@ -56,6 +56,7 @@ const Index = () => {
 
   const { players, addPlayer, removePlayer, updatePlayer, loading: playersLoading } = usePlayers(activeGroupId);
   const { sessions, addSession, removeSession, updateSession, loading: sessionsLoading } = useSessions(activeGroupId);
+  const { sessions: globalSessions, players: globalPlayers } = useAllUserSessions();
 
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
