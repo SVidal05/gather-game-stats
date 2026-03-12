@@ -403,7 +403,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           {/* Game Mode Selector */}
           {gameName.trim() && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-              <Label className="font-semibold text-xs">Modo de juego</Label>
+              <Label className="font-semibold text-xs">Game Mode</Label>
               <div className="flex gap-2 mt-1">
                 <button
                   type="button"
