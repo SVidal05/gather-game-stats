@@ -7,6 +7,7 @@ import {
   UserCircle, Settings, ChevronDown, ChevronRight, LayoutDashboard, Swords,
 } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
+import { useAllUserSessions } from "@/hooks/useAllUserSessions";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useGroups, useGroupMembers, usePendingInvites } from "@/lib/groupStore";
