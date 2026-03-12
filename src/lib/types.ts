@@ -4,6 +4,8 @@ export interface Player {
   color: string;
   avatar: string;
   createdAt: string;
+  linkedUserId?: string | null;
+  linkedUsername?: string | null;
 }
 
 export interface PlayerResult {

@@ -16,12 +16,25 @@ export function usePlayers(groupId: string | null) {
       .eq("group_id", groupId)
       .order("created_at", { ascending: true });
     if (data) {
+      // Fetch linked user profiles
+      const linkedUserIds = data.filter((p: any) => p.linked_user_id).map((p: any) => p.linked_user_id);
+      let profileMap = new Map<string, string>();
+      if (linkedUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, username")
+          .in("user_id", linkedUserIds);
+        profileMap = new Map((profiles || []).map((pr: any) => [pr.user_id, pr.username]));
+      }
+
       setPlayers(data.map(p => ({
         id: p.id,
         name: p.name,
         color: p.color,
         avatar: p.avatar,
         createdAt: p.created_at,
+        linkedUserId: p.linked_user_id || null,
+        linkedUsername: p.linked_user_id ? (profileMap.get(p.linked_user_id) || null) : null,
       })));
     }
     setLoading(false);
