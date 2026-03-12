@@ -480,7 +480,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           {/* Game Mode Selector */}
           {gameName.trim() && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-              <Label className="font-semibold text-xs">Game Mode</Label>
+              <Label className="font-semibold text-xs">{t("solo.gameMode")}</Label>
               <div className="flex gap-2 mt-1">
                 <button
                   type="button"
@@ -492,7 +492,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   }`}
                 >
                   <Users className="w-4 h-4" />
-                  Multiplayer
+                  {t("solo.modeMultiplayer")}
                 </button>
                 <button
                   type="button"
@@ -504,7 +504,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   }`}
                 >
                   <User className="w-4 h-4" />
-                  Solo
+                  {t("solo.modeSolo")}
                 </button>
               </div>
             </motion.div>
