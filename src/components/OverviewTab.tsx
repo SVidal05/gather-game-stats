@@ -50,6 +50,8 @@ function MetricCard({ icon: Icon, label, value, iconClass, delay }: {
 
 // ─── Game Spotlight ─────────────────────────
 function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSession[]; players: Player[]; onGameClick?: (gameName: string) => void }) {
+  const { games } = useGames();
+
   const spotlight = useMemo(() => {
     if (sessions.length === 0) return null;
     const counts: Record<string, { count: number; playerIds: Set<string> }> = {};
@@ -61,10 +63,22 @@ function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSessi
     const top = Object.entries(counts).sort((a, b) => b[1].count - a[1].count)[0];
     if (!top) return null;
     const theme = getGameTheme(top[0]);
-    return { name: top[0], count: top[1].count, playerCount: top[1].playerIds.size, theme };
-  }, [sessions]);
+    const dbGame = games.find(g => g.name.toLowerCase() === top[0].toLowerCase());
+    return { name: top[0], count: top[1].count, playerCount: top[1].playerIds.size, theme, dbGame };
+  }, [sessions, games]);
+
+  const [rawgImage, setRawgImage] = useState<string | null>(null);
+  useEffect(() => {
+    if (spotlight && !spotlight.dbGame?.backgroundImage && !spotlight.dbGame?.coverImage) {
+      searchGameArtwork(spotlight.name).then(art => {
+        setRawgImage(art.backgroundImage || art.coverImage || null);
+      });
+    }
+  }, [spotlight?.name, spotlight?.dbGame]);
 
   if (!spotlight) return null;
+
+  const bannerImage = spotlight.dbGame?.backgroundImage || spotlight.dbGame?.coverImage || rawgImage || spotlight.theme.image;
 
   return (
     <motion.div
@@ -78,7 +92,7 @@ function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSessi
       {/* Banner */}
       <div className="relative h-32 overflow-hidden">
         <img
-          src={spotlight.theme.image}
+          src={bannerImage}
           alt={spotlight.name}
           className="w-full h-full object-cover"
         />
