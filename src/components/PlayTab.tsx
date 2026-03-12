@@ -639,7 +639,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
           {/* 9. Submit */}
           <Button onClick={editingSessionId ? handleSaveEdit : handleAdd} className="w-full rounded-2xl font-bold h-12" size="lg"
-            disabled={!sessionName.trim() || !gameName.trim() || selectedPlayerIds.length < 2}>
+            disabled={!sessionName.trim() || !gameName.trim() || (isSolo ? selectedPlayerIds.length !== 1 : selectedPlayerIds.length < 2)}>
             {editingSessionId ? t("sessions.saveChanges") : t("sessions.record")}
           </Button>
         </div>
