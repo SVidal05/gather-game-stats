@@ -69,6 +69,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   const [sessionName, setSessionName] = useState("");
   const [gameName, setGameName] = useState("");
   const [gameMode, setGameMode] = useState<GameMode>("multiplayer");
+  const [gameCategory, setGameCategory] = useState<GameCategory>("competitive");
   const [gameInputFocused, setGameInputFocused] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
