@@ -782,7 +782,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
         {sessions.length === 0 && (
           <div className="text-center py-8">
-            <div className="text-4xl mb-2">🎮</div>
+            <Gamepad2 className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
             <p className="text-muted-foreground font-semibold text-sm">{t("games.noSessions")}</p>
           </div>
         )}
