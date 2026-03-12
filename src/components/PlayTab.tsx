@@ -247,8 +247,8 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
     if (isSolo && selectedPlayerIds.length !== 1) return;
     if (!isSolo && selectedPlayerIds.length < 2) return;
 
-    // Find or create game in DB with mode
-    const gameId = await findOrCreateGame(gameName.trim(), gameMode);
+    // Find or create game in DB with mode and category
+    const gameId = await findOrCreateGame(gameName.trim(), gameMode, gameCategory);
 
     const results: PlayerResult[] = selectedPlayerIds.map(pid => ({
       playerId: pid,
