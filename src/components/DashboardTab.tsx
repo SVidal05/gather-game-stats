@@ -344,9 +344,10 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
           <motion.div
             animate={{ y: [0, -8, 0] }}
             transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            className="text-6xl mb-4"
-          >🎲</motion.div>
-          <h3 className="text-xl font-display font-bold text-foreground">{t("dashboard.welcome")}</h3>
+          >
+            <Gamepad2 className="w-16 h-16 text-primary/40 mx-auto" />
+          </motion.div>
+          <h3 className="text-xl font-display font-bold text-foreground mt-4">{t("dashboard.welcome")}</h3>
           <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">{t("dashboard.welcomeMsg")}</p>
         </motion.div>
       </div>
