@@ -1006,7 +1006,7 @@ function GameDetailView({
 
                 {activeChart === "radar" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">🎯 {t("games.playerComparison")}</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5"><Crosshair className="w-3.5 h-3.5 text-primary" /> {t("games.playerComparison")}</h3>
                     {radarData.length > 0 && activePlayers.length <= 6 ? (
                       <ResponsiveContainer width="100%" height={220}>
                         <RadarChart data={radarData}>
