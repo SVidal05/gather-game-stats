@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem, Users, User, Filter, TrendingUp, Layers } from "lucide-react";
 import { Player, GameSession, isSoloSession } from "@/lib/types";
