@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Gamepad2, Users, Crown, Calendar, Medal, Target, Zap, Star, User, Trophy, TrendingUp } from "lucide-react";
 import { Player, GameSession, PlayerStats, isSoloSession } from "@/lib/types";
@@ -7,6 +7,7 @@ import { getGameTheme } from "@/lib/gameThemes";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
+import { useGames, searchGameArtwork } from "@/lib/gameStore";
 
 // ─── Helpers ────────────────────────────────
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
