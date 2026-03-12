@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { JoinGroupPlayerDialog } from "@/components/JoinGroupPlayerDialog";
 import logo from "@/assets/logo.png";
 
 interface GroupSelectorProps {
