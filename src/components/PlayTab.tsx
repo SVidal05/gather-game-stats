@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2 } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, BarChart3, Crosshair, FileText, Gamepad2, Medal } from "lucide-react";
 import { Player, GameSession, PlayerResult, POPULAR_GAMES } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
