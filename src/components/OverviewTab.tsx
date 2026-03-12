@@ -48,7 +48,7 @@ function MetricCard({ icon: Icon, label, value, iconClass, delay }: {
 }
 
 // ─── Game Spotlight ─────────────────────────
-function GameSpotlight({ sessions, players }: { sessions: GameSession[]; players: Player[] }) {
+function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSession[]; players: Player[]; onGameClick?: (gameName: string) => void }) {
   const spotlight = useMemo(() => {
     if (sessions.length === 0) return null;
     const counts: Record<string, { count: number; playerIds: Set<string> }> = {};
@@ -71,7 +71,8 @@ function GameSpotlight({ sessions, players }: { sessions: GameSession[]; players
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className="rounded-xl border border-border overflow-hidden"
+      className="rounded-xl border border-border overflow-hidden cursor-pointer hover:border-primary/40 transition-colors"
+      onClick={() => onGameClick?.(spotlight.name)}
     >
       {/* Banner */}
       <div className="relative h-32 overflow-hidden">
@@ -303,7 +304,7 @@ function LeaderboardRow({ stats, rank, sessions, index }: { stats: PlayerStats; 
 }
 
 // ─── Main Overview ─────────────────────────
-export function OverviewTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
+export function OverviewTab({ players, sessions, onGameClick }: { players: Player[]; sessions: GameSession[]; onGameClick?: (gameName: string) => void }) {
   const multiplayerSessions = sessions.filter(s => !isSoloSession(s));
   const soloSessions = sessions.filter(s => isSoloSession(s));
   const stats = getPlayerStats(players, multiplayerSessions);
@@ -346,7 +347,7 @@ export function OverviewTab({ players, sessions }: { players: Player[]; sessions
       </div>
 
       {/* 2. Game Spotlight */}
-      <GameSpotlight sessions={sessions} players={players} />
+      <GameSpotlight sessions={sessions} players={players} onGameClick={onGameClick} />
 
       {/* 3. Top Player */}
       <TopPlayerWidget players={players} sessions={sessions} />

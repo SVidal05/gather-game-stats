@@ -19,6 +19,7 @@ import { SettingsTab } from "@/components/SettingsTab";
 import { GroupSelector } from "@/components/GroupSelector";
 import { TournamentTab } from "@/components/TournamentTab";
 import { CompareTab } from "@/components/CompareTab";
+import { GameStatsPage } from "@/components/GameStatsPage";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
@@ -59,6 +60,7 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [groupSelectorOpen, setGroupSelectorOpen] = useState(false);
+  const [gameStatsName, setGameStatsName] = useState<string | null>(null);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     try { return (localStorage.getItem(THEME_KEY) as ThemeMode) || "system"; } catch { return "system"; }
@@ -163,6 +165,7 @@ const Index = () => {
       return;
     }
     setActiveTab(id);
+    setGameStatsName(null);
     setSidebarOpen(false);
   };
 
@@ -440,7 +443,12 @@ const Index = () => {
             {activeTab === "settings" && <SettingsTab isDark={isDark} onToggleDark={cycleTheme} themeMode={themeMode} onSetThemeMode={setThemeMode} />}
             {activeGroup && !dataLoading && (
               <>
-                {activeTab === "overview" && <OverviewTab players={players} sessions={sessions} />}
+                {activeTab === "overview" && !gameStatsName && (
+                  <OverviewTab players={players} sessions={sessions} onGameClick={(name) => setGameStatsName(name)} />
+                )}
+                {activeTab === "overview" && gameStatsName && (
+                  <GameStatsPage gameName={gameStatsName} players={players} sessions={sessions} onBack={() => setGameStatsName(null)} />
+                )}
                 {activeTab === "players" && (
                   <PlayersTab players={players} sessions={sessions} onAddPlayer={addPlayer} onRemovePlayer={removePlayer} onUpdatePlayer={updatePlayer} />
                 )}
