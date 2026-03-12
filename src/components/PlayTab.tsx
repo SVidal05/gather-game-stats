@@ -1110,7 +1110,7 @@ function GameDetailView({
     <div className="space-y-4">
       {/* Hero Banner */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-2xl overflow-hidden">
-        <img src={theme.image} alt={theme.name} className="w-full h-36 object-cover" />
+        <img src={heroImage} alt={theme.name} className="w-full h-36 object-cover" />
         <div className="absolute inset-0" style={{ background: `${theme.gradient}`, opacity: 0.5 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
         <button onClick={onBack} className="absolute top-2.5 left-2.5 bg-card/80 backdrop-blur-sm rounded-xl p-1.5 text-foreground active:scale-90 transition-transform">
