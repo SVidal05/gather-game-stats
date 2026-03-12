@@ -415,7 +415,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   }`}
                 >
                   <Users className="w-4 h-4" />
-                  Multijugador
+                  Multiplayer
                 </button>
                 <button
                   type="button"
