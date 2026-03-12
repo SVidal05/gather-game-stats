@@ -383,10 +383,26 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
             <SelectItem value="year">This Year</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}>
+          <SelectTrigger className="w-[140px] h-9 rounded-lg text-xs font-bold">
+            <div className="flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-muted-foreground" />
+              <SelectValue />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="competitive">Competitive</SelectItem>
+            <SelectItem value="party">Party</SelectItem>
+            <SelectItem value="solo">Solo</SelectItem>
+            <SelectItem value="coop">Co-op</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <div className="rounded-xl border border-border bg-card p-3 text-center">
           <p className="text-lg font-display font-bold text-foreground">{filteredSessions.length}</p>
           <p className="text-[10px] text-muted-foreground font-medium">Sessions</p>
@@ -398,6 +414,10 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
         <div className="rounded-xl border border-border bg-card p-3 text-center">
           <p className="text-lg font-display font-bold text-foreground">{soloFiltered.length}</p>
           <p className="text-[10px] text-muted-foreground font-medium">Solo</p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-3 text-center">
+          <p className="text-lg font-display font-bold" style={{ color: topCategory ? topCategory.color : undefined }}>{topCategory?.name || "—"}</p>
+          <p className="text-[10px] text-muted-foreground font-medium">Top Category</p>
         </div>
       </div>
 
