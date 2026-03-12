@@ -309,7 +309,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
   const resetForm = () => {
     setSessionName(""); setGameName(""); setPreselectedGame("");
-    setGameMode("multiplayer");
+    setGameMode("multiplayer"); setGameCategory("competitive");
     setDate(new Date().toISOString().split("T")[0]);
     setSelectedPlayerIds([]); setScores({}); setWinnerId("");
     setNotes(""); setCustomStats({}); setEditingSessionId(null);
