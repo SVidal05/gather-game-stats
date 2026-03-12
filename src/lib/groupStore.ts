@@ -94,6 +94,7 @@ export function useGroups() {
       ownerId: g.owner_id,
       inviteCode: g.invite_code,
       createdAt: g.created_at,
+      isPersonal: !!g.is_personal,
     };
     setGroups(prev => [...prev, newGroup]);
     setActiveGroupId(newGroup.id);
