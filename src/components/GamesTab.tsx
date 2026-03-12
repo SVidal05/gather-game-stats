@@ -483,7 +483,7 @@ function GameDetailView({
                   }`}
                   style={activeChart === tab.id ? { background: theme.gradient } : {}}
                 >
-                  {tab.emoji} {tab.label}
+                  {tab.icon && <tab.icon className="w-3 h-3" />} {tab.label}
                 </button>
               ))}
             </div>
