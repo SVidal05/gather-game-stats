@@ -288,8 +288,8 @@ export function GroupSelector({
                 <div>
                   <p className="font-semibold text-sm text-foreground">{group.name}</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    {group.isPersonal ? "Personal" : (group.ownerId === user?.id ? t("groups.owner") : t("groups.member"))}
-                    {group.isPersonal && <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-semibold">Solo</span>}
+                    {group.isPersonal ? t("groups.personalLabel") : (group.ownerId === user?.id ? t("groups.owner") : t("groups.member"))}
+                    {group.isPersonal && <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-semibold">{t("groups.soloTag")}</span>}
                   </p>
                 </div>
               </div>

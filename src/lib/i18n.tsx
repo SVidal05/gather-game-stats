@@ -244,6 +244,10 @@ const translations = {
   "groups.invalidCode": { es: "Código inválido", en: "Invalid code", fr: "Code invalide" },
   "groups.joined": { es: "¡Te has unido al grupo!", en: "You joined the group!", fr: "Vous avez rejoint le groupe !" },
   "groups.manage": { es: "Gestionar", en: "Manage", fr: "Gérer" },
+  "groups.personalWorkspace": { es: "Espacio personal", en: "Personal Workspace", fr: "Espace personnel" },
+  "groups.personalWorkspaceHint": { es: "Este espacio privado está optimizado para seguimiento en solitario y no se puede eliminar.", en: "This private workspace is optimized for solo tracking and cannot be deleted.", fr: "Cet espace privé est optimisé pour le suivi en solo et ne peut pas être supprimé." },
+  "groups.personalLabel": { es: "Personal", en: "Personal", fr: "Personnel" },
+  "groups.soloTag": { es: "Solo", en: "Solo", fr: "Solo" },
 } as const;
 
 type TranslationKey = keyof typeof translations;
