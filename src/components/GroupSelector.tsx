@@ -200,18 +200,20 @@ export function GroupSelector({
         </motion.div>
 
         {/* Danger Zone */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-2">
-          {!isOwner && (
-            <Button variant="outline" className="w-full rounded-lg gap-2 text-destructive border-destructive/30" onClick={() => onLeaveGroup(activeGroup.id)}>
-              <LogOut className="w-4 h-4" /> {t("groups.leaveGroup")}
-            </Button>
-          )}
-          {isOwner && (
-            <Button variant="destructive" className="w-full rounded-lg gap-2" onClick={() => { onDeleteGroup(activeGroup.id); setView("list"); }}>
-              <Trash2 className="w-4 h-4" /> {t("groups.deleteGroup")}
-            </Button>
-          )}
-        </motion.div>
+        {!isPersonalGroup && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-2">
+            {!isOwner && (
+              <Button variant="outline" className="w-full rounded-lg gap-2 text-destructive border-destructive/30" onClick={() => onLeaveGroup(activeGroup.id)}>
+                <LogOut className="w-4 h-4" /> {t("groups.leaveGroup")}
+              </Button>
+            )}
+            {isOwner && (
+              <Button variant="destructive" className="w-full rounded-lg gap-2" onClick={() => { onDeleteGroup(activeGroup.id); setView("list"); }}>
+                <Trash2 className="w-4 h-4" /> {t("groups.deleteGroup")}
+              </Button>
+            )}
+          </motion.div>
+        )}
 
         {/* Invite Dialog */}
         <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
