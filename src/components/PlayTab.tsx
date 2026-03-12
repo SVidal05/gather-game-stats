@@ -161,13 +161,17 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   };
 
   const handleAdd = async () => {
-    if (!sessionName.trim() || !gameName.trim() || selectedPlayerIds.length === 0) return;
+    if (!sessionName.trim() || !gameName.trim()) return;
+    if (isSolo && selectedPlayerIds.length !== 1) return;
+    if (!isSolo && selectedPlayerIds.length < 2) return;
 
-    // Find or create game in DB
-    const gameId = await findOrCreateGame(gameName.trim());
+    // Find or create game in DB with mode
+    const gameId = await findOrCreateGame(gameName.trim(), gameMode);
 
     const results: PlayerResult[] = selectedPlayerIds.map(pid => ({
-      playerId: pid, score: scores[pid] || 0, isWinner: pid === winnerId,
+      playerId: pid,
+      score: isSolo ? 0 : (scores[pid] || 0),
+      isWinner: isSolo ? false : pid === winnerId,
     }));
 
     const result = await onAddSession({
@@ -189,7 +193,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
       }
     }
 
-    if (winnerId) confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    if (!isSolo && winnerId) confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     resetForm();
     setSessionDialogOpen(false);
   };
