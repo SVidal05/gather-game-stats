@@ -505,7 +505,7 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
             initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5, type: "spring", bounce: 0.5 }}
             className="flex items-center gap-1.5 bg-[hsl(var(--gold)/0.12)] px-2.5 py-1 rounded-lg shrink-0"
           >
-            <span className="text-sm">👑</span>
+            <Crown className="w-3.5 h-3.5 text-[hsl(var(--gold))]" />
             <span className="text-xs font-bold text-foreground">{winnerPlayer.name}</span>
           </motion.div>
         )}
