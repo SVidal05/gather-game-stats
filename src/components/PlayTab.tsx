@@ -7,7 +7,7 @@ import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
-import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode } from "@/lib/gameStore";
+import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode, searchGameArtwork } from "@/lib/gameStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
