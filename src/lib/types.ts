@@ -29,8 +29,10 @@ export interface PlayerStats {
   player: Player;
   gamesPlayed: number;
   wins: number;
+  losses: number;
   winRate: number;
   totalPoints: number;
+  podiums: number;
 }
 
 export const PLAYER_COLORS = [
