@@ -182,9 +182,22 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
   const [gameFilter, setGameFilter] = useState<string>("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [hoveredBar, setHoveredBar] = useState<string | null>(null);
 
+  const { games } = useGames();
   const uniqueGames = Array.from(new Set(sessions.map(s => s.gameName)));
+
+  // Build a gameName -> category lookup from DB
+  const gameCategoryMap = useMemo(() => {
+    const map = new Map<string, GameCategory>();
+    games.forEach(g => map.set(g.name.toLowerCase(), g.category));
+    return map;
+  }, [games]);
+
+  const getSessionCategory = (s: GameSession): GameCategory => {
+    return gameCategoryMap.get(s.gameName.toLowerCase()) || "competitive";
+  };
 
   // Apply filters
   const filteredSessions = useMemo(() => {
@@ -193,6 +206,9 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
     // Mode filter
     if (modeFilter === "multiplayer") result = result.filter(s => !isSoloSession(s));
     else if (modeFilter === "solo") result = result.filter(s => isSoloSession(s));
+
+    // Category filter
+    if (categoryFilter !== "all") result = result.filter(s => getSessionCategory(s) === categoryFilter);
 
     // Game filter
     if (gameFilter !== "all") result = result.filter(s => s.gameName === gameFilter);
