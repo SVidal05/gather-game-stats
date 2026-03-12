@@ -479,36 +479,40 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             );
           })()}
 
-          {/* Game Mode Selector */}
+          {/* Game Category Selector */}
           {gameName.trim() && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-              <Label className="font-semibold text-xs">{t("solo.gameMode")}</Label>
-              <div className="flex gap-2 mt-1">
-                <button
-                  type="button"
-                  onClick={() => { setGameMode("multiplayer"); setSelectedPlayerIds([]); setWinnerId(""); }}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
-                    gameMode === "multiplayer"
-                      ? "bg-primary/10 border-primary text-primary ring-1 ring-primary/30"
-                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  <Users className="w-4 h-4" />
-                  {t("solo.modeMultiplayer")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setGameMode("solo"); setSelectedPlayerIds([]); setWinnerId(""); setScores({}); }}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
-                    gameMode === "solo"
-                      ? "bg-accent/10 border-accent text-accent ring-1 ring-accent/30"
-                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  <User className="w-4 h-4" />
-                  {t("solo.modeSolo")}
-                </button>
+              <Label className="font-semibold text-xs">
+                {lang === "es" ? "Categoría del juego" : lang === "fr" ? "Catégorie du jeu" : "Game Category"}
+              </Label>
+              <div className="grid grid-cols-2 gap-1.5 mt-1">
+                {([
+                  { cat: "competitive" as GameCategory, mode: "multiplayer" as GameMode, label: { es: "Competitivo", en: "Competitive", fr: "Compétitif" }, icon: Trophy, color: "primary" },
+                  { cat: "party" as GameCategory, mode: "multiplayer" as GameMode, label: { es: "Party", en: "Party", fr: "Fête" }, icon: PartyPopper, color: "game-orange" },
+                  { cat: "solo" as GameCategory, mode: "solo" as GameMode, label: { es: "Solo", en: "Solo", fr: "Solo" }, icon: User, color: "accent" },
+                  { cat: "coop" as GameCategory, mode: "multiplayer" as GameMode, label: { es: "Co-op", en: "Co-op", fr: "Co-op" }, icon: Heart, color: "game-pink" },
+                ] as const).map(({ cat, mode, label, icon: CatIcon, color }) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => { setGameCategory(cat); setGameMode(mode); setSelectedPlayerIds([]); setWinnerId(""); if (mode === "solo") setScores({}); }}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${
+                      gameCategory === cat
+                        ? `bg-[hsl(var(--${color}))]/10 border-[hsl(var(--${color}))] text-[hsl(var(--${color}))] ring-1 ring-[hsl(var(--${color}))]/30`
+                        : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    <CatIcon className="w-3.5 h-3.5" />
+                    {label[lang as keyof typeof label] || label.en}
+                  </button>
+                ))}
               </div>
+              <p className="text-[9px] text-muted-foreground mt-1">
+                {gameCategory === "competitive" && (lang === "es" ? "Requiere ganador · Afecta leaderboard" : "Requires winner · Affects leaderboard")}
+                {gameCategory === "party" && (lang === "es" ? "Multijugador · Ganador opcional" : "Multiplayer · Winner optional")}
+                {gameCategory === "solo" && (lang === "es" ? "Un solo jugador · Progreso personal" : "Single player · Personal progress")}
+                {gameCategory === "coop" && (lang === "es" ? "Multijugador · Sin ganador" : "Multiplayer · No winner needed")}
+              </p>
             </motion.div>
           )}
 
