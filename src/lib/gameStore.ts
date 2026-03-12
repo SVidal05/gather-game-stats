@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
+export type GameMode = "multiplayer" | "solo";
+
 export interface GameDef {
   id: string;
   name: string;
   icon: string | null;
   backgroundImage: string | null;
   coverImage: string | null;
+  gameMode: GameMode;
   createdAt: string;
 }
 
