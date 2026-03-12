@@ -287,8 +287,9 @@ export function GroupSelector({
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-lg">🎮</div>
                 <div>
                   <p className="font-semibold text-sm text-foreground">{group.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {group.ownerId === user?.id ? t("groups.owner") : t("groups.member")}
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    {group.isPersonal ? "Personal" : (group.ownerId === user?.id ? t("groups.owner") : t("groups.member"))}
+                    {group.isPersonal && <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-semibold">Solo</span>}
                   </p>
                 </div>
               </div>
