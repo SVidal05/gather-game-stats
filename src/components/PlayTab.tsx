@@ -452,9 +452,16 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           </div>
 
           {gameName.trim() && (() => {
-            // Show banner for all games - use DB artwork if available, otherwise use theme image
-            const dbGame = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
-            const bannerImg = dbGame?.backgroundImage || dbGame?.coverImage || getGameTheme(gameName).image;
+            const key = gameName.toLowerCase().trim();
+            const dbGame = games.find(g => g.name.toLowerCase() === key);
+            const previewArtwork = artworkPreviewByName[key];
+            const bannerImg =
+              dbGame?.backgroundImage ||
+              dbGame?.coverImage ||
+              previewArtwork?.backgroundImage ||
+              previewArtwork?.coverImage ||
+              getGameTheme(gameName).image;
+
             if (!bannerImg) return null;
             return (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
