@@ -304,7 +304,7 @@ function LeaderboardRow({ stats, rank, sessions, index }: { stats: PlayerStats; 
 }
 
 // ─── Main Overview ─────────────────────────
-export function OverviewTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
+export function OverviewTab({ players, sessions, onGameClick }: { players: Player[]; sessions: GameSession[]; onGameClick?: (gameName: string) => void }) {
   const multiplayerSessions = sessions.filter(s => !isSoloSession(s));
   const soloSessions = sessions.filter(s => isSoloSession(s));
   const stats = getPlayerStats(players, multiplayerSessions);
