@@ -119,7 +119,7 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
                           className="px-1 py-px rounded-full font-bold"
                           style={{ backgroundColor: getCategoryColor(game.theme.category) + "22", color: getCategoryColor(game.theme.category) }}
                         >
-                          {getCategoryEmoji(game.theme.category)} {game.theme.category}
+                          {game.theme.category}
                         </span>
                       </div>
                     </div>
