@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, BarChart3, Crosshair, FileText, Gamepad2, Medal } from "lucide-react";
-import { Player, GameSession, PlayerResult, POPULAR_GAMES } from "@/lib/types";
+import { Player, GameSession, PlayerResult, POPULAR_GAMES, KNOWN_GAMES } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
@@ -68,6 +68,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   // Session form state
   const [sessionName, setSessionName] = useState("");
   const [gameName, setGameName] = useState("");
+  const [gameInputFocused, setGameInputFocused] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
@@ -309,39 +310,75 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             <Input value={sessionName} onChange={e => setSessionName(e.target.value)} placeholder={t("sessions.sessionNamePlaceholder")} className="rounded-xl mt-1 h-11" />
           </div>
 
-          {/* 2. Game Selector */}
-          <div>
+          {/* 2. Game Selector with Autocomplete */}
+          <div className="relative">
             <Label className="font-semibold text-xs">{t("sessions.game")}</Label>
-            <Select value={gameName} onValueChange={setGameName}>
-              <SelectTrigger className="rounded-xl mt-1 h-11">
-                <SelectValue placeholder={t("sessions.selectGame")} />
-              </SelectTrigger>
-              <SelectContent>
-                {POPULAR_GAMES.map(g => {
-                  const gt = getGameTheme(g);
-                  return <SelectItem key={g} value={g}>{gt.emoji} {g}</SelectItem>;
-                })}
-                {/* Also show DB games not in POPULAR_GAMES */}
-                {games.filter(g => !POPULAR_GAMES.some(pg => pg.toLowerCase() === g.name.toLowerCase())).map(g => (
-                  <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input value={gameName} onChange={e => setGameName(e.target.value)} placeholder={t("sessions.customGame")} className="rounded-xl mt-2 h-11" />
+            <Input
+              value={gameName}
+              onChange={e => { setGameName(e.target.value); setGameInputFocused(true); }}
+              onFocus={() => setGameInputFocused(true)}
+              onBlur={() => setTimeout(() => setGameInputFocused(false), 200)}
+              placeholder={t("sessions.selectGame")}
+              className="rounded-xl mt-1 h-11"
+              autoComplete="off"
+            />
+            {gameInputFocused && gameName.trim().length > 0 && (() => {
+              const query = gameName.toLowerCase();
+              // Combine: DB games, POPULAR_GAMES, KNOWN_GAMES — deduplicate
+              const allNames = new Map<string, string>();
+              games.forEach(g => allNames.set(g.name.toLowerCase(), g.name));
+              POPULAR_GAMES.forEach(g => { if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g); });
+              KNOWN_GAMES.forEach(g => { if (!allNames.has(g.toLowerCase())) allNames.set(g.toLowerCase(), g); });
+              const suggestions = Array.from(allNames.values())
+                .filter(name => name.toLowerCase().includes(query) && name.toLowerCase() !== query)
+                .slice(0, 8);
+              if (suggestions.length === 0) return null;
+              return (
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                  {suggestions.map(name => {
+                    const gt = getGameTheme(name);
+                    const dbGame = games.find(g => g.name.toLowerCase() === name.toLowerCase());
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => { setGameName(name); setGameInputFocused(false); }}
+                        className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent transition-colors text-sm"
+                      >
+                        {dbGame?.coverImage ? (
+                          <img src={dbGame.coverImage} alt={name} className="w-6 h-6 rounded object-cover" />
+                        ) : (
+                          <div className="w-6 h-6 rounded overflow-hidden relative shrink-0">
+                            <img src={gt.image} alt={name} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <span className="font-medium text-foreground">{name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
-          {currentTheme && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
-              <div className="h-16 relative">
-                <img src={currentTheme.image} alt={currentTheme.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0" style={{ background: currentTheme.gradient, opacity: 0.4 }} />
-                <div className="absolute inset-0 flex items-center px-3 bg-gradient-to-r from-card/80 to-transparent">
-                  <span className="text-xl mr-2">{currentTheme.emoji}</span>
-                  <span className="font-bold text-sm text-foreground">{currentTheme.name}</span>
+          {gameName.trim() && (() => {
+            const dbGame = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+            const bannerImg = dbGame?.backgroundImage || dbGame?.coverImage || currentTheme?.image;
+            if (!bannerImg) return null;
+            return (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
+                <div className="h-16 relative">
+                  <img src={bannerImg} alt={gameName} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0" style={{ background: dbGame?.backgroundImage ? 'linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.1))' : (currentTheme?.gradient || 'transparent'), opacity: dbGame?.backgroundImage ? 1 : 0.4 }} />
+                  <div className="absolute inset-0 flex items-center px-3 bg-gradient-to-r from-card/80 to-transparent">
+                    <Gamepad2 className="w-5 h-5 mr-2 text-foreground" />
+                    <span className="font-bold text-sm text-foreground">{gameName}</span>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            );
+          })()}
 
           {/* 3. Date */}
           <div>
