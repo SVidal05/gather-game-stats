@@ -42,6 +42,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function GamesTab({ players, sessions }: GamesTabProps) {
   const { t } = useI18n();
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const { games: dbGames } = useGames();
 
   const gamesPlayed = useMemo(() => {
     const gameMap = new Map<string, { count: number; lastPlayed: string }>();
@@ -55,9 +56,12 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
       }
     });
     return Array.from(gameMap.entries())
-      .map(([name, data]) => ({ name, ...data, theme: getGameTheme(name) }))
+      .map(([name, data]) => {
+        const dbGame = dbGames.find(g => g.name.toLowerCase() === name.toLowerCase());
+        return { name, ...data, theme: getGameTheme(name), dbGame };
+      })
       .sort((a, b) => b.count - a.count);
-  }, [sessions]);
+  }, [sessions, dbGames]);
 
   const allGames = useMemo(() => {
     const played = new Set(gamesPlayed.map(g => g.name));
@@ -104,8 +108,8 @@ export function GamesTab({ players, sessions }: GamesTabProps) {
               >
                 <div className="flex items-stretch">
                   <div className="w-16 h-16 shrink-0 relative overflow-hidden">
-                    <img src={game.theme.image} alt={game.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0" style={{ background: game.theme.gradient, opacity: 0.3 }} />
+                    <img src={game.dbGame?.coverImage || game.theme.image} alt={game.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0" style={{ background: game.dbGame?.coverImage ? 'transparent' : game.theme.gradient, opacity: 0.3 }} />
                   </div>
                   <div className="flex-1 p-2.5 flex items-center justify-between">
                     <div>
@@ -287,13 +291,17 @@ function GameDetailView({
   const hasCustomStats = Object.keys(aggregatedCustomStats).length > 0;
 
   const chartTabs = [
-    { id: "wins" as const, label: t("chart.wins"), emoji: "🏆" },
-    { id: "performance" as const, label: t("chart.avg"), emoji: "📊" },
-    { id: "radar" as const, label: t("chart.radar"), emoji: "🎯" },
-    { id: "history" as const, label: t("chart.history"), emoji: "📈" },
-    ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), emoji: theme.emoji }] : []),
-    ...(hasAdvancedStats ? [{ id: "advanced" as const, label: t("chart.advanced"), emoji: "📋" }] : []),
+    { id: "wins" as const, label: t("chart.wins"), icon: Trophy },
+    { id: "performance" as const, label: t("chart.avg"), icon: BarChart3 },
+    { id: "radar" as const, label: t("chart.radar"), icon: Target },
+    { id: "history" as const, label: t("chart.history"), icon: TrendingUp },
+    ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), icon: Gamepad2 }] : []),
+    ...(hasAdvancedStats ? [{ id: "advanced" as const, label: t("chart.advanced"), icon: Settings2 }] : []),
   ];
+
+  // Use RAWG artwork if available
+  const bannerImage = gameRecord?.backgroundImage || theme.image;
+  const showGradientOverlay = !gameRecord?.backgroundImage;
 
   return (
     <div className="space-y-4">
@@ -303,8 +311,8 @@ function GameDetailView({
         animate={{ opacity: 1, y: 0 }}
         className="relative rounded-2xl overflow-hidden"
       >
-        <img src={theme.image} alt={theme.name} className="w-full h-36 object-cover" />
-        <div className="absolute inset-0" style={{ background: `${theme.gradient}`, opacity: 0.5 }} />
+        <img src={bannerImage} alt={theme.name} className="w-full h-36 object-cover" />
+        <div className="absolute inset-0" style={{ background: showGradientOverlay ? theme.gradient : 'linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1))', opacity: showGradientOverlay ? 0.5 : 1 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
         <button
           onClick={onBack}
@@ -314,9 +322,9 @@ function GameDetailView({
         </button>
         <div className="absolute bottom-2.5 left-3 right-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">{theme.emoji}</span>
+            <Gamepad2 className="w-6 h-6 text-foreground" />
             <div>
-              <h2 className="text-xl font-extrabold text-foreground">{theme.name}</h2>
+              <h2 className="text-xl font-extrabold text-foreground">{gameName}</h2>
               <p className="text-[10px] text-muted-foreground">{theme.description}</p>
             </div>
           </div>
@@ -475,7 +483,7 @@ function GameDetailView({
                   }`}
                   style={activeChart === tab.id ? { background: theme.gradient } : {}}
                 >
-                  {tab.emoji} {tab.label}
+                  {tab.icon && <tab.icon className="w-3 h-3" />} {tab.label}
                 </button>
               ))}
             </div>

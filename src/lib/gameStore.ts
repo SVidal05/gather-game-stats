@@ -6,6 +6,8 @@ export interface GameDef {
   id: string;
   name: string;
   icon: string | null;
+  backgroundImage: string | null;
+  coverImage: string | null;
   createdAt: string;
 }
 
@@ -17,6 +19,23 @@ export interface StatDefinition {
   type: "number" | "boolean" | "text" | "select";
   options: string[] | null;
   createdAt: string;
+}
+
+async function searchGameArtwork(name: string): Promise<{ backgroundImage: string | null; coverImage: string | null }> {
+  try {
+    const { data, error } = await supabase.functions.invoke("search-game", {
+      body: { name },
+    });
+    if (error || !data?.success || !data?.found) {
+      return { backgroundImage: null, coverImage: null };
+    }
+    return {
+      backgroundImage: data.background_image || null,
+      coverImage: data.cover_image || null,
+    };
+  } catch {
+    return { backgroundImage: null, coverImage: null };
+  }
 }
 
 export function useGames() {
@@ -31,10 +50,12 @@ export function useGames() {
       .select("*")
       .order("name", { ascending: true });
     if (data) {
-      setGames(data.map(g => ({
+      setGames(data.map((g: any) => ({
         id: g.id,
         name: g.name,
         icon: g.icon,
+        backgroundImage: g.background_image || null,
+        coverImage: g.cover_image || null,
         createdAt: g.created_at,
       })));
     }
@@ -45,17 +66,31 @@ export function useGames() {
 
   const findOrCreateGame = useCallback(async (name: string): Promise<string | null> => {
     if (!user) return null;
-    // Check if game exists
     const existing = games.find(g => g.name.toLowerCase() === name.toLowerCase());
     if (existing) return existing.id;
 
+    // Search RAWG for artwork
+    const artwork = await searchGameArtwork(name);
+
+    const insertData: any = { name };
+    if (artwork.backgroundImage) insertData.background_image = artwork.backgroundImage;
+    if (artwork.coverImage) insertData.cover_image = artwork.coverImage;
+
     const { data } = await supabase
       .from("games")
-      .insert({ name })
+      .insert(insertData)
       .select()
       .single();
     if (data) {
-      setGames(prev => [...prev, { id: data.id, name: data.name, icon: data.icon, createdAt: data.created_at }]);
+      const newGame: GameDef = {
+        id: data.id,
+        name: data.name,
+        icon: data.icon,
+        backgroundImage: (data as any).background_image || null,
+        coverImage: (data as any).cover_image || null,
+        createdAt: data.created_at,
+      };
+      setGames(prev => [...prev, newGame]);
       return data.id;
     }
     return null;
