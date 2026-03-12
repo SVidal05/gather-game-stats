@@ -165,6 +165,7 @@ const Index = () => {
       return;
     }
     setActiveTab(id);
+    setGameStatsName(null);
     setSidebarOpen(false);
   };
 
