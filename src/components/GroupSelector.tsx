@@ -71,13 +71,23 @@ export function GroupSelector({
   const handleJoin = async () => {
     if (!joinCode.trim()) return;
     setLoading(true);
-    const { error } = await onJoinByCode(joinCode.trim());
+    // First peek at the group name
+    const { data: groupInfo } = await supabase.rpc("get_group_by_invite_code", { _code: joinCode.trim() });
+    const { error, groupId: newGroupId } = await onJoinByCode(joinCode.trim()) as any;
     setLoading(false);
     if (error) {
       toast({ title: t("groups.invalidCode"), description: error, variant: "destructive" });
     } else {
       toast({ title: t("groups.joined") });
       setJoinCode(""); setJoinDialogOpen(false); onRefetch();
+      // Open player linking dialog
+      const gName = groupInfo?.[0]?.name || "Group";
+      const gId = newGroupId || "";
+      if (gId) {
+        setJoinedGroupId(gId);
+        setJoinedGroupName(gName);
+        setPlayerDialogOpen(true);
+      }
     }
   };
 
