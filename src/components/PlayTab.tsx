@@ -7,7 +7,7 @@ import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
-import { useGames, useStatDefinitions, saveResultStats } from "@/lib/gameStore";
+import { useGames, useStatDefinitions, saveResultStats, useGameResultStats } from "@/lib/gameStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -802,8 +802,16 @@ function GameDetailView({
   const gameSessions = sessions.filter(s => s.gameName === gameName);
   const gameStats = getPlayerStats(players, gameSessions);
   const activePlayers = gameStats.filter(s => s.gamesPlayed > 0);
-  const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom">("wins");
+  const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom" | "advanced">("wins");
   const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
+
+  // Advanced stats from DB
+  const { games: gamesForDetail } = useGames();
+  const gameRecordForDetail = gamesForDetail.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+  const gameIdForDetail = gameRecordForDetail?.id || null;
+  const sessionIdsForDetail = gameSessions.map(s => s.id);
+  const { data: advancedStatsData, loading: advancedStatsLoading } = useGameResultStats(gameIdForDetail, sessionIdsForDetail);
+  const hasAdvancedStatsData = advancedStatsData.length > 0;
 
   const topPlayer = activePlayers.length > 0 ? activePlayers.reduce((a, b) => a.wins > b.wins ? a : b) : null;
 
@@ -858,6 +866,7 @@ function GameDetailView({
     { id: "radar" as const, label: t("chart.radar"), emoji: "🎯" },
     { id: "history" as const, label: t("chart.history"), emoji: "📈" },
     ...(hasCustomStats ? [{ id: "custom" as const, label: t("chart.stats"), emoji: theme.emoji }] : []),
+    ...(hasAdvancedStatsData ? [{ id: "advanced" as const, label: t("chart.advanced"), emoji: "📋" }] : []),
   ];
 
   return (
@@ -1082,6 +1091,53 @@ function GameDetailView({
                     </div>
                   </>
                 )}
+
+                {activeChart === "advanced" && (
+                  <>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5">
+                      📋 {t("chart.advancedTitle")}
+                    </h3>
+                    {advancedStatsLoading ? (
+                      <p className="text-xs text-muted-foreground text-center py-4">{t("common.loading")}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {advancedStatsData.map(({ playerId, stats: pStats }) => {
+                          const p = players.find(pl => pl.id === playerId);
+                          if (!p || pStats.length === 0) return null;
+                          return (
+                            <motion.div key={playerId} className="bg-secondary/50 rounded-xl p-2.5" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
+                              <PlayerBadge player={p} size="sm" />
+                              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2">
+                                {pStats.map(st => (
+                                  <div key={st.statKey} className="text-[10px]">
+                                    <span className="text-muted-foreground font-medium">{st.label}</span>
+                                    {st.textValues.length > 0 ? (
+                                      <p className="font-bold text-foreground truncate">{st.textValues.join(", ")}</p>
+                                    ) : st.type === "boolean" ? (
+                                      <p className="font-bold text-foreground">
+                                        {st.total}/{st.count} ✓
+                                        <span className="text-muted-foreground font-normal ml-1">({(st.avg * 100).toFixed(0)}%)</span>
+                                      </p>
+                                    ) : (
+                                      <p className="font-bold text-foreground">
+                                        {t("chart.total")}: {Number.isInteger(st.total) ? st.total : st.total.toFixed(1)}
+                                        {st.count > 1 && (
+                                          <span className="text-muted-foreground font-normal ml-1">
+                                            ({t("chart.avg")}: {st.avg.toFixed(1)})
+                                          </span>
+                                        )}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
               </motion.div>
             </AnimatePresence>
           </motion.div>
@@ -1097,8 +1153,9 @@ function GameDetailView({
                   <th className="text-left p-2.5">#</th>
                   <th className="text-left p-2.5">{t("ranking.player")}</th>
                   <th className="text-right p-2.5">W</th>
+                  <th className="text-right p-2.5">L</th>
                   <th className="text-right p-2.5">Win%</th>
-                  <th className="text-right p-2.5">Pts</th>
+                  <th className="text-right p-2.5">🏅</th>
                 </tr>
               </thead>
               <tbody>
@@ -1107,8 +1164,9 @@ function GameDetailView({
                     <td className="p-2.5 font-extrabold text-muted-foreground text-[10px]">{i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}</td>
                     <td className="p-2.5"><PlayerBadge player={ps.player} size="sm" /></td>
                     <td className="p-2.5 text-right font-bold">{ps.wins}</td>
+                    <td className="p-2.5 text-right font-bold text-muted-foreground">{ps.losses}</td>
                     <td className="p-2.5 text-right font-bold">{ps.winRate.toFixed(0)}%</td>
-                    <td className="p-2.5 text-right font-bold">{ps.totalPoints}</td>
+                    <td className="p-2.5 text-right font-bold">{ps.podiums}</td>
                   </tr>
                 ))}
               </tbody>

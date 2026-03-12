@@ -119,7 +119,23 @@ export function useStatDefinitions(gameId: string | null) {
     }
   }, [user, gameId]);
 
-  return { statDefs, loading, addStatDefinition, refetch: fetchStatDefs };
+  const updateStatDefinition = useCallback(async (id: string, updates: { label?: string; type?: string; options?: string[] | null }) => {
+    if (!user) return;
+    const dbUpdates: Record<string, any> = {};
+    if (updates.label !== undefined) dbUpdates.label = updates.label;
+    if (updates.type !== undefined) dbUpdates.type = updates.type;
+    if (updates.options !== undefined) dbUpdates.options = updates.options;
+    await supabase.from("game_stat_definitions").update(dbUpdates).eq("id", id);
+    setStatDefs(prev => prev.map(sd => sd.id === id ? { ...sd, ...updates } as StatDefinition : sd));
+  }, [user]);
+
+  const deleteStatDefinition = useCallback(async (id: string) => {
+    if (!user) return;
+    await supabase.from("game_stat_definitions").delete().eq("id", id);
+    setStatDefs(prev => prev.filter(sd => sd.id !== id));
+  }, [user]);
+
+  return { statDefs, loading, addStatDefinition, updateStatDefinition, deleteStatDefinition, refetch: fetchStatDefs };
 }
 
 export async function saveResultStats(

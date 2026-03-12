@@ -1,12 +1,16 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, BarChart3 } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, BarChart3, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2 } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { useI18n } from "@/lib/i18n";
-import { useGames, useGameResultStats } from "@/lib/gameStore";
+import { useGames, useStatDefinitions, useGameResultStats } from "@/lib/gameStore";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -180,14 +184,47 @@ function GameDetailView({
   const activePlayers = gameStats.filter(s => s.gamesPlayed > 0);
   const [activeChart, setActiveChart] = useState<"wins" | "performance" | "radar" | "history" | "custom" | "advanced">("wins");
   const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
+  const [statsManagementOpen, setStatsManagementOpen] = useState(false);
 
-  // Find the game ID from the games table
+  // Stat definitions management
   const { games } = useGames();
   const gameRecord = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
   const gameId = gameRecord?.id || null;
+  const { statDefs, addStatDefinition, updateStatDefinition, deleteStatDefinition } = useStatDefinitions(gameId);
   const sessionIds = gameSessions.map(s => s.id);
   const { data: advancedStats, loading: advancedLoading } = useGameResultStats(gameId, sessionIds);
   const hasAdvancedStats = advancedStats.length > 0;
+
+  // New stat form
+  const [showNewStat, setShowNewStat] = useState(false);
+  const [newStatLabel, setNewStatLabel] = useState("");
+  const [newStatType, setNewStatType] = useState("number");
+  const [newStatOptions, setNewStatOptions] = useState("");
+  const [editingStatId, setEditingStatId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+
+  const handleAddStat = async () => {
+    if (!newStatLabel.trim()) return;
+    const options = newStatType === "select" && newStatOptions.trim()
+      ? newStatOptions.split(",").map(o => o.trim()).filter(Boolean) : undefined;
+    await addStatDefinition({
+      statKey: newStatLabel.trim().toLowerCase().replace(/\s+/g, "_"),
+      label: newStatLabel.trim(),
+      type: newStatType,
+      options,
+    });
+    setShowNewStat(false);
+    setNewStatLabel("");
+    setNewStatType("number");
+    setNewStatOptions("");
+  };
+
+  const handleSaveEditStat = async (id: string) => {
+    if (!editLabel.trim()) return;
+    await updateStatDefinition(id, { label: editLabel.trim() });
+    setEditingStatId(null);
+    setEditLabel("");
+  };
 
   const topPlayer = activePlayers.length > 0 ? activePlayers.reduce((a, b) => a.wins > b.wins ? a : b) : null;
 
@@ -306,31 +343,109 @@ function GameDetailView({
         ))}
       </div>
 
-      {/* Track Stats Hints */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="game-card !p-3"
-        style={{ borderColor: theme.primaryColor + "33" }}
-      >
-        <h3 className="font-bold text-foreground text-xs mb-2 flex items-center gap-1.5">
-          <span className="text-base">💡</span> {t("games.trackStats")}
-        </h3>
-        <div className="grid grid-cols-2 gap-1.5">
-          {theme.customStats.map((stat, i) => (
-            <motion.div
-              key={stat.key}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 + i * 0.04 }}
-              className="flex items-center gap-1.5 bg-secondary/50 rounded-xl px-2.5 py-1.5"
-            >
-              <span className="text-base">{stat.emoji}</span>
-              <span className="text-[10px] font-semibold text-foreground">{stat.label}</span>
+      {/* Stat Definitions Management */}
+      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <Collapsible open={statsManagementOpen} onOpenChange={setStatsManagementOpen}>
+          <CollapsibleTrigger asChild>
+            <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-secondary/70 hover:bg-secondary transition-colors">
+              <span className="flex items-center gap-2 text-xs font-bold text-foreground">
+                <Settings2 className="w-3.5 h-3.5 text-muted-foreground" />
+                {t("sessions.advancedStats")}
+              </span>
+              {statsManagementOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 space-y-2">
+              {/* Theme hints */}
+              {theme.customStats.length > 0 && (
+                <div className="game-card !p-3" style={{ borderColor: theme.primaryColor + "33" }}>
+                  <h4 className="font-bold text-foreground text-[10px] mb-1.5 flex items-center gap-1">
+                    <span>💡</span> {t("games.trackStats")}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-1">
+                    {theme.customStats.map(stat => (
+                      <div key={stat.key} className="flex items-center gap-1 bg-secondary/50 rounded-lg px-2 py-1">
+                        <span className="text-sm">{stat.emoji}</span>
+                        <span className="text-[10px] font-semibold text-foreground">{stat.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Existing stat definitions */}
+              {statDefs.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    {t("games.customStats")}
+                  </p>
+                  {statDefs.map(sd => (
+                    <div key={sd.id} className="flex items-center gap-2 bg-secondary/50 rounded-xl px-3 py-2">
+                      {editingStatId === sd.id ? (
+                        <>
+                          <Input value={editLabel} onChange={e => setEditLabel(e.target.value)} className="rounded-lg h-7 text-xs flex-1" />
+                          <button onClick={() => handleSaveEditStat(sd.id)} className="text-primary p-1 active:scale-90"><Check className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => setEditingStatId(null)} className="text-muted-foreground p-1 active:scale-90"><X className="w-3.5 h-3.5" /></button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs font-semibold text-foreground">{sd.label}</span>
+                            <span className="text-[10px] text-muted-foreground ml-1.5">({sd.type})</span>
+                          </div>
+                          <button onClick={() => { setEditingStatId(sd.id); setEditLabel(sd.label); }} className="text-muted-foreground hover:text-primary p-1 active:scale-90"><Edit3 className="w-3 h-3" /></button>
+                          <button onClick={() => deleteStatDefinition(sd.id)} className="text-muted-foreground hover:text-destructive p-1 active:scale-90"><Trash2 className="w-3 h-3" /></button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add new stat */}
+              {gameId && (
+                <div className="border-t border-border pt-2">
+                  {!showNewStat ? (
+                    <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs w-full" onClick={() => setShowNewStat(true)}>
+                      <Plus className="w-3 h-3" /> {t("sessions.addCustomStat")}
+                    </Button>
+                  ) : (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-2">
+                      <Input value={newStatLabel} onChange={e => setNewStatLabel(e.target.value)} placeholder="Label (e.g. Blue Shells)" className="rounded-lg h-8 text-xs" />
+                      <Select value={newStatType} onValueChange={setNewStatType}>
+                        <SelectTrigger className="rounded-lg h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="number">Number</SelectItem>
+                          <SelectItem value="boolean">Boolean</SelectItem>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="select">Select</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {newStatType === "select" && (
+                        <Input value={newStatOptions} onChange={e => setNewStatOptions(e.target.value)} placeholder="Options (comma separated)" className="rounded-lg h-8 text-xs" />
+                      )}
+                      <div className="flex gap-1.5">
+                        <Button size="sm" className="rounded-lg h-8 text-xs flex-1" onClick={handleAddStat} disabled={!newStatLabel.trim()}>
+                          <Check className="w-3 h-3 mr-1" /> Save
+                        </Button>
+                        <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs" onClick={() => setShowNewStat(false)}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              )}
+
+              {!gameId && (
+                <p className="text-[10px] text-muted-foreground text-center py-2">
+                  Play a session of this game first to add custom stats.
+                </p>
+              )}
             </motion.div>
-          ))}
-        </div>
+          </CollapsibleContent>
+        </Collapsible>
       </motion.div>
 
       {/* Charts */}
@@ -644,8 +759,9 @@ function GameDetailView({
                   <th className="text-left p-2.5">#</th>
                   <th className="text-left p-2.5">{t("ranking.player")}</th>
                   <th className="text-right p-2.5">W</th>
+                  <th className="text-right p-2.5">L</th>
                   <th className="text-right p-2.5">Win%</th>
-                  <th className="text-right p-2.5">Pts</th>
+                  <th className="text-right p-2.5">🏅</th>
                 </tr>
               </thead>
               <tbody>
@@ -658,8 +774,9 @@ function GameDetailView({
                       </td>
                       <td className="p-2.5"><PlayerBadge player={ps.player} size="sm" /></td>
                       <td className="p-2.5 text-right font-bold">{ps.wins}</td>
+                      <td className="p-2.5 text-right font-bold text-muted-foreground">{ps.losses}</td>
                       <td className="p-2.5 text-right font-bold">{ps.winRate.toFixed(0)}%</td>
-                      <td className="p-2.5 text-right font-bold">{ps.totalPoints}</td>
+                      <td className="p-2.5 text-right font-bold">{ps.podiums}</td>
                     </tr>
                   ))}
               </tbody>

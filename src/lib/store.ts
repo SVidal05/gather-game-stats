@@ -220,17 +220,28 @@ export function getPlayerStats(players: Player[], sessions: GameSession[]): Play
   return players.map(player => {
     const playerSessions = sessions.filter(s => s.results.some(r => r.playerId === player.id));
     const wins = sessions.filter(s => s.results.some(r => r.playerId === player.id && r.isWinner)).length;
+    const losses = playerSessions.length - wins;
     const totalPoints = sessions.reduce((sum, s) => {
       const result = s.results.find(r => r.playerId === player.id);
       return sum + (result?.score || 0);
     }, 0);
 
+    // Podiums: count sessions where player finished in top 3 by score
+    let podiums = 0;
+    playerSessions.forEach(s => {
+      const sorted = [...s.results].sort((a, b) => b.score - a.score);
+      const pos = sorted.findIndex(r => r.playerId === player.id);
+      if (pos >= 0 && pos < 3) podiums++;
+    });
+
     return {
       player,
       gamesPlayed: playerSessions.length,
       wins,
+      losses,
       winRate: playerSessions.length > 0 ? (wins / playerSessions.length) * 100 : 0,
       totalPoints,
+      podiums,
     };
   });
 }
