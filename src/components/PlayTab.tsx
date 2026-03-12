@@ -581,32 +581,42 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                 </div>
               </div>
 
-              {/* 6. Winner */}
-              <div>
-                <Label className="font-semibold text-xs">{t("sessions.winner")}</Label>
-                <Select value={winnerId} onValueChange={setWinnerId}>
-                  <SelectTrigger className="rounded-xl mt-1 h-11"><SelectValue placeholder={t("sessions.selectWinner")} /></SelectTrigger>
-                  <SelectContent>
-                    {selectedPlayerIds.map(pid => {
-                      const p = players.find(pl => pl.id === pid)!;
-                      return (
-                        <SelectItem key={pid} value={pid}>
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 rounded overflow-hidden inline-flex items-center justify-center shrink-0">
-                              {isImageAvatar(p.avatar) ? (
-                                <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-xs">{p.avatar}</span>
-                              )}
-                            </span>
-                            {p.name}
-                          </span>
+              {/* 6. Winner - shown for competitive (required) and party (optional), hidden for coop */}
+              {gameCategory !== "coop" && (
+                <div>
+                  <Label className="font-semibold text-xs">
+                    {t("sessions.winner")}
+                    {gameCategory === "party" && <span className="text-muted-foreground font-normal ml-1">({lang === "es" ? "opcional" : "optional"})</span>}
+                  </Label>
+                  <Select value={winnerId} onValueChange={setWinnerId}>
+                    <SelectTrigger className="rounded-xl mt-1 h-11"><SelectValue placeholder={t("sessions.selectWinner")} /></SelectTrigger>
+                    <SelectContent>
+                      {gameCategory === "party" && (
+                        <SelectItem value="none">
+                          <span className="text-muted-foreground">{lang === "es" ? "Sin ganador" : "No winner"}</span>
                         </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
+                      )}
+                      {selectedPlayerIds.map(pid => {
+                        const p = players.find(pl => pl.id === pid)!;
+                        return (
+                          <SelectItem key={pid} value={pid}>
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-4 h-4 rounded overflow-hidden inline-flex items-center justify-center shrink-0">
+                                {isImageAvatar(p.avatar) ? (
+                                  <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-xs">{p.avatar}</span>
+                                )}
+                              </span>
+                              {p.name}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           )}
 
