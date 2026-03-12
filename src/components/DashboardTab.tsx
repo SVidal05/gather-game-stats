@@ -278,9 +278,10 @@ function AvgScoreWidget({ players, sessions }: { players: Player[]; sessions: Ga
 // ─── Main Dashboard ─────────────────────────
 export function DashboardTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
   const { t } = useI18n();
-  const stats = getPlayerStats(players, sessions);
+  const multiplayerSessions = sessions.filter(s => !isSoloSession(s));
+  const stats = getPlayerStats(players, multiplayerSessions);
   const topPlayer = stats.length > 0 ? stats.reduce((a, b) => a.wins > b.wins ? a : b) : null;
-  const winStreak = getWinStreak(players, sessions);
+  const winStreak = getWinStreak(players, multiplayerSessions);
   const sortedSessions = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const recentSession = sortedSessions[0] || null;
   const leaderboard = [...stats].sort((a, b) => b.wins - a.wins || b.winRate - a.winRate).slice(0, 5);
