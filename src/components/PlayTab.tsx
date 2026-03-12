@@ -682,7 +682,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             </Button>
           </div>
 
-          {players.length < 2 && (
+          {players.length < 1 && (
             <div className="game-card bg-secondary/50 text-center !p-3">
               <p className="text-xs text-muted-foreground font-semibold">{t("sessions.minPlayers")}</p>
             </div>
