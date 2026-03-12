@@ -1038,7 +1038,7 @@ function GameDetailView({
 
                 {activeChart === "history" && (
                   <>
-                    <h3 className="font-bold text-foreground mb-3 text-xs">📈 {t("games.scoreHistory")}</h3>
+                    <h3 className="font-bold text-foreground mb-3 text-xs flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5 text-primary" /> {t("games.scoreHistory")}</h3>
                     {scoreHistory.length > 0 ? (
                       <ResponsiveContainer width="100%" height={180}>
                         <AreaChart data={scoreHistory}>
