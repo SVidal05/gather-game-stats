@@ -111,10 +111,11 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
       .slice(0, 8);
   }, [games, gameName]);
 
-  // Auto-set game mode from DB game when selecting an existing game
+  // Auto-set game mode and category from DB game when selecting an existing game
   useEffect(() => {
     if (selectedGameDef) {
       setGameMode(selectedGameDef.gameMode);
+      setGameCategory(selectedGameDef.category);
     }
   }, [selectedGameDef]);
 
