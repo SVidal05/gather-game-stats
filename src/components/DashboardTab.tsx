@@ -515,7 +515,7 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
           {sortedResults.map((r, i) => {
             const p = players.find(pl => pl.id === r.playerId);
             if (!p) return null;
-            const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
+            const medal = i === 0 ? null : i === 1 ? null : i === 2 ? null : null;
             return (
               <motion.div
                 key={r.playerId}
