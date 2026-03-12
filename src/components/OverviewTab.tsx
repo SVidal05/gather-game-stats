@@ -1,11 +1,10 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Gamepad2, Users, Flame, Crown, Calendar, Medal, TrendingUp, Target, Zap, Star, BarChart3, Award } from "lucide-react";
+import { Gamepad2, Users, Crown, Calendar, Medal, TrendingUp, Target, Zap, Star, BarChart3, Flame, User } from "lucide-react";
 import { Player, GameSession, PlayerStats, isSoloSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme } from "@/lib/gameThemes";
 import { isImageAvatar } from "@/lib/avatarOptions";
-import { useI18n } from "@/lib/i18n";
 import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
@@ -24,18 +23,6 @@ function getWinStreak(players: Player[], sessions: GameSession[]): { player: Pla
     else break;
   }
   return { player: players.find(p => p.id === currentWinnerId) || null, streak };
-}
-
-function getSessionChartData(sessions: GameSession[]) {
-  const sorted = [...sessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  return sorted.slice(-8).map(s => {
-    const theme = getGameTheme(s.gameName);
-    return {
-      name: s.gameName.length > 8 ? s.gameName.slice(0, 8) + "…" : s.gameName,
-      players: s.results.length,
-      color: theme.primaryColor,
-    };
-  });
 }
 
 const CHART_COLORS = [
@@ -60,63 +47,12 @@ const sectionVariants = {
   }),
 };
 
-// ─── Animated Number ────────────────────────
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
   const animated = useCountUp(value);
   return <>{animated}{suffix}</>;
 }
 
-// ─── Smart Widgets ──────────────────────────
-function GameDiversityWidget({ sessions }: { sessions: GameSession[] }) {
-  const uniqueGames = new Set(sessions.map(s => s.gameName)).size;
-  const animatedGames = useCountUp(uniqueGames);
-  const topGames = useMemo(() => {
-    const counts: Record<string, number> = {};
-    sessions.forEach(s => { counts[s.gameName] = (counts[s.gameName] || 0) + 1; });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  }, [sessions]);
-
-  return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-[hsl(var(--game-purple)/0.15)] flex items-center justify-center">
-          <BarChart3 className="w-4 h-4 text-[hsl(var(--game-purple))]" />
-        </div>
-        <div>
-          <p className="text-xs font-bold text-foreground">Diversidad de Juegos</p>
-          <p className="text-[10px] text-muted-foreground">{animatedGames} juegos únicos</p>
-        </div>
-      </div>
-      <div className="space-y-2">
-        {topGames.map(([name, count], i) => {
-          const theme = getGameTheme(name);
-          const pct = sessions.length > 0 ? (count / sessions.length) * 100 : 0;
-          return (
-            <div key={name} className="flex items-center gap-2">
-              <span className="text-sm">{theme.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-[11px] font-semibold text-foreground truncate">{name}</span>
-                  <span className="text-[10px] text-muted-foreground">{count}x</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ delay: 0.5 + i * 0.15, duration: 0.8, ease: "easeOut" }}
-                    className="h-full rounded-full"
-                    style={{ background: theme.primaryColor }}
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
+// ─── Activity Heatmap ──────────────────────────
 function ActivityWidget({ sessions }: { sessions: GameSession[] }) {
   const weeks = useMemo(() => {
     const now = new Date();
@@ -145,8 +81,8 @@ function ActivityWidget({ sessions }: { sessions: GameSession[] }) {
           <Zap className="w-4 h-4 text-accent" />
         </div>
         <div>
-          <p className="text-xs font-bold text-foreground">Actividad Reciente</p>
-          <p className="text-[10px] text-muted-foreground">Últimos 28 días</p>
+          <p className="text-xs font-bold text-foreground">Recent Activity</p>
+          <p className="text-[10px] text-muted-foreground">Last 28 days</p>
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -157,16 +93,16 @@ function ActivityWidget({ sessions }: { sessions: GameSession[] }) {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3 + i * 0.02, type: "spring", bounce: 0.4 }}
             className={`w-full aspect-square rounded-sm ${levelColors[day.level]}`}
-            title={`${day.date}: ${day.count} sesiones`}
+            title={`${day.date}: ${day.count} sessions`}
           />
         ))}
       </div>
       <div className="flex items-center gap-1 mt-2 justify-end">
-        <span className="text-[9px] text-muted-foreground mr-1">Menos</span>
+        <span className="text-[9px] text-muted-foreground mr-1">Less</span>
         {levelColors.map((c, i) => (
           <div key={i} className={`w-2.5 h-2.5 rounded-sm ${c}`} />
         ))}
-        <span className="text-[9px] text-muted-foreground ml-1">Más</span>
+        <span className="text-[9px] text-muted-foreground ml-1">More</span>
       </div>
     </div>
   );
@@ -202,7 +138,7 @@ function MVPWidget({ players, sessions }: { players: Player[]; sessions: GameSes
           <Star className="w-5 h-5 text-[hsl(var(--gold))]" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">MVP Reciente</p>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Recent MVP</p>
           <div className="flex items-center gap-2 mt-0.5">
             <div
               className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 overflow-hidden"
@@ -219,92 +155,38 @@ function MVPWidget({ players, sessions }: { players: Player[]; sessions: GameSes
           <p className="text-lg font-display font-bold text-[hsl(var(--gold))]">
             <AnimatedNumber value={mvp.score} />
           </p>
-          <p className="text-[10px] text-muted-foreground">puntos</p>
+          <p className="text-[10px] text-muted-foreground">points</p>
         </div>
       </div>
     </motion.div>
   );
 }
 
-function AvgScoreWidget({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
-  const data = useMemo(() => {
-    const totalScores = sessions.reduce((sum, s) => sum + s.results.reduce((a, r) => a + r.score, 0), 0);
-    const totalResults = sessions.reduce((sum, s) => sum + s.results.length, 0);
-    const avg = totalResults > 0 ? Math.round(totalScores / totalResults) : 0;
-    const totalSessions = sessions.length;
-    const sessionsThisWeek = sessions.filter(s => {
-      const d = new Date(s.date);
-      const now = new Date();
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      return d >= weekAgo;
-    }).length;
-    return { avg, totalSessions, sessionsThisWeek };
-  }, [sessions]);
-
-  return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-[hsl(var(--primary)/0.15)] flex items-center justify-center">
-          <Target className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-xs font-bold text-foreground">Estadísticas Rápidas</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div className="text-center">
-          <p className="text-lg font-display font-bold text-foreground">
-            <AnimatedNumber value={data.avg} />
-          </p>
-          <p className="text-[10px] text-muted-foreground">Puntuación media</p>
-        </div>
-        <div className="text-center">
-          <p className="text-lg font-display font-bold text-foreground">
-            <AnimatedNumber value={data.totalSessions} />
-          </p>
-          <p className="text-[10px] text-muted-foreground">Total sesiones</p>
-        </div>
-        <div className="text-center">
-          <p className="text-lg font-display font-bold text-primary">
-            <AnimatedNumber value={data.sessionsThisWeek} />
-          </p>
-          <p className="text-[10px] text-muted-foreground">Esta semana</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Dashboard ─────────────────────────
-export function DashboardTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
-  const { t } = useI18n();
+// ─── Main Overview ─────────────────────────
+export function OverviewTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
   const multiplayerSessions = sessions.filter(s => !isSoloSession(s));
+  const soloSessions = sessions.filter(s => isSoloSession(s));
   const stats = getPlayerStats(players, multiplayerSessions);
   const topPlayer = stats.length > 0 ? stats.reduce((a, b) => a.wins > b.wins ? a : b) : null;
   const winStreak = getWinStreak(players, multiplayerSessions);
   const sortedSessions = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const recentSession = sortedSessions[0] || null;
   const leaderboard = [...stats].sort((a, b) => b.wins - a.wins || b.winRate - a.winRate).slice(0, 5);
-  const chartData = getSessionChartData(sessions);
+
+  // Most played game
+  const mostPlayedGame = useMemo(() => {
+    if (sessions.length === 0) return null;
+    const counts: Record<string, number> = {};
+    sessions.forEach(s => { counts[s.gameName] = (counts[s.gameName] || 0) + 1; });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    return top ? { name: top[0], count: top[1] } : null;
+  }, [sessions]);
 
   const statCards = [
     {
-      icon: Crown,
-      label: t("dashboard.topWinner"),
-      value: topPlayer && topPlayer.wins > 0 ? topPlayer.player.name : "—",
-      numValue: topPlayer && topPlayer.wins > 0 ? topPlayer.wins : 0,
-      numSuffix: ` ${t("dashboard.wins")}`,
-      isText: true,
-      gradient: "from-[hsl(var(--game-orange)/0.15)] to-[hsl(var(--game-yellow)/0.08)]",
-      iconBg: "bg-[hsl(var(--game-orange)/0.2)]",
-      iconColor: "text-[hsl(var(--game-orange))]",
-      border: "border-[hsl(var(--game-orange)/0.2)]",
-    },
-    {
       icon: Gamepad2,
-      label: t("dashboard.sessions"),
+      label: "Total Sessions",
       numValue: sessions.length,
-      isText: false,
       gradient: "from-[hsl(var(--primary)/0.15)] to-[hsl(var(--primary)/0.05)]",
       iconBg: "bg-[hsl(var(--primary)/0.2)]",
       iconColor: "text-primary",
@@ -312,19 +194,26 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
     },
     {
       icon: Users,
-      label: t("dashboard.players"),
-      numValue: players.length,
-      isText: false,
+      label: "Multiplayer",
+      numValue: multiplayerSessions.length,
       gradient: "from-[hsl(var(--game-blue)/0.15)] to-[hsl(var(--game-cyan)/0.05)]",
       iconBg: "bg-[hsl(var(--game-blue)/0.2)]",
       iconColor: "text-[hsl(var(--game-blue))]",
       border: "border-[hsl(var(--game-blue)/0.2)]",
     },
     {
+      icon: User,
+      label: "Solo",
+      numValue: soloSessions.length,
+      gradient: "from-[hsl(var(--accent)/0.15)] to-[hsl(var(--accent)/0.05)]",
+      iconBg: "bg-[hsl(var(--accent)/0.2)]",
+      iconColor: "text-accent",
+      border: "border-[hsl(var(--accent)/0.2)]",
+    },
+    {
       icon: Flame,
       label: "Win Streak",
       numValue: winStreak.streak,
-      isText: false,
       sub: winStreak.player ? winStreak.player.name : "",
       gradient: "from-[hsl(var(--game-red)/0.15)] to-[hsl(var(--game-orange)/0.05)]",
       iconBg: "bg-[hsl(var(--game-red)/0.2)]",
@@ -338,18 +227,15 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-display font-bold text-foreground">{t("dashboard.title")}</h2>
-          <p className="text-muted-foreground text-sm mt-1">{t("dashboard.subtitle")}</p>
+          <h2 className="text-2xl font-display font-bold text-foreground">Overview</h2>
+          <p className="text-muted-foreground text-sm mt-1">Your group's activity at a glance</p>
         </div>
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", bounce: 0.3 }} className="text-center py-16">
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          >
+          <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}>
             <Gamepad2 className="w-16 h-16 text-primary/40 mx-auto" />
           </motion.div>
-          <h3 className="text-xl font-display font-bold text-foreground mt-4">{t("dashboard.welcome")}</h3>
-          <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">{t("dashboard.welcomeMsg")}</p>
+          <h3 className="text-xl font-display font-bold text-foreground mt-4">Welcome to GameNight!</h3>
+          <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">Start by adding players, then create your first session.</p>
         </motion.div>
       </div>
     );
@@ -359,11 +245,11 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
     <div className="space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
-        <h2 className="text-2xl font-display font-bold text-foreground">{t("dashboard.title")}</h2>
-        <p className="text-muted-foreground text-sm mt-1">{t("dashboard.subtitle")}</p>
+        <h2 className="text-2xl font-display font-bold text-foreground">Overview</h2>
+        <p className="text-muted-foreground text-sm mt-1">Your group's activity at a glance</p>
       </motion.div>
 
-      {/* Stat Cards with Count-Up */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-3">
         {statCards.map((card, i) => (
           <motion.div
@@ -378,31 +264,48 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
             <div className={`w-9 h-9 rounded-lg ${card.iconBg} flex items-center justify-center mb-3`}>
               <card.icon className={`w-5 h-5 ${card.iconColor}`} />
             </div>
-            <div className="text-xl font-display font-bold text-foreground leading-tight truncate">
-              {card.isText ? (
-                card.value
-              ) : (
-                <AnimatedNumber value={card.numValue} />
-              )}
+            <div className="text-xl font-display font-bold text-foreground leading-tight">
+              <AnimatedNumber value={card.numValue} />
             </div>
             <div className="text-[11px] font-medium text-muted-foreground mt-0.5">{card.label}</div>
-            {card.isText && card.numValue > 0 && (
-              <div className="text-[10px] text-muted-foreground/70 mt-0.5">
-                <AnimatedNumber value={card.numValue} suffix={card.numSuffix} />
-              </div>
-            )}
             {card.sub && (
               <div className="text-[10px] text-muted-foreground/70 mt-0.5">{card.sub}</div>
             )}
-            {/* Decorative glow */}
             <div className="absolute -top-6 -right-6 w-16 h-16 rounded-full bg-gradient-to-br from-foreground/[0.03] to-transparent" />
           </motion.div>
         ))}
       </div>
 
-      {/* Smart Widgets Row */}
-      <motion.div custom={0} variants={sectionVariants} initial="hidden" animate="visible" className="grid gap-3">
-        <AvgScoreWidget players={players} sessions={sessions} />
+      {/* Most Played Game & Players Count */}
+      <motion.div custom={0} variants={sectionVariants} initial="hidden" animate="visible">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-[hsl(var(--primary)/0.15)] flex items-center justify-center">
+              <Target className="w-4 h-4 text-primary" />
+            </div>
+            <p className="text-xs font-bold text-foreground">Quick Stats</p>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-lg font-display font-bold text-foreground">
+                <AnimatedNumber value={players.length} />
+              </p>
+              <p className="text-[10px] text-muted-foreground">Players</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-display font-bold text-foreground truncate">
+                {mostPlayedGame ? mostPlayedGame.name : "—"}
+              </p>
+              <p className="text-[10px] text-muted-foreground">Most Played</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-display font-bold text-primary">
+                <AnimatedNumber value={new Set(sessions.map(s => s.gameName)).size} />
+              </p>
+              <p className="text-[10px] text-muted-foreground">Games</p>
+            </div>
+          </div>
+        </div>
       </motion.div>
 
       {/* MVP Widget */}
@@ -415,19 +318,12 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
         </motion.div>
       )}
 
-      {/* Game Diversity */}
-      {sessions.length > 0 && (
-        <motion.div custom={2} variants={sectionVariants} initial="hidden" animate="visible">
-          <GameDiversityWidget sessions={sessions} />
-        </motion.div>
-      )}
-
       {/* Recent Session */}
       {recentSession && (
-        <motion.div custom={3} variants={sectionVariants} initial="hidden" animate="visible">
+        <motion.div custom={2} variants={sectionVariants} initial="hidden" animate="visible">
           <h3 className="font-display font-bold text-foreground text-sm mb-3 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary" />
-            {t("dashboard.recentSessions")}
+            Recent Sessions
           </h3>
           <RecentSessionCard session={recentSession} players={players} />
         </motion.div>
@@ -435,7 +331,7 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
 
       {/* Leaderboard */}
       {leaderboard.length > 0 && leaderboard[0].wins > 0 && (
-        <motion.div custom={4} variants={sectionVariants} initial="hidden" animate="visible">
+        <motion.div custom={3} variants={sectionVariants} initial="hidden" animate="visible">
           <h3 className="font-display font-bold text-foreground text-sm mb-3 flex items-center gap-2">
             <Medal className="w-4 h-4 text-[hsl(var(--gold))]" />
             Leaderboard
@@ -444,33 +340,6 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
             {leaderboard.map((ps, i) => (
               <LeaderboardRow key={ps.player.id} stats={ps} rank={i + 1} sessions={sessions} index={i} />
             ))}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Chart */}
-      {chartData.length > 1 && (
-        <motion.div custom={5} variants={sectionVariants} initial="hidden" animate="visible">
-          <h3 className="font-display font-bold text-foreground text-sm mb-3 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-accent" />
-            Players per Session
-          </h3>
-          <div className="rounded-xl border border-border bg-card p-4">
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={chartData} barSize={28}>
-                <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={24} />
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12 }}
-                  labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
-                />
-                <Bar dataKey="players" radius={[6, 6, 0, 0]} name="Players" animationDuration={1200} animationEasing="ease-out">
-                  {chartData.map((_, idx) => (
-                    <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </motion.div>
       )}
@@ -484,6 +353,7 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
   const winner = session.results.find(r => r.isWinner);
   const winnerPlayer = winner ? players.find(p => p.id === winner.playerId) : null;
   const sortedResults = [...session.results].sort((a, b) => b.score - a.score);
+  const solo = isSoloSession(session);
 
   return (
     <div className="rounded-xl border border-border overflow-hidden" style={{ background: `linear-gradient(135deg, ${theme.primaryColor}08, ${theme.secondaryColor}05)` }}>
@@ -501,7 +371,9 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
           <p className="font-display font-bold text-sm text-foreground truncate">{session.name}</p>
           <p className="text-[11px] text-muted-foreground">{session.gameName} · {new Date(session.date).toLocaleDateString()}</p>
         </div>
-        {winnerPlayer && (
+        {solo ? (
+          <span className="text-[10px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-lg">Solo</span>
+        ) : winnerPlayer ? (
           <motion.div
             initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5, type: "spring", bounce: 0.5 }}
             className="flex items-center gap-1.5 bg-[hsl(var(--gold)/0.12)] px-2.5 py-1 rounded-lg shrink-0"
@@ -509,14 +381,13 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
             <Crown className="w-3.5 h-3.5 text-[hsl(var(--gold))]" />
             <span className="text-xs font-bold text-foreground">{winnerPlayer.name}</span>
           </motion.div>
-        )}
+        ) : null}
       </div>
       <div className="px-4 pb-4">
         <div className="space-y-1.5">
           {sortedResults.map((r, i) => {
             const p = players.find(pl => pl.id === r.playerId);
             if (!p) return null;
-            const medal = i === 0 ? null : i === 1 ? null : i === 2 ? null : null;
             return (
               <motion.div
                 key={r.playerId}
@@ -525,14 +396,16 @@ function RecentSessionCard({ session, players }: { session: GameSession; players
                 transition={{ delay: 0.3 + i * 0.08 }}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs ${r.isWinner ? "bg-[hsl(var(--gold)/0.08)]" : "bg-card/50"}`}
               >
-                <span className="w-5 text-center"><RankBadge rank={i + 1} size="sm" /></span>
+                {!solo && <span className="w-5 text-center"><RankBadge rank={i + 1} size="sm" /></span>}
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 overflow-hidden" style={{ backgroundColor: p.color + "20", border: `1.5px solid ${p.color}40` }}>
                   {isImageAvatar(p.avatar) ? <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" /> : p.avatar}
                 </div>
                 <span className="font-semibold text-foreground flex-1 truncate">{p.name}</span>
-                <span className="font-bold text-muted-foreground tabular-nums">
-                  <AnimatedNumber value={r.score} /> pts
-                </span>
+                {!solo && (
+                  <span className="font-bold text-muted-foreground tabular-nums">
+                    <AnimatedNumber value={r.score} /> pts
+                  </span>
+                )}
               </motion.div>
             );
           })}

@@ -382,9 +382,9 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           </div>
 
           {gameName.trim() && (() => {
-            // Only show banner for games already played (exist in DB with artwork)
+            // Show banner for all games - use DB artwork if available, otherwise use theme image
             const dbGame = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
-            const bannerImg = dbGame?.backgroundImage || dbGame?.coverImage;
+            const bannerImg = dbGame?.backgroundImage || dbGame?.coverImage || getGameTheme(gameName).image;
             if (!bannerImg) return null;
             return (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
@@ -403,7 +403,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           {/* Game Mode Selector */}
           {gameName.trim() && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-              <Label className="font-semibold text-xs">Modo de juego</Label>
+              <Label className="font-semibold text-xs">Game Mode</Label>
               <div className="flex gap-2 mt-1">
                 <button
                   type="button"
@@ -415,7 +415,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   }`}
                 >
                   <Users className="w-4 h-4" />
-                  Multijugador
+                  Multiplayer
                 </button>
                 <button
                   type="button"
@@ -442,10 +442,10 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           {/* 4. Players */}
           <div>
             <Label className="font-semibold text-xs">
-              {isSolo ? "Jugador" : t("sessions.players")}
+              {isSolo ? "Player" : t("sessions.players")}
             </Label>
             {isSolo && (
-              <p className="text-[10px] text-muted-foreground mt-0.5">Selecciona un jugador para esta sesión solo</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Select a player for this solo session</p>
             )}
             <div className="flex flex-wrap gap-1.5 mt-1">
               {players.map(p => {

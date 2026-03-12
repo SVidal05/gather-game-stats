@@ -3,15 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sun, Moon, LogOut, Menu, X, Monitor,
-  LayoutDashboard, Gamepad2, Users, Trophy, UsersRound,
-  UserCircle, Settings, ChevronDown, ChevronRight,
+  BarChart3, Gamepad2, Users, Trophy, UsersRound,
+  UserCircle, Settings, ChevronDown, ChevronRight, LayoutDashboard, Swords,
 } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useGroups, useGroupMembers, usePendingInvites } from "@/lib/groupStore";
 import { PlayersTab } from "@/components/GameTabs";
-import { DashboardTab } from "@/components/DashboardTab";
+import { OverviewTab } from "@/components/OverviewTab";
 import { RankingTab, ChartsTab } from "@/components/RankingCharts";
 import { PlayTab } from "@/components/PlayTab";
 import { ProfileTab } from "@/components/ProfileTab";
@@ -22,7 +22,7 @@ import { CompareTab } from "@/components/CompareTab";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
-type Tab = "groups" | "dashboard" | "charts" | "play" | "players" | "compare" | "tournaments" | "ranking" | "profile" | "settings";
+type Tab = "groups" | "overview" | "charts" | "play" | "players" | "compare" | "tournaments" | "ranking" | "profile" | "settings";
 
 type ThemeMode = "system" | "light" | "dark";
 const THEME_KEY = "gamenight_theme";
@@ -87,6 +87,47 @@ const Index = () => {
     if (!groupsLoading && groups.length === 0) setActiveTab("groups");
   }, [groupsLoading, groups.length]);
 
+  const navSections: NavSection[] = [
+    {
+      label: "Stats",
+      icon: BarChart3,
+      items: [
+        { id: "overview", label: "Overview", requiresGroup: true },
+        { id: "charts", label: "Charts", requiresGroup: true },
+      ],
+    },
+    {
+      label: "Play",
+      icon: Gamepad2,
+      items: [
+        { id: "play", label: "Play", requiresGroup: true },
+      ],
+    },
+    {
+      label: "Players",
+      icon: Users,
+      items: [
+        { id: "players", label: "All Players", requiresGroup: true },
+        { id: "compare", label: "Compare", requiresGroup: true },
+      ],
+    },
+    {
+      label: "Competitions",
+      icon: Trophy,
+      items: [
+        { id: "ranking", label: "Leaderboard", requiresGroup: true },
+        { id: "tournaments", label: "Tournaments", requiresGroup: true },
+      ],
+    },
+    {
+      label: "Group",
+      icon: UsersRound,
+      items: [
+        { id: "groups", label: "Group" },
+      ],
+    },
+  ];
+
   // Auto-expand the section containing active tab
   useEffect(() => {
     const section = navSections.find(s => s.items.some(i => i.id === activeTab));
@@ -98,47 +139,6 @@ const Index = () => {
   };
 
   const ThemeIcon = themeMode === "system" ? Monitor : themeMode === "dark" ? Moon : Sun;
-
-  const navSections: NavSection[] = [
-    {
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      items: [
-        { id: "dashboard", label: t("tab.home"), requiresGroup: true },
-        { id: "charts", label: t("tab.charts"), requiresGroup: true },
-      ],
-    },
-    {
-      label: t("play.title"),
-      icon: Gamepad2,
-      items: [
-        { id: "play", label: t("play.title"), requiresGroup: true },
-      ],
-    },
-    {
-      label: t("tab.players"),
-      icon: Users,
-      items: [
-        { id: "players", label: t("tab.players"), requiresGroup: true },
-        { id: "compare", label: "Compare", requiresGroup: true },
-      ],
-    },
-    {
-      label: "Competición",
-      icon: Trophy,
-      items: [
-        { id: "ranking", label: t("tab.ranking"), requiresGroup: true },
-        { id: "tournaments", label: "Tournaments", requiresGroup: true },
-      ],
-    },
-    {
-      label: "Grupo",
-      icon: UsersRound,
-      items: [
-        { id: "groups", label: t("groups.title") },
-      ],
-    },
-  ];
 
   if (authLoading || !user) {
     return (
@@ -229,7 +229,7 @@ const Index = () => {
               <div className="flex items-center gap-2 min-w-0">
                 <UsersRound className="w-4 h-4 text-primary shrink-0" />
                 <span className="text-xs font-semibold text-primary truncate">
-                  {activeGroup?.name || "Seleccionar grupo"}
+                  {activeGroup?.name || "Select group"}
                 </span>
               </div>
               <ChevronDown className={`w-3.5 h-3.5 text-primary/60 transition-transform ${groupSelectorOpen ? "rotate-180" : ""}`} />
@@ -249,7 +249,7 @@ const Index = () => {
                         onClick={() => {
                           selectGroup(g.id);
                           setGroupSelectorOpen(false);
-                          if (activeTab === "groups") setActiveTab("dashboard");
+                          if (activeTab === "groups") setActiveTab("overview");
                         }}
                         className={`w-full text-left px-3 py-1.5 rounded-md text-xs transition-all ${
                           g.id === activeGroupId
@@ -317,7 +317,7 @@ const Index = () => {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="ml-5 pl-3 border-l border-border/50 space-y-0.5 py-0.5">
+                      <div className="ml-7 pl-3 border-l-2 border-border/60 space-y-0.5 py-1">
                         {section.items.map(item => {
                           const disabled = item.requiresGroup && !activeGroup;
                           return (
@@ -354,7 +354,7 @@ const Index = () => {
             }`}
           >
             <UserCircle className="w-4.5 h-4.5" />
-            <span>{t("tab.profile")}</span>
+            <span>Profile</span>
           </button>
           <button
             onClick={() => handleTabClick("settings")}
@@ -364,7 +364,7 @@ const Index = () => {
             }`}
           >
             <Settings className="w-4.5 h-4.5" />
-            <span>{t("settings.title")}</span>
+            <span>Settings</span>
           </button>
 
           <div className="flex gap-2 pt-1">
@@ -373,7 +373,7 @@ const Index = () => {
               className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-secondary text-muted-foreground text-xs font-medium hover:text-foreground transition-all"
             >
               <ThemeIcon className="w-4 h-4" />
-              <span>{themeMode === "system" ? "System" : isDark ? t("profile.dark") : t("profile.light")}</span>
+              <span>{themeMode === "system" ? "System" : isDark ? "Dark" : "Light"}</span>
             </button>
             <button
               onClick={signOut}
@@ -427,9 +427,9 @@ const Index = () => {
             {activeTab === "groups" && (
               <GroupSelector
                 groups={groups} activeGroup={activeGroup} members={members} pendingInvites={pendingInvites}
-                onSelectGroup={(id) => { selectGroup(id); setActiveTab("dashboard"); }}
-                onCreateGroup={async (name) => { const g = await createGroup(name); if (g) setActiveTab("dashboard"); return g; }}
-                onJoinByCode={async (code) => { const res = await joinGroupByCode(code); if (!res.error) setActiveTab("dashboard"); return res; }}
+                onSelectGroup={(id) => { selectGroup(id); setActiveTab("overview"); }}
+                onCreateGroup={async (name) => { const g = await createGroup(name); if (g) setActiveTab("overview"); return g; }}
+                onJoinByCode={async (code) => { const res = await joinGroupByCode(code); if (!res.error) setActiveTab("overview"); return res; }}
                 onUpdateName={updateGroupName} onDeleteGroup={deleteGroup} onLeaveGroup={leaveGroup}
                 onRemoveMember={removeMember} onInviteByEmail={inviteByEmail}
                 onAcceptInvite={async (inv) => { await acceptInvite(inv); handleRefetch(); }}
@@ -440,7 +440,7 @@ const Index = () => {
             {activeTab === "settings" && <SettingsTab isDark={isDark} onToggleDark={cycleTheme} themeMode={themeMode} onSetThemeMode={setThemeMode} />}
             {activeGroup && !dataLoading && (
               <>
-                {activeTab === "dashboard" && <DashboardTab players={players} sessions={sessions} />}
+                {activeTab === "overview" && <OverviewTab players={players} sessions={sessions} />}
                 {activeTab === "players" && (
                   <PlayersTab players={players} sessions={sessions} onAddPlayer={addPlayer} onRemovePlayer={removePlayer} onUpdatePlayer={updatePlayer} />
                 )}
