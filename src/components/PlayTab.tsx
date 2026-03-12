@@ -362,18 +362,23 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             })()}
           </div>
 
-          {currentTheme && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
-              <div className="h-16 relative">
-                <img src={currentTheme.image} alt={currentTheme.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0" style={{ background: currentTheme.gradient, opacity: 0.4 }} />
-                <div className="absolute inset-0 flex items-center px-3 bg-gradient-to-r from-card/80 to-transparent">
-                  <span className="text-xl mr-2">{currentTheme.emoji}</span>
-                  <span className="font-bold text-sm text-foreground">{currentTheme.name}</span>
+          {gameName.trim() && (() => {
+            const dbGame = games.find(g => g.name.toLowerCase() === gameName.toLowerCase());
+            const bannerImg = dbGame?.backgroundImage || dbGame?.coverImage || currentTheme?.image;
+            if (!bannerImg) return null;
+            return (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
+                <div className="h-16 relative">
+                  <img src={bannerImg} alt={gameName} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0" style={{ background: dbGame?.backgroundImage ? 'linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.1))' : (currentTheme?.gradient || 'transparent'), opacity: dbGame?.backgroundImage ? 1 : 0.4 }} />
+                  <div className="absolute inset-0 flex items-center px-3 bg-gradient-to-r from-card/80 to-transparent">
+                    <Gamepad2 className="w-5 h-5 mr-2 text-foreground" />
+                    <span className="font-bold text-sm text-foreground">{gameName}</span>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            );
+          })()}
 
           {/* 3. Date */}
           <div>
