@@ -804,7 +804,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             <Button variant="outline" size="sm" className="rounded-2xl gap-1.5 font-bold text-xs h-9" onClick={() => setView("history")}>
               <Calendar className="w-3.5 h-3.5" /> {t("play.history")}
             </Button>
-            <Button size="sm" className="rounded-2xl gap-1.5 font-bold text-xs h-9" disabled={players.length < 2} onClick={() => openNewSession()}>
+            <Button size="sm" className="rounded-2xl gap-1.5 font-bold text-xs h-9" disabled={players.length < 1} onClick={() => openNewSession()}>
               <Plus className="w-3.5 h-3.5" /> {t("play.newGame")}
             </Button>
           </div>
