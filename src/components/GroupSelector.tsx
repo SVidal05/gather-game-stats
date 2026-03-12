@@ -268,7 +268,13 @@ export function GroupSelector({
                 <p className="text-xs text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" className="rounded-lg text-xs h-9" onClick={() => { onAcceptInvite(inv); onRefetch(); }}>
+                <Button size="sm" className="rounded-lg text-xs h-9" onClick={async () => {
+                  await onAcceptInvite(inv);
+                  onRefetch();
+                  setJoinedGroupId(inv.groupId);
+                  setJoinedGroupName(inv.groupName || "Group");
+                  setPlayerDialogOpen(true);
+                }}>
                   {t("groups.acceptInvite")}
                 </Button>
                 <Button size="sm" variant="outline" className="rounded-lg text-xs h-9" onClick={() => onDeclineInvite(inv.id)}>
