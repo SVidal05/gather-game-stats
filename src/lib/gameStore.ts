@@ -5,6 +5,47 @@ import { useAuth } from "@/lib/auth";
 export type GameMode = "multiplayer" | "solo";
 export type GameCategory = "competitive" | "party" | "solo" | "coop";
 
+/** Default stat definitions auto-created per game category */
+export const CATEGORY_DEFAULT_STATS: Record<GameCategory, { statKey: string; label: string; type: string; options?: string[] }[]> = {
+  competitive: [
+    { statKey: "kills", label: "Kills", type: "number" },
+    { statKey: "deaths", label: "Deaths", type: "number" },
+    { statKey: "assists", label: "Assists", type: "number" },
+    { statKey: "mvp", label: "MVP", type: "boolean" },
+  ],
+  party: [
+    { statKey: "fun_rating", label: "Fun Rating (1-10)", type: "number" },
+    { statKey: "rounds_played", label: "Rounds Played", type: "number" },
+    { statKey: "highlight", label: "Highlight Moment", type: "text" },
+  ],
+  solo: [
+    { statKey: "time_played", label: "Time Played (min)", type: "number" },
+    { statKey: "high_score", label: "High Score", type: "number" },
+    { statKey: "level_reached", label: "Level Reached", type: "number" },
+    { statKey: "completed", label: "Completed", type: "boolean" },
+  ],
+  coop: [
+    { statKey: "team_score", label: "Team Score", type: "number" },
+    { statKey: "revives", label: "Revives", type: "number" },
+    { statKey: "objectives", label: "Objectives Completed", type: "number" },
+    { statKey: "mission_success", label: "Mission Success", type: "boolean" },
+  ],
+};
+
+async function createDefaultStats(gameId: string, category: GameCategory) {
+  const defaults = CATEGORY_DEFAULT_STATS[category];
+  if (!defaults || defaults.length === 0) return;
+
+  const rows = defaults.map(d => ({
+    game_id: gameId,
+    stat_key: d.statKey,
+    label: d.label,
+    type: d.type,
+    options: d.options || null,
+  }));
+  await supabase.from("game_stat_definitions").insert(rows);
+}
+
 export interface GameDef {
   id: string;
   name: string;
