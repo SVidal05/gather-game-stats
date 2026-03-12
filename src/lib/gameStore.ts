@@ -59,6 +59,7 @@ export function useGames() {
         icon: g.icon,
         backgroundImage: g.background_image || null,
         coverImage: g.cover_image || null,
+        gameMode: (g.game_mode as GameMode) || "multiplayer",
         createdAt: g.created_at,
       })));
     }
