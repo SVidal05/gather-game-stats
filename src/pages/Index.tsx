@@ -7,6 +7,7 @@ import {
   UserCircle, Settings, ChevronDown, ChevronRight, LayoutDashboard, Swords,
 } from "lucide-react";
 import { usePlayers, useSessions } from "@/lib/store";
+import { useAllUserSessions } from "@/hooks/useAllUserSessions";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useGroups, useGroupMembers, usePendingInvites } from "@/lib/groupStore";
@@ -55,6 +56,7 @@ const Index = () => {
 
   const { players, addPlayer, removePlayer, updatePlayer, loading: playersLoading } = usePlayers(activeGroupId);
   const { sessions, addSession, removeSession, updateSession, loading: sessionsLoading } = useSessions(activeGroupId);
+  const { sessions: globalSessions, players: globalPlayers } = useAllUserSessions();
 
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -439,7 +441,7 @@ const Index = () => {
                 onDeclineInvite={declineInvite} onRefetch={handleRefetch}
               />
             )}
-            {activeTab === "profile" && <ProfileTab players={players} sessions={sessions} isDark={isDark} onToggleDark={cycleTheme} />}
+            {activeTab === "profile" && <ProfileTab players={players} sessions={sessions} globalPlayers={globalPlayers} globalSessions={globalSessions} isDark={isDark} onToggleDark={cycleTheme} />}
             {activeTab === "settings" && <SettingsTab isDark={isDark} onToggleDark={cycleTheme} themeMode={themeMode} onSetThemeMode={setThemeMode} />}
             {activeGroup && !dataLoading && (
               <>
