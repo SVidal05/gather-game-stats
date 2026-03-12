@@ -91,6 +91,15 @@ const translations = {
   "play.newGame": { es: "Nueva", en: "New", fr: "Nouvelle" },
   "play.play": { es: "Jugar", en: "Play", fr: "Jouer" },
 
+  // Solo mode
+  "solo.gameMode": { es: "Modo de juego", en: "Game mode", fr: "Mode de jeu" },
+  "solo.modeMultiplayer": { es: "Multijugador", en: "Multiplayer", fr: "Multijoueur" },
+  "solo.modeSolo": { es: "Solo", en: "Solo", fr: "Solo" },
+  "solo.playerLabel": { es: "Jugador", en: "Player", fr: "Joueur" },
+  "solo.selectPlayerHint": { es: "Selecciona un jugador para esta sesión solo", en: "Select one player for this solo session", fr: "Sélectionnez un joueur pour cette session solo" },
+  "solo.sessionTag": { es: "Solo", en: "Solo", fr: "Solo" },
+  "solo.personalSession": { es: "Sesión personal", en: "Personal session", fr: "Session personnelle" },
+
   // Games
   "games.title": { es: "Juegos", en: "Games", fr: "Jeux" },
   "games.subtitle": { es: "Explora estadísticas por juego", en: "Explore stats by game type", fr: "Explorez les stats par jeu" },
