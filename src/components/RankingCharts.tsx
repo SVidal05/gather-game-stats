@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem, Users, User, Filter, TrendingUp } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronUp, Download, Trophy, BarChart3, Calendar, Gem, Users, User, Filter, TrendingUp, Layers } from "lucide-react";
 import { Player, GameSession, isSoloSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { PlayerBadge } from "@/components/PlayerBadge";
@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getGameTheme } from "@/lib/gameThemes";
+import { useGames, GameCategory } from "@/lib/gameStore";
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -155,6 +156,7 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
 // ─── Charts Tab ───────────────────────────────────
 type ModeFilter = "all" | "multiplayer" | "solo";
 type TimeFilter = "all" | "30d" | "90d" | "year";
+type CategoryFilter = "all" | GameCategory;
 
 const CHART_COLORS = [
   "hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--game-orange))",
@@ -162,13 +164,40 @@ const CHART_COLORS = [
   "hsl(var(--game-purple))", "hsl(var(--game-red))",
 ];
 
+const CATEGORY_COLORS: Record<string, string> = {
+  competitive: "hsl(var(--primary))",
+  party: "hsl(var(--game-orange))",
+  solo: "hsl(var(--accent))",
+  coop: "hsl(var(--game-pink))",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  competitive: "Competitive",
+  party: "Party",
+  solo: "Solo",
+  coop: "Co-op",
+};
+
 export function ChartsTab({ players, sessions }: { players: Player[]; sessions: GameSession[] }) {
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
   const [gameFilter, setGameFilter] = useState<string>("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [hoveredBar, setHoveredBar] = useState<string | null>(null);
 
+  const { games } = useGames();
   const uniqueGames = Array.from(new Set(sessions.map(s => s.gameName)));
+
+  // Build a gameName -> category lookup from DB
+  const gameCategoryMap = useMemo(() => {
+    const map = new Map<string, GameCategory>();
+    games.forEach(g => map.set(g.name.toLowerCase(), g.category));
+    return map;
+  }, [games]);
+
+  const getSessionCategory = (s: GameSession): GameCategory => {
+    return gameCategoryMap.get(s.gameName.toLowerCase()) || "competitive";
+  };
 
   // Apply filters
   const filteredSessions = useMemo(() => {
@@ -177,6 +206,9 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
     // Mode filter
     if (modeFilter === "multiplayer") result = result.filter(s => !isSoloSession(s));
     else if (modeFilter === "solo") result = result.filter(s => isSoloSession(s));
+
+    // Category filter
+    if (categoryFilter !== "all") result = result.filter(s => getSessionCategory(s) === categoryFilter);
 
     // Game filter
     if (gameFilter !== "all") result = result.filter(s => s.gameName === gameFilter);
@@ -257,6 +289,26 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
     });
   }, [soloFiltered, players]);
 
+  // Category distribution
+  const categoryData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filteredSessions.forEach(s => {
+      const cat = getSessionCategory(s);
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .filter(([, count]) => count > 0)
+      .map(([cat, count]) => ({
+        name: CATEGORY_LABELS[cat] || cat,
+        value: count,
+        color: CATEGORY_COLORS[cat] || CHART_COLORS[0],
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredSessions, getSessionCategory]);
+
+  // Most played category
+  const topCategory = categoryData.length > 0 ? categoryData[0] : null;
+
   const pointsData = filteredStats
     .filter(s => s.totalPoints > 0)
     .sort((a, b) => b.totalPoints - a.totalPoints)
@@ -331,10 +383,26 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
             <SelectItem value="year">This Year</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}>
+          <SelectTrigger className="w-[140px] h-9 rounded-lg text-xs font-bold">
+            <div className="flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-muted-foreground" />
+              <SelectValue />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="competitive">Competitive</SelectItem>
+            <SelectItem value="party">Party</SelectItem>
+            <SelectItem value="solo">Solo</SelectItem>
+            <SelectItem value="coop">Co-op</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <div className="rounded-xl border border-border bg-card p-3 text-center">
           <p className="text-lg font-display font-bold text-foreground">{filteredSessions.length}</p>
           <p className="text-[10px] text-muted-foreground font-medium">Sessions</p>
@@ -346,6 +414,10 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
         <div className="rounded-xl border border-border bg-card p-3 text-center">
           <p className="text-lg font-display font-bold text-foreground">{soloFiltered.length}</p>
           <p className="text-[10px] text-muted-foreground font-medium">Solo</p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-3 text-center">
+          <p className="text-lg font-display font-bold" style={{ color: topCategory ? topCategory.color : undefined }}>{topCategory?.name || "—"}</p>
+          <p className="text-[10px] text-muted-foreground font-medium">Top Category</p>
         </div>
       </div>
 
@@ -369,7 +441,37 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
         </motion.div>
       )}
 
-      {/* Most Played Games */}
+      {/* Category Distribution */}
+      {categoryData.length > 1 && (
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }} className="game-card !p-4">
+          <h3 className="font-display font-semibold text-foreground text-sm mb-4 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-primary" />
+            Category Distribution
+          </h3>
+          <div className="flex items-center gap-4">
+            <ResponsiveContainer width="50%" height={160}>
+              <PieChart>
+                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} innerRadius={30} strokeWidth={2} stroke="hsl(var(--card))">
+                  {categoryData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex-1 space-y-2">
+              {categoryData.map(entry => (
+                <div key={entry.name} className="flex items-center gap-2 text-xs">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                  <span className="text-foreground font-medium flex-1">{entry.name}</span>
+                  <span className="font-bold text-foreground">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {gamesData.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="game-card !p-4">
           <h3 className="font-display font-semibold text-foreground text-sm mb-4 flex items-center gap-2">

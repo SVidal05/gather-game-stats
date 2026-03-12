@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export type GameMode = "multiplayer" | "solo";
+export type GameCategory = "competitive" | "party" | "solo" | "coop";
 
 export interface GameDef {
   id: string;
@@ -11,6 +12,7 @@ export interface GameDef {
   backgroundImage: string | null;
   coverImage: string | null;
   gameMode: GameMode;
+  category: GameCategory;
   createdAt: string;
 }
 
@@ -78,6 +80,7 @@ export function useGames() {
         backgroundImage: g.background_image || null,
         coverImage: g.cover_image || null,
         gameMode: (g.game_mode as GameMode) || "multiplayer",
+        category: (g.category as GameCategory) || "competitive",
         createdAt: g.created_at,
       })));
     }
@@ -86,14 +89,17 @@ export function useGames() {
 
   useEffect(() => { fetchGames(); }, [fetchGames]);
 
-  const findOrCreateGame = useCallback(async (name: string, gameMode: GameMode = "multiplayer"): Promise<string | null> => {
+  const findOrCreateGame = useCallback(async (name: string, gameMode: GameMode = "multiplayer", category: GameCategory = "competitive"): Promise<string | null> => {
     if (!user) return null;
     const existing = games.find(g => g.name.toLowerCase() === name.toLowerCase());
     if (existing) {
-      // Update game mode if different
-      if (existing.gameMode !== gameMode) {
-        await supabase.from("games").update({ game_mode: gameMode } as any).eq("id", existing.id);
-        setGames(prev => prev.map(g => g.id === existing.id ? { ...g, gameMode } : g));
+      // Update game mode/category if different
+      const updates: Record<string, any> = {};
+      if (existing.gameMode !== gameMode) updates.game_mode = gameMode;
+      if (existing.category !== category) updates.category = category;
+      if (Object.keys(updates).length > 0) {
+        await supabase.from("games").update(updates as any).eq("id", existing.id);
+        setGames(prev => prev.map(g => g.id === existing.id ? { ...g, gameMode, category } : g));
       }
       return existing.id;
     }
@@ -101,7 +107,7 @@ export function useGames() {
     // Search RAWG for artwork
     const artwork = await searchGameArtwork(name);
 
-    const insertData: any = { name, game_mode: gameMode };
+    const insertData: any = { name, game_mode: gameMode, category };
     if (artwork.backgroundImage) insertData.background_image = artwork.backgroundImage;
     if (artwork.coverImage) insertData.cover_image = artwork.coverImage;
 
@@ -118,6 +124,7 @@ export function useGames() {
         backgroundImage: (data as any).background_image || null,
         coverImage: (data as any).cover_image || null,
         gameMode,
+        category,
         createdAt: data.created_at,
       };
       setGames(prev => [...prev, newGame]);

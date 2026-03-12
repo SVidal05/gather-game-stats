@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, BarChart3, Crosshair, FileText, Gamepad2, Medal, User } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, BarChart3, Crosshair, FileText, Gamepad2, Medal, User, PartyPopper, Heart } from "lucide-react";
 import { Player, GameSession, PlayerResult, POPULAR_GAMES, KNOWN_GAMES } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
-import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode, searchGameArtwork } from "@/lib/gameStore";
+import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode, GameCategory, searchGameArtwork } from "@/lib/gameStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,7 +59,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 type View = "catalog" | "detail" | "history";
 
 export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUpdateSession }: PlayTabProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [view, setView] = useState<View>("catalog");
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
@@ -69,6 +69,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   const [sessionName, setSessionName] = useState("");
   const [gameName, setGameName] = useState("");
   const [gameMode, setGameMode] = useState<GameMode>("multiplayer");
+  const [gameCategory, setGameCategory] = useState<GameCategory>("competitive");
   const [gameInputFocused, setGameInputFocused] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
@@ -110,10 +111,11 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
       .slice(0, 8);
   }, [games, gameName]);
 
-  // Auto-set game mode from DB game when selecting an existing game
+  // Auto-set game mode and category from DB game when selecting an existing game
   useEffect(() => {
     if (selectedGameDef) {
       setGameMode(selectedGameDef.gameMode);
+      setGameCategory(selectedGameDef.category);
     }
   }, [selectedGameDef]);
 
@@ -245,13 +247,14 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
     if (isSolo && selectedPlayerIds.length !== 1) return;
     if (!isSolo && selectedPlayerIds.length < 2) return;
 
-    // Find or create game in DB with mode
-    const gameId = await findOrCreateGame(gameName.trim(), gameMode);
+    // Find or create game in DB with mode and category
+    const gameId = await findOrCreateGame(gameName.trim(), gameMode, gameCategory);
 
+    const effectiveWinner = (winnerId && winnerId !== "none") ? winnerId : "";
     const results: PlayerResult[] = selectedPlayerIds.map(pid => ({
       playerId: pid,
       score: isSolo ? 0 : (scores[pid] || 0),
-      isWinner: isSolo ? false : pid === winnerId,
+      isWinner: isSolo ? false : (gameCategory === "coop" ? false : pid === effectiveWinner),
     }));
 
     const result = await onAddSession({
@@ -307,7 +310,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
   const resetForm = () => {
     setSessionName(""); setGameName(""); setPreselectedGame("");
-    setGameMode("multiplayer");
+    setGameMode("multiplayer"); setGameCategory("competitive");
     setDate(new Date().toISOString().split("T")[0]);
     setSelectedPlayerIds([]); setScores({}); setWinnerId("");
     setNotes(""); setCustomStats({}); setEditingSessionId(null);
@@ -477,36 +480,40 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             );
           })()}
 
-          {/* Game Mode Selector */}
+          {/* Game Category Selector */}
           {gameName.trim() && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
-              <Label className="font-semibold text-xs">{t("solo.gameMode")}</Label>
-              <div className="flex gap-2 mt-1">
-                <button
-                  type="button"
-                  onClick={() => { setGameMode("multiplayer"); setSelectedPlayerIds([]); setWinnerId(""); }}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
-                    gameMode === "multiplayer"
-                      ? "bg-primary/10 border-primary text-primary ring-1 ring-primary/30"
-                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  <Users className="w-4 h-4" />
-                  {t("solo.modeMultiplayer")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setGameMode("solo"); setSelectedPlayerIds([]); setWinnerId(""); setScores({}); }}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
-                    gameMode === "solo"
-                      ? "bg-accent/10 border-accent text-accent ring-1 ring-accent/30"
-                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  <User className="w-4 h-4" />
-                  {t("solo.modeSolo")}
-                </button>
+              <Label className="font-semibold text-xs">
+                {lang === "es" ? "Categoría del juego" : lang === "fr" ? "Catégorie du jeu" : "Game Category"}
+              </Label>
+              <div className="grid grid-cols-2 gap-1.5 mt-1">
+                {([
+                  { cat: "competitive" as GameCategory, mode: "multiplayer" as GameMode, label: { es: "Competitivo", en: "Competitive", fr: "Compétitif" }, icon: Trophy, color: "primary" },
+                  { cat: "party" as GameCategory, mode: "multiplayer" as GameMode, label: { es: "Party", en: "Party", fr: "Fête" }, icon: PartyPopper, color: "game-orange" },
+                  { cat: "solo" as GameCategory, mode: "solo" as GameMode, label: { es: "Solo", en: "Solo", fr: "Solo" }, icon: User, color: "accent" },
+                  { cat: "coop" as GameCategory, mode: "multiplayer" as GameMode, label: { es: "Co-op", en: "Co-op", fr: "Co-op" }, icon: Heart, color: "game-pink" },
+                ] as const).map(({ cat, mode, label, icon: CatIcon, color }) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => { setGameCategory(cat); setGameMode(mode); setSelectedPlayerIds([]); setWinnerId(""); if (mode === "solo") setScores({}); }}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${
+                      gameCategory === cat
+                        ? `bg-[hsl(var(--${color}))]/10 border-[hsl(var(--${color}))] text-[hsl(var(--${color}))] ring-1 ring-[hsl(var(--${color}))]/30`
+                        : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    <CatIcon className="w-3.5 h-3.5" />
+                    {label[lang as keyof typeof label] || label.en}
+                  </button>
+                ))}
               </div>
+              <p className="text-[9px] text-muted-foreground mt-1">
+                {gameCategory === "competitive" && (lang === "es" ? "Requiere ganador · Afecta leaderboard" : "Requires winner · Affects leaderboard")}
+                {gameCategory === "party" && (lang === "es" ? "Multijugador · Ganador opcional" : "Multiplayer · Winner optional")}
+                {gameCategory === "solo" && (lang === "es" ? "Un solo jugador · Progreso personal" : "Single player · Personal progress")}
+                {gameCategory === "coop" && (lang === "es" ? "Multijugador · Sin ganador" : "Multiplayer · No winner needed")}
+              </p>
             </motion.div>
           )}
 
@@ -575,32 +582,42 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                 </div>
               </div>
 
-              {/* 6. Winner */}
-              <div>
-                <Label className="font-semibold text-xs">{t("sessions.winner")}</Label>
-                <Select value={winnerId} onValueChange={setWinnerId}>
-                  <SelectTrigger className="rounded-xl mt-1 h-11"><SelectValue placeholder={t("sessions.selectWinner")} /></SelectTrigger>
-                  <SelectContent>
-                    {selectedPlayerIds.map(pid => {
-                      const p = players.find(pl => pl.id === pid)!;
-                      return (
-                        <SelectItem key={pid} value={pid}>
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 rounded overflow-hidden inline-flex items-center justify-center shrink-0">
-                              {isImageAvatar(p.avatar) ? (
-                                <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-xs">{p.avatar}</span>
-                              )}
-                            </span>
-                            {p.name}
-                          </span>
+              {/* 6. Winner - shown for competitive (required) and party (optional), hidden for coop */}
+              {gameCategory !== "coop" && (
+                <div>
+                  <Label className="font-semibold text-xs">
+                    {t("sessions.winner")}
+                    {gameCategory === "party" && <span className="text-muted-foreground font-normal ml-1">({lang === "es" ? "opcional" : "optional"})</span>}
+                  </Label>
+                  <Select value={winnerId} onValueChange={setWinnerId}>
+                    <SelectTrigger className="rounded-xl mt-1 h-11"><SelectValue placeholder={t("sessions.selectWinner")} /></SelectTrigger>
+                    <SelectContent>
+                      {gameCategory === "party" && (
+                        <SelectItem value="none">
+                          <span className="text-muted-foreground">{lang === "es" ? "Sin ganador" : "No winner"}</span>
                         </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
+                      )}
+                      {selectedPlayerIds.map(pid => {
+                        const p = players.find(pl => pl.id === pid)!;
+                        return (
+                          <SelectItem key={pid} value={pid}>
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-4 h-4 rounded overflow-hidden inline-flex items-center justify-center shrink-0">
+                                {isImageAvatar(p.avatar) ? (
+                                  <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-xs">{p.avatar}</span>
+                                )}
+                              </span>
+                              {p.name}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           )}
 
