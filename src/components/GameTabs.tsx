@@ -269,6 +269,13 @@ export function PlayersTab({
                     <div>
                       <p className="font-semibold text-foreground text-sm">{ps.player.name}</p>
                       <div className="flex gap-3 mt-0.5 text-xs text-muted-foreground">
+                        {ps.player.linkedUsername ? (
+                          <span className="text-primary font-medium">🔗 {ps.player.linkedUsername}</span>
+                        ) : (
+                          <span className="italic">No user linked</span>
+                        )}
+                      </div>
+                      <div className="flex gap-3 mt-0.5 text-xs text-muted-foreground">
                         <span>{ps.gamesPlayed} {t("players.games")}</span>
                         <span>{ps.wins} {t("players.wins")}</span>
                         <span>{ps.winRate.toFixed(0)}%</span>

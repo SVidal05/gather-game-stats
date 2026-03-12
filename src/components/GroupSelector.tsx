@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { JoinGroupPlayerDialog } from "@/components/JoinGroupPlayerDialog";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
 interface GroupSelectorProps {
@@ -51,6 +53,9 @@ export function GroupSelector({
   const [editingName, setEditingName] = useState(false);
   const [editName, setEditName] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
+  const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
+  const [joinedGroupId, setJoinedGroupId] = useState<string | null>(null);
+  const [joinedGroupName, setJoinedGroupName] = useState("");
 
   const isAdmin = activeGroup && members.some(m => m.userId === user?.id && m.role === "admin");
   const isOwner = activeGroup?.ownerId === user?.id;
@@ -67,13 +72,23 @@ export function GroupSelector({
   const handleJoin = async () => {
     if (!joinCode.trim()) return;
     setLoading(true);
-    const { error } = await onJoinByCode(joinCode.trim());
+    // First peek at the group name
+    const { data: groupInfo } = await supabase.rpc("get_group_by_invite_code", { _code: joinCode.trim() });
+    const { error, groupId: newGroupId } = await onJoinByCode(joinCode.trim()) as any;
     setLoading(false);
     if (error) {
       toast({ title: t("groups.invalidCode"), description: error, variant: "destructive" });
     } else {
       toast({ title: t("groups.joined") });
       setJoinCode(""); setJoinDialogOpen(false); onRefetch();
+      // Open player linking dialog
+      const gName = groupInfo?.[0]?.name || "Group";
+      const gId = newGroupId || "";
+      if (gId) {
+        setJoinedGroupId(gId);
+        setJoinedGroupName(gName);
+        setPlayerDialogOpen(true);
+      }
     }
   };
 
@@ -253,7 +268,13 @@ export function GroupSelector({
                 <p className="text-xs text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" className="rounded-lg text-xs h-9" onClick={() => { onAcceptInvite(inv); onRefetch(); }}>
+                <Button size="sm" className="rounded-lg text-xs h-9" onClick={async () => {
+                  await onAcceptInvite(inv);
+                  onRefetch();
+                  setJoinedGroupId(inv.groupId);
+                  setJoinedGroupName(inv.groupName || "Group");
+                  setPlayerDialogOpen(true);
+                }}>
                   {t("groups.acceptInvite")}
                 </Button>
                 <Button size="sm" variant="outline" className="rounded-lg text-xs h-9" onClick={() => onDeclineInvite(inv.id)}>
@@ -343,6 +364,17 @@ export function GroupSelector({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Player Linking Dialog (after joining a group) */}
+      {joinedGroupId && (
+        <JoinGroupPlayerDialog
+          open={playerDialogOpen}
+          onOpenChange={setPlayerDialogOpen}
+          groupId={joinedGroupId}
+          groupName={joinedGroupName}
+          onComplete={() => { onRefetch(); setJoinedGroupId(null); }}
+        />
+      )}
     </div>
   );
 }

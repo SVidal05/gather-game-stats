@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Player, GameSession, PlayerStats, PlayerResult } from "./types";
 
 export function usePlayers(groupId: string | null) {
-  const { user } = useAuth();
+  const { user, username } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,12 +16,25 @@ export function usePlayers(groupId: string | null) {
       .eq("group_id", groupId)
       .order("created_at", { ascending: true });
     if (data) {
+      // Fetch linked user profiles
+      const linkedUserIds = data.filter((p: any) => p.linked_user_id).map((p: any) => p.linked_user_id);
+      let profileMap = new Map<string, string>();
+      if (linkedUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, username")
+          .in("user_id", linkedUserIds);
+        profileMap = new Map((profiles || []).map((pr: any) => [pr.user_id, pr.username]));
+      }
+
       setPlayers(data.map(p => ({
         id: p.id,
         name: p.name,
         color: p.color,
         avatar: p.avatar,
         createdAt: p.created_at,
+        linkedUserId: p.linked_user_id || null,
+        linkedUsername: p.linked_user_id ? (profileMap.get(p.linked_user_id) || null) : null,
       })));
     }
     setLoading(false);
@@ -33,11 +46,16 @@ export function usePlayers(groupId: string | null) {
     if (!user || !groupId) return;
     const { data } = await supabase
       .from("players")
-      .insert({ user_id: user.id, group_id: groupId, name: player.name, color: player.color, avatar: player.avatar })
+      .insert({ user_id: user.id, group_id: groupId, name: player.name, color: player.color, avatar: player.avatar, linked_user_id: player.linkedUserId || null })
       .select()
       .single();
     if (data) {
-      setPlayers(prev => [...prev, { id: data.id, name: data.name, color: data.color, avatar: data.avatar, createdAt: data.created_at }]);
+      setPlayers(prev => [...prev, {
+        id: data.id, name: data.name, color: data.color, avatar: data.avatar,
+        createdAt: data.created_at,
+        linkedUserId: data.linked_user_id || null,
+        linkedUsername: data.linked_user_id === user.id ? (username || null) : null,
+      }]);
     }
   }, [user, groupId]);
 
