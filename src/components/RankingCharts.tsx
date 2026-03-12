@@ -289,6 +289,26 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
     });
   }, [soloFiltered, players]);
 
+  // Category distribution
+  const categoryData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filteredSessions.forEach(s => {
+      const cat = getSessionCategory(s);
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .filter(([, count]) => count > 0)
+      .map(([cat, count]) => ({
+        name: CATEGORY_LABELS[cat] || cat,
+        value: count,
+        color: CATEGORY_COLORS[cat] || CHART_COLORS[0],
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredSessions, getSessionCategory]);
+
+  // Most played category
+  const topCategory = categoryData.length > 0 ? categoryData[0] : null;
+
   const pointsData = filteredStats
     .filter(s => s.totalPoints > 0)
     .sort((a, b) => b.totalPoints - a.totalPoints)
