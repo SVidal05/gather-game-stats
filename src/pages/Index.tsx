@@ -441,7 +441,7 @@ const Index = () => {
                 onDeclineInvite={declineInvite} onRefetch={handleRefetch}
               />
             )}
-            {activeTab === "profile" && <ProfileTab players={players} sessions={sessions} isDark={isDark} onToggleDark={cycleTheme} />}
+            {activeTab === "profile" && <ProfileTab players={players} sessions={sessions} globalPlayers={globalPlayers} globalSessions={globalSessions} isDark={isDark} onToggleDark={cycleTheme} />}
             {activeTab === "settings" && <SettingsTab isDark={isDark} onToggleDark={cycleTheme} themeMode={themeMode} onSetThemeMode={setThemeMode} />}
             {activeGroup && !dataLoading && (
               <>
