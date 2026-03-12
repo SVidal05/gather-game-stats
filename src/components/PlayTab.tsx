@@ -926,7 +926,11 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   className="game-card w-full !p-0 overflow-hidden">
                   <div className="flex items-stretch">
                     <button onClick={() => openGameDetail(game.name)} className="w-16 h-16 shrink-0 relative overflow-hidden">
-                      <img src={game.theme.image} alt={game.name} className="w-full h-full object-cover" />
+                      <img
+                        src={game.dbGame?.coverImage || game.dbGame?.backgroundImage || artworkPreviewByName[game.name.toLowerCase()]?.coverImage || artworkPreviewByName[game.name.toLowerCase()]?.backgroundImage || game.theme.image}
+                        alt={game.name}
+                        className="w-full h-full object-cover"
+                      />
                       <div className="absolute inset-0" style={{ background: game.theme.gradient, opacity: 0.3 }} />
                     </button>
                     <div className="flex-1 p-2.5 flex items-center justify-between">
