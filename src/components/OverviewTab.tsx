@@ -347,7 +347,7 @@ export function OverviewTab({ players, sessions, onGameClick }: { players: Playe
       </div>
 
       {/* 2. Game Spotlight */}
-      <GameSpotlight sessions={sessions} players={players} />
+      <GameSpotlight sessions={sessions} players={players} onGameClick={onGameClick} />
 
       {/* 3. Top Player */}
       <TopPlayerWidget players={players} sessions={sessions} />
