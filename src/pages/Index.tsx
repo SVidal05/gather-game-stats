@@ -54,7 +54,7 @@ const Index = () => {
   const { members, removeMember, inviteByEmail, refetch: refetchMembers } = useGroupMembers(activeGroupId);
   const { invites: pendingInvites, acceptInvite, declineInvite } = usePendingInvites();
 
-  const { players, addPlayer, removePlayer, updatePlayer, loading: playersLoading } = usePlayers(activeGroupId);
+  const { players, addPlayer, removePlayer, updatePlayer, loading: playersLoading, refetch: refetchPlayers } = usePlayers(activeGroupId);
   const { sessions, addSession, removeSession, updateSession, loading: sessionsLoading } = useSessions(activeGroupId);
   const { sessions: globalSessions, players: globalPlayers } = useAllUserSessions();
 
