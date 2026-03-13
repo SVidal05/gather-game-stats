@@ -401,6 +401,40 @@ export const GROUP_ACHIEVEMENTS: Achievement[] = [
     titles: { es: "Ejército del Grupo", en: "Group Army", fr: "Armée du Groupe" },
     descriptions: { es: "16 jugadores en este grupo", en: "16 players in this group", fr: "16 joueurs dans ce groupe" },
     condition: (p) => p.length >= 16, progress: (p) => pct(p.length, 16) },
+
+  // ── Social achievements (group) ──
+  { id: "group_welcomer", icon: Handshake, xp: 75, rarity: "common", category: "social", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Anfitrión", en: "Host", fr: "Hôte" },
+    descriptions: { es: "3+ jugadores se unen al grupo", en: "3+ players join the group", fr: "3+ joueurs rejoignent le groupe" },
+    condition: (p) => p.length >= 3, progress: (p) => pct(p.length, 3) },
+
+  { id: "group_mixer", icon: Gift, xp: 150, rarity: "rare", category: "social", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "El Mezclador", en: "The Mixer", fr: "Le Mélangeur" },
+    descriptions: { es: "Todos los jugadores han jugado al menos 1 sesión", en: "All players played at least 1 session", fr: "Tous les joueurs ont joué au moins 1 session" },
+    condition: (p, s) => { if (p.length < 2) return false; return p.every(pl => s.some(sess => sess.results.some(r => r.playerId === pl.id))); },
+    progress: (p, s) => { if (p.length < 2) return 0; const active = p.filter(pl => s.some(sess => sess.results.some(r => r.playerId === pl.id))).length; return pct(active, p.length); } },
+
+  { id: "group_all_together", icon: Pizza, xp: 300, rarity: "epic", category: "social", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Todos Juntos", en: "All Together", fr: "Tous Ensemble" },
+    descriptions: { es: "Una sesión donde juegan todos los del grupo", en: "A session where everyone in the group plays", fr: "Une session où tout le groupe joue" },
+    condition: (p, s) => { if (p.length < 3) return false; return s.some(sess => p.every(pl => sess.results.some(r => r.playerId === pl.id))); },
+    progress: (p, s) => { if (p.length < 3) return 0; const best = Math.max(...s.map(sess => p.filter(pl => sess.results.some(r => r.playerId === pl.id)).length)); return pct(best, p.length); } },
+
+  // ── Game-specific achievements (group) ──
+  { id: "group_one_game_master", icon: CircleDot, xp: 100, rarity: "common", category: "game_specific", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Primer Juego", en: "First Game", fr: "Premier Jeu" },
+    descriptions: { es: "Juega tu primer juego diferente en el grupo", en: "Play your first unique game in the group", fr: "Jouez votre premier jeu unique dans le groupe" },
+    condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 1, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 1) },
+
+  { id: "group_three_games", icon: Puzzle, xp: 150, rarity: "rare", category: "game_specific", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Explorador del Grupo", en: "Group Explorer", fr: "Explorateur du Groupe" },
+    descriptions: { es: "Juega 3 juegos diferentes en este grupo", en: "Play 3 different games in this group", fr: "Jouez à 3 jeux différents dans ce groupe" },
+    condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 3, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 3) },
+
+  { id: "group_game_marathon", icon: Palette, xp: 300, rarity: "epic", category: "game_specific", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Ludoteca", en: "Game Library", fr: "Ludothèque" },
+    descriptions: { es: "Juega 10 juegos diferentes en este grupo", en: "Play 10 different games in this group", fr: "Jouez à 10 jeux différents dans ce groupe" },
+    condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 10, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 10) },
 ];
 
 // Combined for backward compat
