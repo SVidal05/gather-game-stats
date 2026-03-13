@@ -488,7 +488,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
 
         {/* Achievement grid */}
         <div className="grid gap-3">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="popLayout" initial={false}>
             {filteredAchievements.map((achievement, i) => {
               const unlocked = allUnlockedIds.has(achievement.id);
               const achPlayers = achievement.scope === "global" ? globalPlayers : players;
