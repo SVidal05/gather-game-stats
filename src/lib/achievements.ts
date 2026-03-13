@@ -348,7 +348,7 @@ export const GROUP_ACHIEVEMENTS: Achievement[] = [
     condition: (_, s) => s.some(sess => sess.results.length >= 4),
     progress: (_, s) => { const max = Math.max(...s.map(sess => sess.results.length), 0); return pct(max, 4); } },
 
-  { id: "group_twenty_sessions", icon: Waypoints, xp: 400, rarity: "epic", category: "cooperative", scope: "group", groupType: "cooperative", hidden: false,
+  { id: "group_twenty_sessions", icon: Route, xp: 400, rarity: "epic", category: "cooperative", scope: "group", groupType: "cooperative", hidden: false,
     titles: { es: "Maratón", en: "Marathon", fr: "Marathon" },
     descriptions: { es: "20 sesiones totales del grupo", en: "20 total group sessions", fr: "20 sessions totales du groupe" },
     condition: (_, s) => s.length >= 20, progress: (_, s) => pct(s.length, 20) },
