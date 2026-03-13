@@ -1,0 +1,2 @@
+UPDATE public.games SET background_image = 'https://media.rawg.io/media/screenshots/4ff/4ff80f9119a02de032d9782fa0a475ab.jpg', cover_image = 'https://media.rawg.io/media/screenshots/4ff/4ff80f9119a02de032d9782fa0a475ab.jpg' WHERE name = 'Mario Kart';
+UPDATE public.games SET background_image = 'https://media.rawg.io/media/screenshots/1f0/1f01a10e38da349d95258a768e076910.jpg', cover_image = 'https://media.rawg.io/media/screenshots/1f0/1f01a10e38da349d95258a768e076910.jpg' WHERE name = 'Monopoly';

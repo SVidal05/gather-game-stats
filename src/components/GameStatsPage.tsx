@@ -102,7 +102,7 @@ export function GameStatsPage({ gameName, players, sessions, onBack }: GameStats
         className="rounded-xl border border-border overflow-hidden"
       >
         <div className="relative h-40 overflow-hidden">
-          <img src={bannerImage} alt={gameName} className="w-full h-full object-cover" />
+          <img src={bannerImage} alt={gameName} className="w-full h-full object-cover object-top" loading="lazy" />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between">
             <div>

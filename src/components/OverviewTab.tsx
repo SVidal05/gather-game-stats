@@ -94,7 +94,8 @@ function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSessi
         <img
           src={bannerImage}
           alt={spotlight.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-top"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
@@ -264,7 +265,7 @@ function RecentSessionsList({ sessions, players }: { sessions: GameSession[]; pl
                 className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 overflow-hidden"
                 style={{ background: `${theme.primaryColor}15` }}
               >
-                <img src={imgSrc} alt={session.gameName} className="w-full h-full object-cover rounded-md" />
+                <img src={imgSrc} alt={session.gameName} className="w-full h-full object-cover object-top rounded-md" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-foreground truncate">{session.gameName}</p>
