@@ -186,24 +186,24 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
     return sortAchievements(list, allUnlockedIds);
   }, [activeCategory, scopeFilter, allUnlockedIds]);
 
-  // Group XP leaderboard
+  // Group XP leaderboard — per-player XP
   const leaderboardData = useMemo(() => {
     const stats = getPlayerStats(players, sessions);
     return stats
       .map(ps => {
-        // Each player in the group gets group XP based on their personal stats
-        // Simple approach: all players in the group share the group achievement XP
-        // since group achievements are group-wide, not per-player
+        const playerGroupXP = calculateGroupXP(players, sessions, ps.player);
+        const playerTotalXP = globalXP + playerGroupXP;
+        const playerLevel = getLevel(playerTotalXP);
         return {
           player: ps.player,
           wins: ps.wins,
           gamesPlayed: ps.gamesPlayed,
-          totalXP, // all share the same group XP context
-          level: levelInfo,
+          totalXP: playerTotalXP,
+          level: playerLevel,
         };
       })
-      .sort((a, b) => b.wins - a.wins);
-  }, [players, sessions, totalXP, levelInfo]);
+      .sort((a, b) => b.totalXP - a.totalXP || b.wins - a.wins);
+  }, [players, sessions, globalXP]);
 
   const getStreakInfo = () => {
     let bestPlayer: Player | null = null;
@@ -363,11 +363,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
           </button>
           {leaderboardOpen && (
             <div className="mt-3 space-y-1.5">
-              {leaderboardData.map((entry, i) => {
-                const stats = getPlayerStats([entry.player], sessions);
-                const playerXP = globalXP; // players share global XP context
-                const playerLevel = getLevel(playerXP);
-                return (
+              {leaderboardData.map((entry, i) => (
                   <div key={entry.player.id}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg ${
                       i === 0 ? "bg-[hsl(var(--gold))]/8 border border-[hsl(var(--gold))]/20" :
@@ -387,18 +383,28 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">{entry.player.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold text-foreground truncate">{entry.player.name}</p>
+                        {entry.player.linkedUsername ? (
+                          <span className="text-[8px] font-semibold text-primary bg-primary/10 px-1 py-0.5 rounded shrink-0">
+                            🔗 {entry.player.linkedUsername}
+                          </span>
+                        ) : (
+                          <span className="text-[8px] text-muted-foreground italic shrink-0">
+                            —
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[9px] text-muted-foreground">
-                        Lv.{playerLevel.level} · {entry.wins}W · {entry.gamesPlayed}G
+                        Lv.{entry.level.level} · {entry.wins}W · {entry.gamesPlayed}G
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-xs font-bold text-foreground">{playerXP} XP</p>
-                      <p className="text-[9px] text-muted-foreground">{playerLevel.title[lang] || playerLevel.title.en}</p>
+                      <p className="text-xs font-bold text-foreground">{entry.totalXP} XP</p>
+                      <p className="text-[9px] text-muted-foreground">{entry.level.title[lang] || entry.level.title.en}</p>
                     </div>
                   </div>
-                );
-              })}
+              ))}
             </div>
           )}
         </motion.div>
