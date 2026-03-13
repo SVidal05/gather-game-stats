@@ -52,6 +52,11 @@ const translations = {
   "players.onFire": { es: "🔥 En Racha", en: "🔥 On Fire", fr: "🔥 En Feu" },
   "players.veteran": { es: "🎖️ Veterano", en: "🎖️ Veteran", fr: "🎖️ Vétéran" },
   "players.topScorer": { es: "💎 Máximo Anotador", en: "💎 Top Scorer", fr: "💎 Meilleur Scoreur" },
+  "players.linked": { es: "Jugador vinculado a tu cuenta", en: "Player linked to your account", fr: "Joueur lié à votre compte" },
+  "players.unlinked": { es: "Jugador desvinculado de tu cuenta", en: "Player unlinked from your account", fr: "Joueur délié de votre compte" },
+  "players.noUserLinked": { es: "Sin usuario", en: "No user linked", fr: "Aucun utilisateur" },
+  "players.unlinkMe": { es: "Desvincular de mi cuenta", en: "Unlink from my account", fr: "Délier de mon compte" },
+  "players.linkMe": { es: "Vincular a mi cuenta", en: "Link to my account", fr: "Lier à mon compte" },
 
   // Sessions
   "sessions.title": { es: "Sesiones", en: "Sessions", fr: "Sessions" },
