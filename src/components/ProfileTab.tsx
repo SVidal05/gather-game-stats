@@ -319,7 +319,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
           </h3>
           <div className="flex flex-wrap gap-1.5">
             {unlockedTitles.map(title => (
-              <button key={title.id} onClick={() => setSelectedTitle(title.id)}
+              <button key={title.id} onClick={() => handleSelectTitle(title.id)}
                 className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg transition-all ${
                   activeTitle?.id === title.id
                     ? "bg-primary/15 text-primary ring-1 ring-primary/30"
