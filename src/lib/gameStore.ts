@@ -129,6 +129,8 @@ export function useGames() {
         icon: g.icon,
         backgroundImage: g.background_image || null,
         coverImage: g.cover_image || null,
+        focusX: g.focus_x ?? 50,
+        focusY: g.focus_y ?? 30,
         gameMode: (g.game_mode as GameMode) || "multiplayer",
         category: (g.category as GameCategory) || "competitive",
         createdAt: g.created_at,
