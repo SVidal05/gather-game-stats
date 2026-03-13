@@ -153,6 +153,24 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
   const [scopeFilter, setScopeFilter] = useState<AchievementScope | "all">("all");
   const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
   const [leaderboardOpen, setLeaderboardOpen] = useState(true);
+  const [titleLoaded, setTitleLoaded] = useState(false);
+
+  // Load persisted title from DB
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("selected_title").eq("user_id", user.id).single()
+      .then(({ data }) => {
+        if (data?.selected_title) setSelectedTitle(data.selected_title);
+        setTitleLoaded(true);
+      });
+  }, [user]);
+
+  // Save title when changed
+  const handleSelectTitle = useCallback((titleId: string) => {
+    setSelectedTitle(titleId);
+    if (!user) return;
+    supabase.from("profiles").update({ selected_title: titleId } as any).eq("user_id", user.id).then();
+  }, [user]);
 
   // Global XP from global achievements
   const globalXP = useMemo(() => calculateXP(globalPlayers, globalSessions), [globalPlayers, globalSessions]);
