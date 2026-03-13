@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Player, GameSession, PlayerResult } from "@/lib/types";
 
 /**
- * Fetches ALL sessions across ALL groups for the current user.
+ * Fetches ALL sessions across ALL groups the user is a member of.
  * Used for global achievement calculations.
  */
 export function useAllUserSessions() {
@@ -16,21 +16,38 @@ export function useAllUserSessions() {
   const fetch = useCallback(async () => {
     if (!user) { setSessions([]); setPlayers([]); setLoading(false); return; }
 
-    // Fetch all sessions owned by user
+    // Get all groups the user is a member of
+    const { data: memberships } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", user.id);
+
+    if (!memberships || memberships.length === 0) {
+      setSessions([]); setPlayers([]); setLoading(false); return;
+    }
+
+    const groupIds = memberships.map(m => m.group_id);
+
+    // Fetch all sessions from all user's groups with pagination
     let allSessions: any[] = [];
-    let from = 0;
     const pageSize = 1000;
-    while (true) {
-      const { data: page } = await supabase
-        .from("sessions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: true })
-        .range(from, from + pageSize - 1);
-      if (!page || page.length === 0) break;
-      allSessions = allSessions.concat(page);
-      if (page.length < pageSize) break;
-      from += pageSize;
+    const batchSize = 200;
+
+    for (let g = 0; g < groupIds.length; g += batchSize) {
+      const groupBatch = groupIds.slice(g, g + batchSize);
+      let from = 0;
+      while (true) {
+        const { data: page } = await supabase
+          .from("sessions")
+          .select("*")
+          .in("group_id", groupBatch)
+          .order("created_at", { ascending: true })
+          .range(from, from + pageSize - 1);
+        if (!page || page.length === 0) break;
+        allSessions = allSessions.concat(page);
+        if (page.length < pageSize) break;
+        from += pageSize;
+      }
     }
 
     if (allSessions.length === 0) { setSessions([]); setPlayers([]); setLoading(false); return; }
@@ -38,14 +55,20 @@ export function useAllUserSessions() {
     // Fetch results
     const sessionIds = allSessions.map(s => s.id);
     let allResults: any[] = [];
-    const batchSize = 200;
     for (let i = 0; i < sessionIds.length; i += batchSize) {
       const batch = sessionIds.slice(i, i + batchSize);
-      const { data: results } = await supabase
-        .from("results")
-        .select("*")
-        .in("session_id", batch);
-      if (results) allResults = allResults.concat(results);
+      let from = 0;
+      while (true) {
+        const { data: page } = await supabase
+          .from("results")
+          .select("*")
+          .in("session_id", batch)
+          .range(from, from + pageSize - 1);
+        if (!page || page.length === 0) break;
+        allResults = allResults.concat(page);
+        if (page.length < pageSize) break;
+        from += pageSize;
+      }
     }
 
     const resultsBySession = new Map<string, PlayerResult[]>();
@@ -88,6 +111,7 @@ export function useAllUserSessions() {
         color: p.color,
         avatar: p.avatar,
         createdAt: p.created_at,
+        linkedUserId: p.linked_user_id || null,
       })));
     }
 

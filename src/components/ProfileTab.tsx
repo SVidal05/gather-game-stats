@@ -211,7 +211,9 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
     return stats
       .map(ps => {
         const playerGroupXP = calculateGroupXP(players, sessions, ps.player);
-        const playerTotalXP = globalXP + playerGroupXP;
+        // Only add globalXP if this player is linked to the current user
+        const playerGlobalXP = ps.player.linkedUserId === user?.id ? globalXP : 0;
+        const playerTotalXP = playerGlobalXP + playerGroupXP;
         const playerLevel = getLevel(playerTotalXP);
         return {
           player: ps.player,
@@ -222,7 +224,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
         };
       })
       .sort((a, b) => b.totalXP - a.totalXP || b.wins - a.wins);
-  }, [players, sessions, globalXP]);
+  }, [players, sessions, globalXP, user]);
 
   const getStreakInfo = () => {
     let bestPlayer: Player | null = null;
