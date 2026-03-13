@@ -452,7 +452,7 @@ const Index = () => {
                   <GameStatsPage gameName={gameStatsName} players={players} sessions={sessions} onBack={() => setGameStatsName(null)} />
                 )}
                 {activeTab === "players" && (
-                  <PlayersTab players={players} sessions={sessions} onAddPlayer={addPlayer} onRemovePlayer={removePlayer} onUpdatePlayer={updatePlayer} />
+                  <PlayersTab players={players} sessions={sessions} onAddPlayer={addPlayer} onRemovePlayer={removePlayer} onUpdatePlayer={updatePlayer} onRefetchPlayers={refetchPlayers} />
                 )}
                 {activeTab === "play" && (
                   <PlayTab players={players} sessions={sessions} onAddSession={addSession} onRemoveSession={removeSession} onUpdateSession={updateSession} />

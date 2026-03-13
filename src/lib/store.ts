@@ -73,7 +73,7 @@ export function usePlayers(groupId: string | null) {
     setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
   }, []);
 
-  return { players, addPlayer, removePlayer, updatePlayer, loading };
+  return { players, addPlayer, removePlayer, updatePlayer, loading, refetch: fetchPlayers };
 }
 
 export function useSessions(groupId: string | null) {
