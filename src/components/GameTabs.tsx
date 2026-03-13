@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Users, Gamepad2, Calendar, Plus, Trash2, Edit3, Check, X } from "lucide-react";
+import { Trophy, Users, Gamepad2, Calendar, Plus, Trash2, Edit3, Check, X, Link, Unlink } from "lucide-react";
 import { Player, GameSession, PlayerStats, PLAYER_COLORS, PLAYER_AVATARS, POPULAR_GAMES, PlayerResult } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme } from "@/lib/gameThemes";
@@ -8,12 +8,15 @@ import { PlayerBadge } from "@/components/PlayerBadge";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 
 // ─── Dashboard Tab ────────────────────────────────
