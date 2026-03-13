@@ -298,6 +298,9 @@ export function PlayersTab({
               {editingId === ps.player.id ? (
                 <div className="space-y-3">
                   <Input value={editName} onChange={e => setEditName(e.target.value)} className="rounded-lg h-10" />
+                  {editName.trim() && isDuplicateName(editName, editingId!) && (
+                    <p className="text-xs text-warning flex items-center gap-1">⚠️ {t("players.duplicateNameWarning")}</p>
+                  )}
                   <AvatarPicker value={editAvatar} onChange={setEditAvatar} size="sm" />
                   <div className="flex flex-wrap gap-1.5">
                     {PLAYER_COLORS.map(c => (
