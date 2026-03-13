@@ -43,6 +43,7 @@ const translations = {
   "players.avatar": { es: "Avatar", en: "Avatar", fr: "Avatar" },
   "players.color": { es: "Color", en: "Color", fr: "Couleur" },
   "players.addPlayer": { es: "Añadir Jugador", en: "Add Player", fr: "Ajouter Joueur" },
+  "players.duplicateNameWarning": { es: "Ya existe un jugador con este nombre en el grupo", en: "A player with this name already exists in this group", fr: "Un joueur avec ce nom existe déjà dans ce groupe" },
   "players.save": { es: "Guardar", en: "Save", fr: "Sauvegarder" },
   "players.games": { es: "partidas", en: "games", fr: "parties" },
   "players.wins": { es: "victorias", en: "wins", fr: "victoires" },
