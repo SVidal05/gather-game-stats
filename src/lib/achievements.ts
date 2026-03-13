@@ -342,7 +342,7 @@ export const GROUP_ACHIEVEMENTS: Achievement[] = [
     descriptions: { es: "8 jugadores en este grupo", en: "8 players in this group", fr: "8 joueurs dans ce groupe" },
     condition: (p) => p.length >= 8, progress: (p) => pct(p.length, 8) },
 
-  { id: "group_four_session", icon: Blocks, xp: 150, rarity: "rare", category: "cooperative", scope: "group", groupType: "cooperative", hidden: false,
+  { id: "group_four_session", icon: LayoutGrid, xp: 150, rarity: "rare", category: "cooperative", scope: "group", groupType: "cooperative", hidden: false,
     titles: { es: "Mesa Completa", en: "Full Table", fr: "Table Complète" },
     descriptions: { es: "Primera sesión con 4+ jugadores", en: "First session with 4+ players", fr: "Première session avec 4+ joueurs" },
     condition: (_, s) => s.some(sess => sess.results.length >= 4),
