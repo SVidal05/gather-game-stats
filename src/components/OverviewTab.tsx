@@ -7,7 +7,7 @@ import { getGameTheme } from "@/lib/gameThemes";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
-import { useGames, searchGameArtwork } from "@/lib/gameStore";
+import { useGames, searchGameArtwork, getObjectPosition } from "@/lib/gameStore";
 
 // ─── Helpers ────────────────────────────────
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
