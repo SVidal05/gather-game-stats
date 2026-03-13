@@ -128,7 +128,7 @@ export const GLOBAL_ACHIEVEMENTS: Achievement[] = [
     descriptions: { es: "Juega 6 juegos diferentes", en: "Play 6 different games", fr: "Jouez à 6 jeux différents" },
     condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 6, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 6) },
 
-  { id: "game_master", icon: Map, xp: 500, rarity: "legendary", category: "game_specific", scope: "global", hidden: true,
+  { id: "game_master", icon: MapIcon, xp: 500, rarity: "legendary", category: "game_specific", scope: "global", hidden: true,
     titles: { es: "Maestro de Juegos", en: "Game Master", fr: "Maître du Jeu" },
     descriptions: { es: "Juega 12 juegos diferentes", en: "Play 12 different games", fr: "Jouez à 12 jeux différents" },
     condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 12, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 12) },
