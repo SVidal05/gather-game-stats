@@ -118,7 +118,7 @@ export const GLOBAL_ACHIEVEMENTS: Achievement[] = [
     descriptions: { es: "Juega 3 juegos diferentes", en: "Play 3 different games", fr: "Jouez à 3 jeux différents" },
     condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 3, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 3) },
 
-  { id: "five_games", icon: Puzzle, xp: 200, rarity: "rare", category: "game_specific", scope: "global", hidden: false,
+  { id: "five_games", icon: Globe, xp: 200, rarity: "rare", category: "game_specific", scope: "global", hidden: false,
     titles: { es: "Explorador", en: "Explorer", fr: "Explorateur" },
     descriptions: { es: "Juega 5 juegos diferentes", en: "Play 5 different games", fr: "Jouez à 5 jeux différents" },
     condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 5, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 5) },
