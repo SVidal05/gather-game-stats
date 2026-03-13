@@ -124,7 +124,13 @@ function AchievementCard({ achievement, unlocked, players, sessions, lang, index
 
 export function ProfileTab({ players, sessions, globalPlayers, globalSessions }: ProfileTabProps) {
   const { lang, t } = useI18n();
-  const { username } = useAuth();
+  const { user, username } = useAuth();
+
+  // Find the user's linked player in the current group
+  const linkedPlayer = useMemo(() => 
+    user ? players.find(p => p.linkedUserId === user.id) || null : null,
+    [players, user]
+  );
 
   const [activeCategory, setActiveCategory] = useState<AchievementCategory | "all">("all");
   const [scopeFilter, setScopeFilter] = useState<AchievementScope | "all">("all");
