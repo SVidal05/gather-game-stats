@@ -178,6 +178,8 @@ export function useGames() {
         icon: data.icon,
         backgroundImage: (data as any).background_image || null,
         coverImage: (data as any).cover_image || null,
+        focusX: (data as any).focus_x ?? 50,
+        focusY: (data as any).focus_y ?? 30,
         gameMode,
         category,
         createdAt: data.created_at,
