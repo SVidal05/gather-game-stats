@@ -363,11 +363,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
           </button>
           {leaderboardOpen && (
             <div className="mt-3 space-y-1.5">
-              {leaderboardData.map((entry, i) => {
-                const stats = getPlayerStats([entry.player], sessions);
-                const playerXP = globalXP; // players share global XP context
-                const playerLevel = getLevel(playerXP);
-                return (
+              {leaderboardData.map((entry, i) => (
                   <div key={entry.player.id}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg ${
                       i === 0 ? "bg-[hsl(var(--gold))]/8 border border-[hsl(var(--gold))]/20" :
@@ -387,18 +383,28 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">{entry.player.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold text-foreground truncate">{entry.player.name}</p>
+                        {entry.player.linkedUsername ? (
+                          <span className="text-[8px] font-semibold text-primary bg-primary/10 px-1 py-0.5 rounded shrink-0">
+                            🔗 {entry.player.linkedUsername}
+                          </span>
+                        ) : (
+                          <span className="text-[8px] text-muted-foreground italic shrink-0">
+                            —
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[9px] text-muted-foreground">
-                        Lv.{playerLevel.level} · {entry.wins}W · {entry.gamesPlayed}G
+                        Lv.{entry.level.level} · {entry.wins}W · {entry.gamesPlayed}G
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-xs font-bold text-foreground">{playerXP} XP</p>
-                      <p className="text-[9px] text-muted-foreground">{playerLevel.title[lang] || playerLevel.title.en}</p>
+                      <p className="text-xs font-bold text-foreground">{entry.totalXP} XP</p>
+                      <p className="text-[9px] text-muted-foreground">{entry.level.title[lang] || entry.level.title.en}</p>
                     </div>
                   </div>
-                );
-              })}
+              ))}
             </div>
           )}
         </motion.div>
