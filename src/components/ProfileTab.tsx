@@ -12,7 +12,7 @@ import {
   GLOBAL_ACHIEVEMENTS, GROUP_ACHIEVEMENTS,
   RARITY_CONFIG, CATEGORY_CONFIG, PLAYER_TITLES,
   calculateXP, calculateGroupXP, getLevel, getXPProgress, getUnlockedTitles,
-  sortAchievements,
+  sortAchievements, evaluateGroupAchievement, evaluateGroupAchievementProgress,
 } from "@/lib/achievements";
 
 interface ProfileTabProps {
