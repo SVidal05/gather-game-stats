@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Star, Flame, Gamepad2, Users, Dice5, Lock, Sparkles, Shield, Globe, UsersRound, ChevronDown, ChevronUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Player, GameSession } from "@/lib/types";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { getPlayerStats } from "@/lib/store";
