@@ -130,14 +130,17 @@ export function DashboardTab({ players, sessions }: { players: Player[]; session
 
 // ─── Players Tab ──────────────────────────────────
 export function PlayersTab({
-  players, sessions, onAddPlayer, onRemovePlayer, onUpdatePlayer,
+  players, sessions, onAddPlayer, onRemovePlayer, onUpdatePlayer, onRefetchPlayers,
 }: {
   players: Player[]; sessions: GameSession[];
   onAddPlayer: (p: Omit<Player, "id" | "createdAt">) => void;
   onRemovePlayer: (id: string) => void;
   onUpdatePlayer: (id: string, updates: Partial<Player>) => void;
+  onRefetchPlayers?: () => void;
 }) {
   const { t } = useI18n();
+  const { user, username } = useAuth();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [color, setColor] = useState(PLAYER_COLORS[0].value);
@@ -146,7 +149,11 @@ export function PlayersTab({
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
+  const [linkingPlayerId, setLinkingPlayerId] = useState<string | null>(null);
   const stats = getPlayerStats(players, sessions);
+
+  // Check if current user is already linked to a player in this group
+  const userLinkedPlayer = players.find(p => p.linkedUserId === user?.id);
 
   const handleAdd = () => {
     if (!name.trim()) return;
@@ -169,6 +176,42 @@ export function PlayersTab({
       onUpdatePlayer(editingId, { name: editName.trim(), color: editColor, avatar: editAvatar });
       setEditingId(null);
     }
+  };
+
+  const handleLinkPlayer = async (playerId: string) => {
+    if (!user) return;
+    setLinkingPlayerId(playerId);
+    const { error } = await supabase
+      .from("players")
+      .update({ linked_user_id: user.id })
+      .eq("id", playerId)
+      .is("linked_user_id", null);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "🔗", description: t("players.linked") || "Player linked to your account" });
+      onRefetchPlayers?.();
+    }
+    setLinkingPlayerId(null);
+  };
+
+  const handleUnlinkPlayer = async (playerId: string) => {
+    if (!user) return;
+    setLinkingPlayerId(playerId);
+    const { error } = await supabase
+      .from("players")
+      .update({ linked_user_id: null })
+      .eq("id", playerId)
+      .eq("linked_user_id", user.id);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "🔓", description: t("players.unlinked") || "Player unlinked from your account" });
+      onRefetchPlayers?.();
+    }
+    setLinkingPlayerId(null);
   };
 
   const getBadges = (ps: PlayerStats) => {
@@ -231,7 +274,12 @@ export function PlayersTab({
 
       <div className="grid gap-3">
         <AnimatePresence>
-          {stats.map((ps, i) => (
+          {stats.map((ps, i) => {
+            const isLinkedToMe = ps.player.linkedUserId === user?.id;
+            const isLinkedToOther = !!ps.player.linkedUserId && !isLinkedToMe;
+            const canLink = !ps.player.linkedUserId && !userLinkedPlayer;
+
+            return (
             <motion.div
               key={ps.player.id}
               initial={{ opacity: 0, y: 20 }}
@@ -270,15 +318,20 @@ export function PlayersTab({
                       ) : ps.player.avatar}
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground text-sm">{ps.player.name}</p>
-                      <div className="flex gap-3 mt-0.5 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-foreground text-sm">{ps.player.name}</p>
                         {ps.player.linkedUsername ? (
-                          <span className="text-primary font-medium">🔗 {ps.player.linkedUsername}</span>
+                          <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md inline-flex items-center gap-1">
+                            <Link className="w-2.5 h-2.5" />
+                            {ps.player.linkedUsername}
+                          </span>
                         ) : (
-                          <span className="italic">No user linked</span>
+                          <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md italic">
+                            {t("players.noUserLinked") || "No user linked"}
+                          </span>
                         )}
                       </div>
-                      <div className="flex gap-3 mt-0.5 text-xs text-muted-foreground">
+                      <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
                         <span>{ps.gamesPlayed} {t("players.games")}</span>
                         <span>{ps.wins} {t("players.wins")}</span>
                         <span>{ps.winRate.toFixed(0)}%</span>
@@ -293,7 +346,28 @@ export function PlayersTab({
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 items-start">
+                    {/* Link/Unlink button */}
+                    {isLinkedToMe && (
+                      <button
+                        onClick={() => handleUnlinkPlayer(ps.player.id)}
+                        disabled={linkingPlayerId === ps.player.id}
+                        className="text-primary hover:text-destructive transition-colors p-1.5"
+                        title={t("players.unlinkMe") || "Unlink from my account"}
+                      >
+                        <Unlink className="w-4 h-4" />
+                      </button>
+                    )}
+                    {canLink && (
+                      <button
+                        onClick={() => handleLinkPlayer(ps.player.id)}
+                        disabled={linkingPlayerId === ps.player.id}
+                        className="text-muted-foreground hover:text-primary transition-colors p-1.5"
+                        title={t("players.linkMe") || "Link to my account"}
+                      >
+                        <Link className="w-4 h-4" />
+                      </button>
+                    )}
                     <button onClick={() => startEdit(ps.player)} className="text-muted-foreground hover:text-primary transition-colors p-1.5">
                       <Edit3 className="w-4 h-4" />
                     </button>
@@ -304,7 +378,8 @@ export function PlayersTab({
                 </div>
               )}
             </motion.div>
-          ))}
+          );
+          })}
         </AnimatePresence>
       </div>
 
