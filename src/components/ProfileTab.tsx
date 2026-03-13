@@ -466,7 +466,6 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
           <AnimatePresence mode="popLayout">
             {filteredAchievements.map((achievement, i) => {
               const unlocked = allUnlockedIds.has(achievement.id);
-              // Use appropriate data source based on scope
               const achPlayers = achievement.scope === "global" ? globalPlayers : players;
               const achSessions = achievement.scope === "global" ? globalSessions : sessions;
               return (
@@ -478,6 +477,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
                   sessions={achSessions}
                   lang={lang}
                   index={i}
+                  linkedPlayer={achievement.scope === "group" ? linkedPlayer : undefined}
                 />
               );
             })}
