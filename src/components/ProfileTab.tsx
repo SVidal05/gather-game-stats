@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Star, Flame, Gamepad2, Users, Dice5, Lock, Sparkles, Shield, Globe, UsersRound, ChevronDown, ChevronUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Player, GameSession } from "@/lib/types";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { getPlayerStats } from "@/lib/store";
@@ -78,11 +79,11 @@ function AchievementCard({ achievement, unlocked, players, sessions, lang, index
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ delay: index * 0.02 }}
+      layout="position"
+      initial={{ opacity: 0, y: 12, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, y: -8 }}
+      transition={{ type: "spring", bounce: 0.15, duration: 0.45, delay: Math.min(index * 0.04, 0.4) }}
       className={`game-card !p-4 ${!unlocked ? "opacity-60" : ""}`}
       style={unlocked ? { borderLeft: `3px solid hsl(${rarityColor})` } : undefined}
     >
@@ -152,6 +153,24 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
   const [scopeFilter, setScopeFilter] = useState<AchievementScope | "all">("all");
   const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
   const [leaderboardOpen, setLeaderboardOpen] = useState(true);
+  const [titleLoaded, setTitleLoaded] = useState(false);
+
+  // Load persisted title from DB
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("selected_title").eq("user_id", user.id).single()
+      .then(({ data }) => {
+        if (data?.selected_title) setSelectedTitle(data.selected_title);
+        setTitleLoaded(true);
+      });
+  }, [user]);
+
+  // Save title when changed
+  const handleSelectTitle = useCallback((titleId: string) => {
+    setSelectedTitle(titleId);
+    if (!user) return;
+    supabase.from("profiles").update({ selected_title: titleId } as any).eq("user_id", user.id).then();
+  }, [user]);
 
   // Global XP from global achievements
   const globalXP = useMemo(() => calculateXP(globalPlayers, globalSessions), [globalPlayers, globalSessions]);
@@ -300,7 +319,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
           </h3>
           <div className="flex flex-wrap gap-1.5">
             {unlockedTitles.map(title => (
-              <button key={title.id} onClick={() => setSelectedTitle(title.id)}
+              <button key={title.id} onClick={() => handleSelectTitle(title.id)}
                 className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg transition-all ${
                   activeTitle?.id === title.id
                     ? "bg-primary/15 text-primary ring-1 ring-primary/30"
@@ -469,7 +488,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
 
         {/* Achievement grid */}
         <div className="grid gap-3">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence mode="popLayout" initial={false}>
             {filteredAchievements.map((achievement, i) => {
               const unlocked = allUnlockedIds.has(achievement.id);
               const achPlayers = achievement.scope === "global" ? globalPlayers : players;

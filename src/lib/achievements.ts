@@ -1,4 +1,4 @@
-import { Dice5, Gamepad2, Trophy, Users, PartyPopper, Target, FolderOpen, Crown, Gem, Flame, Eye, Sparkles, Swords, Shield, Skull, Heart, Zap, Star, BookOpen, Map as MapIcon, Award, UserPlus, Medal, Crosshair, Activity, Route, LayoutGrid, Globe } from "lucide-react";
+import { Dice5, Gamepad2, Trophy, Users, PartyPopper, Target, FolderOpen, Crown, Gem, Flame, Eye, Sparkles, Swords, Shield, Skull, Heart, Zap, Star, BookOpen, Map as MapIcon, Award, UserPlus, Medal, Crosshair, Activity, Route, LayoutGrid, Globe, Handshake, MessageCircle, Gift, Repeat, Beef, Pizza, Puzzle, Layers, TreePine, Palette, CircleDot } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
@@ -178,8 +178,6 @@ export const GLOBAL_ACHIEVEMENTS: Achievement[] = [
   { id: "group_creator", icon: UserPlus, xp: 100, rarity: "common", category: "social", scope: "global", hidden: false,
     titles: { es: "Fundador", en: "Founder", fr: "Fondateur" },
     descriptions: { es: "Crea tu primer grupo", en: "Create your first group", fr: "Créez votre premier groupe" },
-    // This checks if the user has players across groups (indicating they're in groups)
-    // A simple proxy: having sessions means they've created/joined groups
     condition: (_, s) => s.length >= 1, progress: (_, s) => pct(s.length, 1) },
 
   { id: "big_party", icon: PartyPopper, xp: 200, rarity: "rare", category: "social", scope: "global", hidden: false,
@@ -187,6 +185,47 @@ export const GLOBAL_ACHIEVEMENTS: Achievement[] = [
     descriptions: { es: "Participa en sesiones con 4+ jugadores", en: "Play sessions with 4+ players", fr: "Jouez des sessions avec 4+ joueurs" },
     condition: (_, s) => s.some(sess => sess.results.length >= 4),
     progress: (_, s) => { const max = Math.max(...s.map(sess => sess.results.length), 0); return pct(max, 4); } },
+
+  { id: "social_butterfly", icon: MessageCircle, xp: 150, rarity: "rare", category: "social", scope: "global", hidden: false,
+    titles: { es: "Mariposa Social", en: "Social Butterfly", fr: "Papillon Social" },
+    descriptions: { es: "Juega con 10+ jugadores diferentes", en: "Play with 10+ different players", fr: "Jouez avec 10+ joueurs différents" },
+    condition: (_, s) => { const ids = new Set<string>(); s.forEach(sess => sess.results.forEach(r => ids.add(r.playerId))); return ids.size >= 10; },
+    progress: (_, s) => { const ids = new Set<string>(); s.forEach(sess => sess.results.forEach(r => ids.add(r.playerId))); return pct(ids.size, 10); } },
+
+  // ── Global Rivalry ──
+  { id: "global_nemesis", icon: Crosshair, xp: 250, rarity: "epic", category: "rivalry", scope: "global", hidden: false,
+    titles: { es: "Rival Frecuente", en: "Frequent Rival", fr: "Rival Fréquent" },
+    descriptions: { es: "Juega 5+ veces contra el mismo oponente", en: "Play 5+ times against the same opponent", fr: "Jouez 5+ fois contre le même adversaire" },
+    condition: (p, s) => { const enc = new Map<string, number>(); for (const sess of s) { const pids = sess.results.map(r => r.playerId); for (let i = 0; i < pids.length; i++) for (let j = i+1; j < pids.length; j++) { const k = [pids[i],pids[j]].sort().join("-"); enc.set(k, (enc.get(k)||0)+1); } } for (const v of enc.values()) if (v >= 5) return true; return false; },
+    progress: (p, s) => { let max = 0; const enc = new Map<string, number>(); for (const sess of s) { const pids = sess.results.map(r => r.playerId); for (let i = 0; i < pids.length; i++) for (let j = i+1; j < pids.length; j++) { const k = [pids[i],pids[j]].sort().join("-"); enc.set(k, (enc.get(k)||0)+1); max = Math.max(max, enc.get(k)!); } } return pct(max, 5); } },
+
+  { id: "global_dominator_rival", icon: Swords, xp: 400, rarity: "epic", category: "rivalry", scope: "global", hidden: false,
+    titles: { es: "Dominación Total", en: "Total Domination", fr: "Domination Totale" },
+    descriptions: { es: "Gana 5 veces contra el mismo rival", en: "Win 5 times against the same rival", fr: "Gagnez 5 fois contre le même rival" },
+    condition: (p, s) => { const h2h = getHeadToHead(p, s); for (const [, opps] of h2h) for (const [, w] of opps) if (w >= 5) return true; return false; },
+    progress: (p, s) => { const h2h = getHeadToHead(p, s); let max = 0; for (const [, opps] of h2h) for (const [, w] of opps) max = Math.max(max, w); return pct(max, 5); } },
+
+  { id: "global_revenge", icon: Repeat, xp: 500, rarity: "legendary", category: "rivalry", scope: "global", hidden: true,
+    titles: { es: "Venganza", en: "Revenge", fr: "Vengeance" },
+    descriptions: { es: "Gana 10 veces contra el mismo rival en total", en: "Win 10 times against the same rival overall", fr: "Gagnez 10 fois contre le même rival au total" },
+    condition: (p, s) => { const h2h = getHeadToHead(p, s); for (const [, opps] of h2h) for (const [, w] of opps) if (w >= 10) return true; return false; },
+    progress: (p, s) => { const h2h = getHeadToHead(p, s); let max = 0; for (const [, opps] of h2h) for (const [, w] of opps) max = Math.max(max, w); return pct(max, 10); } },
+
+  // ── Global Cooperative ──
+  { id: "global_team_spirit", icon: Heart, xp: 100, rarity: "common", category: "cooperative", scope: "global", hidden: false,
+    titles: { es: "Espíritu de Equipo", en: "Team Spirit", fr: "Esprit d'Équipe" },
+    descriptions: { es: "Juega tu primera sesión multijugador", en: "Play your first multiplayer session", fr: "Jouez votre première session multijoueur" },
+    condition: (_, s) => s.some(sess => sess.results.length >= 2), progress: (_, s) => pct(s.filter(sess => sess.results.length >= 2).length, 1) },
+
+  { id: "global_crowd", icon: Users, xp: 300, rarity: "epic", category: "cooperative", scope: "global", hidden: false,
+    titles: { es: "Multitud", en: "The Crowd", fr: "La Foule" },
+    descriptions: { es: "Sesión con 6+ jugadores", en: "Session with 6+ players", fr: "Session avec 6+ joueurs" },
+    condition: (_, s) => s.some(sess => sess.results.length >= 6), progress: (_, s) => { const max = Math.max(...s.map(sess => sess.results.length), 0); return pct(max, 6); } },
+
+  { id: "global_marathon", icon: Route, xp: 500, rarity: "legendary", category: "cooperative", scope: "global", hidden: false,
+    titles: { es: "Maratón Global", en: "Global Marathon", fr: "Marathon Global" },
+    descriptions: { es: "50 sesiones multijugador en total", en: "50 multiplayer sessions total", fr: "50 sessions multijoueur au total" },
+    condition: (_, s) => s.filter(sess => sess.results.length >= 2).length >= 50, progress: (_, s) => pct(s.filter(sess => sess.results.length >= 2).length, 50) },
 ];
 
 // ─── GROUP ACHIEVEMENTS (specific to a group) ───
@@ -362,6 +401,40 @@ export const GROUP_ACHIEVEMENTS: Achievement[] = [
     titles: { es: "Ejército del Grupo", en: "Group Army", fr: "Armée du Groupe" },
     descriptions: { es: "16 jugadores en este grupo", en: "16 players in this group", fr: "16 joueurs dans ce groupe" },
     condition: (p) => p.length >= 16, progress: (p) => pct(p.length, 16) },
+
+  // ── Social achievements (group) ──
+  { id: "group_welcomer", icon: Handshake, xp: 75, rarity: "common", category: "social", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Anfitrión", en: "Host", fr: "Hôte" },
+    descriptions: { es: "3+ jugadores se unen al grupo", en: "3+ players join the group", fr: "3+ joueurs rejoignent le groupe" },
+    condition: (p) => p.length >= 3, progress: (p) => pct(p.length, 3) },
+
+  { id: "group_mixer", icon: Gift, xp: 150, rarity: "rare", category: "social", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "El Mezclador", en: "The Mixer", fr: "Le Mélangeur" },
+    descriptions: { es: "Todos los jugadores han jugado al menos 1 sesión", en: "All players played at least 1 session", fr: "Tous les joueurs ont joué au moins 1 session" },
+    condition: (p, s) => { if (p.length < 2) return false; return p.every(pl => s.some(sess => sess.results.some(r => r.playerId === pl.id))); },
+    progress: (p, s) => { if (p.length < 2) return 0; const active = p.filter(pl => s.some(sess => sess.results.some(r => r.playerId === pl.id))).length; return pct(active, p.length); } },
+
+  { id: "group_all_together", icon: Pizza, xp: 300, rarity: "epic", category: "social", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Todos Juntos", en: "All Together", fr: "Tous Ensemble" },
+    descriptions: { es: "Una sesión donde juegan todos los del grupo", en: "A session where everyone in the group plays", fr: "Une session où tout le groupe joue" },
+    condition: (p, s) => { if (p.length < 3) return false; return s.some(sess => p.every(pl => sess.results.some(r => r.playerId === pl.id))); },
+    progress: (p, s) => { if (p.length < 3) return 0; const best = Math.max(...s.map(sess => p.filter(pl => sess.results.some(r => r.playerId === pl.id)).length)); return pct(best, p.length); } },
+
+  // ── Game-specific achievements (group) ──
+  { id: "group_one_game_master", icon: CircleDot, xp: 100, rarity: "common", category: "game_specific", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Primer Juego", en: "First Game", fr: "Premier Jeu" },
+    descriptions: { es: "Juega tu primer juego diferente en el grupo", en: "Play your first unique game in the group", fr: "Jouez votre premier jeu unique dans le groupe" },
+    condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 1, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 1) },
+
+  { id: "group_three_games", icon: Puzzle, xp: 150, rarity: "rare", category: "game_specific", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Explorador del Grupo", en: "Group Explorer", fr: "Explorateur du Groupe" },
+    descriptions: { es: "Juega 3 juegos diferentes en este grupo", en: "Play 3 different games in this group", fr: "Jouez à 3 jeux différents dans ce groupe" },
+    condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 3, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 3) },
+
+  { id: "group_game_marathon", icon: Palette, xp: 300, rarity: "epic", category: "game_specific", scope: "group", groupType: "cooperative", hidden: false,
+    titles: { es: "Ludoteca", en: "Game Library", fr: "Ludothèque" },
+    descriptions: { es: "Juega 10 juegos diferentes en este grupo", en: "Play 10 different games in this group", fr: "Jouez à 10 jeux différents dans ce groupe" },
+    condition: (_, s) => new Set(s.map(x => x.gameName)).size >= 10, progress: (_, s) => pct(new Set(s.map(x => x.gameName)).size, 10) },
 ];
 
 // Combined for backward compat
