@@ -79,11 +79,11 @@ function AchievementCard({ achievement, unlocked, players, sessions, lang, index
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ delay: index * 0.02 }}
+      layout="position"
+      initial={{ opacity: 0, y: 12, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, y: -8 }}
+      transition={{ type: "spring", bounce: 0.15, duration: 0.45, delay: Math.min(index * 0.04, 0.4) }}
       className={`game-card !p-4 ${!unlocked ? "opacity-60" : ""}`}
       style={unlocked ? { borderLeft: `3px solid hsl(${rarityColor})` } : undefined}
     >
