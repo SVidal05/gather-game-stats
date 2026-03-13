@@ -186,24 +186,24 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
     return sortAchievements(list, allUnlockedIds);
   }, [activeCategory, scopeFilter, allUnlockedIds]);
 
-  // Group XP leaderboard
+  // Group XP leaderboard — per-player XP
   const leaderboardData = useMemo(() => {
     const stats = getPlayerStats(players, sessions);
     return stats
       .map(ps => {
-        // Each player in the group gets group XP based on their personal stats
-        // Simple approach: all players in the group share the group achievement XP
-        // since group achievements are group-wide, not per-player
+        const playerGroupXP = calculateGroupXP(players, sessions, ps.player);
+        const playerTotalXP = globalXP + playerGroupXP;
+        const playerLevel = getLevel(playerTotalXP);
         return {
           player: ps.player,
           wins: ps.wins,
           gamesPlayed: ps.gamesPlayed,
-          totalXP, // all share the same group XP context
-          level: levelInfo,
+          totalXP: playerTotalXP,
+          level: playerLevel,
         };
       })
-      .sort((a, b) => b.wins - a.wins);
-  }, [players, sessions, totalXP, levelInfo]);
+      .sort((a, b) => b.totalXP - a.totalXP || b.wins - a.wins);
+  }, [players, sessions, globalXP]);
 
   const getStreakInfo = () => {
     let bestPlayer: Player | null = null;
