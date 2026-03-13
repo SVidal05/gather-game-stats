@@ -155,6 +155,9 @@ export function PlayersTab({
   // Check if current user is already linked to a player in this group
   const userLinkedPlayer = players.find(p => p.linkedUserId === user?.id);
 
+  const isDuplicateName = (checkName: string, excludeId?: string) =>
+    players.some(p => p.name.toLowerCase() === checkName.trim().toLowerCase() && p.id !== excludeId);
+
   const handleAdd = () => {
     if (!name.trim()) return;
     onAddPlayer({ name: name.trim(), color, avatar });
@@ -244,6 +247,9 @@ export function PlayersTab({
               <div>
                 <Label className="font-medium text-xs">{t("players.name")}</Label>
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder={t("players.playerName")} className="rounded-lg mt-1 h-11" />
+                {name.trim() && isDuplicateName(name) && (
+                  <p className="text-xs text-warning mt-1 flex items-center gap-1">⚠️ {t("players.duplicateNameWarning") || "A player with this name already exists in this group"}</p>
+                )}
               </div>
               <div>
                 <Label className="font-medium text-xs">{t("players.avatar")}</Label>
@@ -292,6 +298,9 @@ export function PlayersTab({
               {editingId === ps.player.id ? (
                 <div className="space-y-3">
                   <Input value={editName} onChange={e => setEditName(e.target.value)} className="rounded-lg h-10" />
+                  {editName.trim() && isDuplicateName(editName, editingId!) && (
+                    <p className="text-xs text-warning flex items-center gap-1">⚠️ {t("players.duplicateNameWarning")}</p>
+                  )}
                   <AvatarPicker value={editAvatar} onChange={setEditAvatar} size="sm" />
                   <div className="flex flex-wrap gap-1.5">
                     {PLAYER_COLORS.map(c => (
