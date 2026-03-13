@@ -994,7 +994,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   <img
                     src={game.dbGame?.coverImage || game.dbGame?.backgroundImage || artworkPreviewByName[game.name.toLowerCase()]?.coverImage || artworkPreviewByName[game.name.toLowerCase()]?.backgroundImage || game.theme.image}
                     alt={game.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-top"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
                   <div className="absolute bottom-1.5 left-2 right-2 flex items-end justify-between">
