@@ -139,8 +139,8 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
 
   // Global XP from global achievements
   const globalXP = useMemo(() => calculateXP(globalPlayers, globalSessions), [globalPlayers, globalSessions]);
-  // Group XP from group achievements
-  const groupXP = useMemo(() => calculateGroupXP(players, sessions), [players, sessions]);
+  // Group XP from group achievements (per-player for individual achievements)
+  const groupXP = useMemo(() => calculateGroupXP(players, sessions, linkedPlayer), [players, sessions, linkedPlayer]);
   const totalXP = globalXP + groupXP;
 
   const levelInfo = useMemo(() => getLevel(totalXP), [totalXP]);
@@ -152,8 +152,8 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
     [globalPlayers, globalSessions]
   );
   const groupUnlockedIds = useMemo(() =>
-    new Set(GROUP_ACHIEVEMENTS.filter(a => a.condition(players, sessions)).map(a => a.id)),
-    [players, sessions]
+    new Set(GROUP_ACHIEVEMENTS.filter(a => evaluateGroupAchievement(a, players, sessions, linkedPlayer)).map(a => a.id)),
+    [players, sessions, linkedPlayer]
   );
   const allUnlockedIds = useMemo(() => new Set([...globalUnlockedIds, ...groupUnlockedIds]), [globalUnlockedIds, groupUnlockedIds]);
 
