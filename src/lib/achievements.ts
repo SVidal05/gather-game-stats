@@ -20,9 +20,9 @@ export const CATEGORY_CONFIG: Record<AchievementCategory, { label: Record<string
   progress:      { label: { es: "Progreso", en: "Progress", fr: "Progrès" },          icon: BookOpen },
   competition:   { label: { es: "Competición", en: "Competition", fr: "Compétition" }, icon: Swords },
   social:        { label: { es: "Social", en: "Social", fr: "Social" },                icon: Users },
-  game_specific: { label: { es: "Juego", en: "Game-specific", fr: "Jeu" },            icon: Map },
+  game_specific: { label: { es: "Juego", en: "Game-specific", fr: "Jeu" },            icon: MapIcon },
   rivalry:       { label: { es: "Rivalidad", en: "Rivalry", fr: "Rivalité" },          icon: Crosshair },
-  cooperative:   { label: { es: "Cooperativo", en: "Cooperative", fr: "Coopératif" },  icon: Handshake },
+  cooperative:   { label: { es: "Cooperativo", en: "Cooperative", fr: "Coopératif" },  icon: Heart },
 };
 
 // ─── Scope ───
