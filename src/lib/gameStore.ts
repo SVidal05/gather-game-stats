@@ -52,9 +52,18 @@ export interface GameDef {
   icon: string | null;
   backgroundImage: string | null;
   coverImage: string | null;
+  focusX: number;
+  focusY: number;
   gameMode: GameMode;
   category: GameCategory;
   createdAt: string;
+}
+
+/** Returns CSS object-position from focus point values */
+export function getObjectPosition(game?: GameDef | null): string {
+  const x = game?.focusX ?? 50;
+  const y = game?.focusY ?? 30;
+  return `${x}% ${y}%`;
 }
 
 export interface StatDefinition {
@@ -120,6 +129,8 @@ export function useGames() {
         icon: g.icon,
         backgroundImage: g.background_image || null,
         coverImage: g.cover_image || null,
+        focusX: g.focus_x ?? 50,
+        focusY: g.focus_y ?? 30,
         gameMode: (g.game_mode as GameMode) || "multiplayer",
         category: (g.category as GameCategory) || "competitive",
         createdAt: g.created_at,
@@ -167,6 +178,8 @@ export function useGames() {
         icon: data.icon,
         backgroundImage: (data as any).background_image || null,
         coverImage: (data as any).cover_image || null,
+        focusX: (data as any).focus_x ?? 50,
+        focusY: (data as any).focus_y ?? 30,
         gameMode,
         category,
         createdAt: data.created_at,

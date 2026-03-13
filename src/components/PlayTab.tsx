@@ -7,7 +7,7 @@ import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@
 import { PlayerBadge } from "@/components/PlayerBadge";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
-import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode, GameCategory, searchGameArtwork } from "@/lib/gameStore";
+import { useGames, useStatDefinitions, saveResultStats, useGameResultStats, GameMode, GameCategory, searchGameArtwork, getObjectPosition } from "@/lib/gameStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -469,7 +469,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             return (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
                 <div className="h-16 relative">
-                  <img src={bannerImg} alt={gameName} className="w-full h-full object-cover object-top" loading="lazy" />
+                  <img src={bannerImg} alt={gameName} className="w-full h-full object-cover" style={{ objectPosition: getObjectPosition(dbGame) }} loading="lazy" />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.1))' }} />
                   <div className="absolute inset-0 flex items-center px-3 bg-gradient-to-r from-card/80 to-transparent">
                     <Gamepad2 className="w-5 h-5 mr-2 text-foreground" />
@@ -946,7 +946,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                       <img
                         src={game.dbGame?.coverImage || game.dbGame?.backgroundImage || artworkPreviewByName[game.name.toLowerCase()]?.coverImage || artworkPreviewByName[game.name.toLowerCase()]?.backgroundImage || game.theme.image}
                         alt={game.name}
-                        className="w-full h-full object-cover object-top"
+                        className="w-full h-full object-cover" style={{ objectPosition: getObjectPosition(game.dbGame) }}
                       />
                       <div className="absolute inset-0" style={{ background: game.theme.gradient, opacity: 0.3 }} />
                     </button>
@@ -994,7 +994,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                   <img
                     src={game.dbGame?.coverImage || game.dbGame?.backgroundImage || artworkPreviewByName[game.name.toLowerCase()]?.coverImage || artworkPreviewByName[game.name.toLowerCase()]?.backgroundImage || game.theme.image}
                     alt={game.name}
-                    className="w-full h-full object-cover object-top"
+                    className="w-full h-full object-cover" style={{ objectPosition: getObjectPosition(game.dbGame) }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
                   <div className="absolute bottom-1.5 left-2 right-2 flex items-end justify-between">
@@ -1127,7 +1127,7 @@ function GameDetailView({
     <div className="space-y-4">
       {/* Hero Banner */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-2xl overflow-hidden">
-        <img src={heroImage} alt={theme.name} className="w-full h-36 object-cover object-top" loading="lazy" />
+        <img src={heroImage} alt={theme.name} className="w-full h-36 object-cover" style={{ objectPosition: getObjectPosition(gameRecordForDetail) }} loading="lazy" />
         <div className="absolute inset-0" style={{ background: `${theme.gradient}`, opacity: 0.5 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
         <button onClick={onBack} className="absolute top-2.5 left-2.5 bg-card/80 backdrop-blur-sm rounded-xl p-1.5 text-foreground active:scale-90 transition-transform">

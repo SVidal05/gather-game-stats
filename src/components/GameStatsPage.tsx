@@ -7,7 +7,7 @@ import { getPlayerStats } from "@/lib/store";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
-import { useGames, searchGameArtwork } from "@/lib/gameStore";
+import { useGames, searchGameArtwork, getObjectPosition } from "@/lib/gameStore";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
@@ -102,7 +102,7 @@ export function GameStatsPage({ gameName, players, sessions, onBack }: GameStats
         className="rounded-xl border border-border overflow-hidden"
       >
         <div className="relative h-40 overflow-hidden">
-          <img src={bannerImage} alt={gameName} className="w-full h-full object-cover object-top" loading="lazy" />
+          <img src={bannerImage} alt={gameName} className="w-full h-full object-cover" style={{ objectPosition: getObjectPosition(dbGame) }} loading="lazy" />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between">
             <div>

@@ -7,7 +7,7 @@ import { getGameTheme } from "@/lib/gameThemes";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
-import { useGames, searchGameArtwork } from "@/lib/gameStore";
+import { useGames, searchGameArtwork, getObjectPosition } from "@/lib/gameStore";
 
 // ─── Helpers ────────────────────────────────
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
@@ -94,7 +94,8 @@ function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSessi
         <img
           src={bannerImage}
           alt={spotlight.name}
-          className="w-full h-full object-cover object-top"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: getObjectPosition(spotlight.dbGame) }}
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
@@ -265,7 +266,7 @@ function RecentSessionsList({ sessions, players }: { sessions: GameSession[]; pl
                 className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 overflow-hidden"
                 style={{ background: `${theme.primaryColor}15` }}
               >
-                <img src={imgSrc} alt={session.gameName} className="w-full h-full object-cover object-top rounded-md" />
+                <img src={imgSrc} alt={session.gameName} className="w-full h-full object-cover rounded-md" style={{ objectPosition: getObjectPosition(dbGame) }} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-foreground truncate">{session.gameName}</p>

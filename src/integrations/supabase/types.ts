@@ -58,6 +58,8 @@ export type Database = {
           category: string
           cover_image: string | null
           created_at: string
+          focus_x: number
+          focus_y: number
           game_mode: string
           icon: string | null
           id: string
@@ -68,6 +70,8 @@ export type Database = {
           category?: string
           cover_image?: string | null
           created_at?: string
+          focus_x?: number
+          focus_y?: number
           game_mode?: string
           icon?: string | null
           id?: string
@@ -78,6 +82,8 @@ export type Database = {
           category?: string
           cover_image?: string | null
           created_at?: string
+          focus_x?: number
+          focus_y?: number
           game_mode?: string
           icon?: string | null
           id?: string
