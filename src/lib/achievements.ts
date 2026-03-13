@@ -232,7 +232,7 @@ export const GROUP_ACHIEVEMENTS: Achievement[] = [
     condition: (p, s) => getPlayerStats(p, s).some(st => st.wins >= 5),
     progress: (p, s) => { const m = Math.max(...getPlayerStats(p, s).map(st => st.wins), 0); return pct(m, 5); } },
 
-  { id: "group_best_winrate", icon: CircleDot, xp: 350, rarity: "epic", category: "competition", scope: "group", groupType: "competitive", hidden: false,
+  { id: "group_best_winrate", icon: Activity, xp: 350, rarity: "epic", category: "competition", scope: "group", groupType: "competitive", hidden: false,
     titles: { es: "Mejor Ratio", en: "Best Win Rate", fr: "Meilleur Ratio" },
     descriptions: { es: "Mejor tasa de victoria del grupo (min 5 partidas, 70%+)", en: "Best win rate in the group (min 5 games, 70%+)", fr: "Meilleur taux de victoire du groupe (min 5 parties, 70%+)" },
     condition: (p, s) => getPlayerStats(p, s).some(st => st.gamesPlayed >= 5 && st.winRate >= 70),
