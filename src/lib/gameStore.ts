@@ -52,9 +52,18 @@ export interface GameDef {
   icon: string | null;
   backgroundImage: string | null;
   coverImage: string | null;
+  focusX: number;
+  focusY: number;
   gameMode: GameMode;
   category: GameCategory;
   createdAt: string;
+}
+
+/** Returns CSS object-position from focus point values */
+export function getObjectPosition(game?: GameDef | null): string {
+  const x = game?.focusX ?? 50;
+  const y = game?.focusY ?? 30;
+  return `${x}% ${y}%`;
 }
 
 export interface StatDefinition {
