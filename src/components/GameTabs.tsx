@@ -247,7 +247,9 @@ export function PlayersTab({
               <div>
                 <Label className="font-medium text-xs">{t("players.name")}</Label>
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder={t("players.playerName")} className="rounded-lg mt-1 h-11" />
-              </div>
+                {name.trim() && isDuplicateName(name) && (
+                  <p className="text-xs text-warning mt-1 flex items-center gap-1">⚠️ {t("players.duplicateNameWarning") || "A player with this name already exists in this group"}</p>
+                )}
               <div>
                 <Label className="font-medium text-xs">{t("players.avatar")}</Label>
                 <div className="mt-1">
