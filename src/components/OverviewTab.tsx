@@ -94,7 +94,8 @@ function GameSpotlight({ sessions, players, onGameClick }: { sessions: GameSessi
         <img
           src={bannerImage}
           alt={spotlight.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-top"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
