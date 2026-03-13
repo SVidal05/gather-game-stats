@@ -155,6 +155,9 @@ export function PlayersTab({
   // Check if current user is already linked to a player in this group
   const userLinkedPlayer = players.find(p => p.linkedUserId === user?.id);
 
+  const isDuplicateName = (checkName: string, excludeId?: string) =>
+    players.some(p => p.name.toLowerCase() === checkName.trim().toLowerCase() && p.id !== excludeId);
+
   const handleAdd = () => {
     if (!name.trim()) return;
     onAddPlayer({ name: name.trim(), color, avatar });
