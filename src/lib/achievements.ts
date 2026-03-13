@@ -393,9 +393,51 @@ export function calculateXP(players: Player[], sessions: GameSession[]): number 
     .reduce((sum, a) => sum + a.xp, 0);
 }
 
-export function calculateGroupXP(players: Player[], sessions: GameSession[]): number {
+/**
+ * Evaluate group achievements considering per-player logic.
+ * Individual/competitive achievements are checked against a specific player.
+ * Cooperative achievements are checked group-wide.
+ */
+export function evaluateGroupAchievement(
+  achievement: Achievement,
+  allPlayers: Player[],
+  sessions: GameSession[],
+  linkedPlayer?: Player | null
+): boolean {
+  const isPerPlayer = achievement.groupType === "individual" || achievement.groupType === "competitive";
+  if (isPerPlayer && linkedPlayer) {
+    // Evaluate only for the linked player
+    const playerSessions = sessions.filter(s => s.results.some(r => r.playerId === linkedPlayer.id));
+    return achievement.condition([linkedPlayer], playerSessions);
+  }
+  if (isPerPlayer && !linkedPlayer) {
+    // No linked player — can't unlock individual achievements
+    return false;
+  }
+  // Cooperative/rivalry: evaluate group-wide
+  return achievement.condition(allPlayers, sessions);
+}
+
+export function evaluateGroupAchievementProgress(
+  achievement: Achievement,
+  allPlayers: Player[],
+  sessions: GameSession[],
+  linkedPlayer?: Player | null
+): number {
+  const isPerPlayer = achievement.groupType === "individual" || achievement.groupType === "competitive";
+  if (isPerPlayer && linkedPlayer) {
+    const playerSessions = sessions.filter(s => s.results.some(r => r.playerId === linkedPlayer.id));
+    return achievement.progress([linkedPlayer], playerSessions);
+  }
+  if (isPerPlayer && !linkedPlayer) {
+    return 0;
+  }
+  return achievement.progress(allPlayers, sessions);
+}
+
+export function calculateGroupXP(players: Player[], sessions: GameSession[], linkedPlayer?: Player | null): number {
   return GROUP_ACHIEVEMENTS
-    .filter(a => a.condition(players, sessions))
+    .filter(a => evaluateGroupAchievement(a, players, sessions, linkedPlayer))
     .reduce((sum, a) => sum + a.xp, 0);
 }
 
