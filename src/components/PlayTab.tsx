@@ -946,7 +946,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
                       <img
                         src={game.dbGame?.coverImage || game.dbGame?.backgroundImage || artworkPreviewByName[game.name.toLowerCase()]?.coverImage || artworkPreviewByName[game.name.toLowerCase()]?.backgroundImage || game.theme.image}
                         alt={game.name}
-                        className="w-full h-full object-cover object-top"
+                        className="w-full h-full object-cover" style={{ objectPosition: getObjectPosition(game.dbGame) }}
                       />
                       <div className="absolute inset-0" style={{ background: game.theme.gradient, opacity: 0.3 }} />
                     </button>
