@@ -250,6 +250,7 @@ export function PlayersTab({
                 {name.trim() && isDuplicateName(name) && (
                   <p className="text-xs text-warning mt-1 flex items-center gap-1">⚠️ {t("players.duplicateNameWarning") || "A player with this name already exists in this group"}</p>
                 )}
+              </div>
               <div>
                 <Label className="font-medium text-xs">{t("players.avatar")}</Label>
                 <div className="mt-1">
