@@ -7,7 +7,7 @@ import { getPlayerStats } from "@/lib/store";
 import { isImageAvatar } from "@/lib/avatarOptions";
 import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
-import { useGames, searchGameArtwork } from "@/lib/gameStore";
+import { useGames, searchGameArtwork, getObjectPosition } from "@/lib/gameStore";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
