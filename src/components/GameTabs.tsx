@@ -320,10 +320,10 @@ export function PlayersTab({
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground text-sm">{ps.player.name}</p>
-                        {ps.player.linkedUsername ? (
+                        {ps.player.linkedUserId ? (
                           <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md inline-flex items-center gap-1">
                             <Link className="w-2.5 h-2.5" />
-                            {ps.player.linkedUsername}
+                            {ps.player.linkedUsername || (ps.player.linkedUserId === user?.id ? (username || "You") : "User")}
                           </span>
                         ) : (
                           <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md italic">
