@@ -1,4 +1,4 @@
-import { Dice5, Gamepad2, Trophy, Users, PartyPopper, Target, FolderOpen, Crown, Gem, Flame, Eye, Sparkles, Swords, Shield, Skull, Heart, Zap, Star, BookOpen, Map, Award, UserPlus, HandshakeIcon, Handshake, GitBranch, Medal, Crosshair, CircleDot, Waypoints, Blocks, Puzzle } from "lucide-react";
+import { Dice5, Gamepad2, Trophy, Users, PartyPopper, Target, FolderOpen, Crown, Gem, Flame, Eye, Sparkles, Swords, Shield, Skull, Heart, Zap, Star, BookOpen, Map, Award, UserPlus, Medal, Crosshair, Activity, Route, LayoutGrid, Puzzle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Player, GameSession } from "@/lib/types";
 import { getPlayerStats } from "@/lib/store";
