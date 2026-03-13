@@ -469,7 +469,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             return (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="rounded-xl overflow-hidden">
                 <div className="h-16 relative">
-                  <img src={bannerImg} alt={gameName} className="w-full h-full object-cover" />
+                  <img src={bannerImg} alt={gameName} className="w-full h-full object-cover object-top" loading="lazy" />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.1))' }} />
                   <div className="absolute inset-0 flex items-center px-3 bg-gradient-to-r from-card/80 to-transparent">
                     <Gamepad2 className="w-5 h-5 mr-2 text-foreground" />
