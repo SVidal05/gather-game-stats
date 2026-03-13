@@ -57,11 +57,22 @@ function ScopeBadge({ scope, lang }: { scope: AchievementScope; lang: string }) 
   );
 }
 
-function AchievementCard({ achievement, unlocked, players, sessions, lang, index }: {
-  achievement: Achievement; unlocked: boolean; players: Player[]; sessions: GameSession[]; lang: string; index: number;
+function AchievementCard({ achievement, unlocked, players, sessions, lang, index, linkedPlayer }: {
+  achievement: Achievement; unlocked: boolean; players: Player[]; sessions: GameSession[]; lang: string; index: number; linkedPlayer?: Player | null;
 }) {
   const isHidden = achievement.hidden && !unlocked;
-  const progress = achievement.progress(players, sessions);
+  
+  // For individual/competitive group achievements, show progress for the linked player only
+  const isPerPlayer = achievement.scope === "group" && (achievement.groupType === "individual" || achievement.groupType === "competitive");
+  let progress: number;
+  if (isPerPlayer && linkedPlayer) {
+    progress = evaluateGroupAchievementProgress(achievement, players, sessions, linkedPlayer);
+  } else if (isPerPlayer && !linkedPlayer) {
+    progress = 0;
+  } else {
+    progress = achievement.progress(players, sessions);
+  }
+  
   const Icon = achievement.icon;
   const rarityColor = RARITY_CONFIG[achievement.rarity].hsl;
 
@@ -94,6 +105,11 @@ function AchievementCard({ achievement, unlocked, players, sessions, lang, index
             <RarityBadge rarity={achievement.rarity} lang={lang} />
             <XPBadge xp={achievement.xp} />
             <ScopeBadge scope={achievement.scope} lang={lang} />
+            {isPerPlayer && (
+              <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md text-[hsl(var(--game-purple))] bg-[hsl(var(--game-purple))]/10">
+                {lang === "es" ? "Individual" : "Individual"}
+              </span>
+            )}
             {unlocked && <Sparkles className="w-3 h-3 text-warning shrink-0" />}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
