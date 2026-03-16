@@ -743,7 +743,6 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             {editingSessionId ? t("sessions.saveChanges") : t("sessions.record")}
           </Button>
         </div>
-        </div>
       </DialogContent>
     </Dialog>
   );
