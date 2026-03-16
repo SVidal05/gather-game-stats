@@ -21,7 +21,9 @@ import { GroupSelector } from "@/components/GroupSelector";
 import { TournamentTab } from "@/components/TournamentTab";
 import { CompareTab } from "@/components/CompareTab";
 import { GameStatsPage } from "@/components/GameStatsPage";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
 type Tab = "groups" | "overview" | "charts" | "play" | "players" | "compare" | "tournaments" | "ranking" | "profile" | "settings";
@@ -63,6 +65,8 @@ const Index = () => {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [groupSelectorOpen, setGroupSelectorOpen] = useState(false);
   const [gameStatsName, setGameStatsName] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     try { return (localStorage.getItem(THEME_KEY) as ThemeMode) || "system"; } catch { return "system"; }
@@ -90,6 +94,24 @@ const Index = () => {
   useEffect(() => {
     if (!groupsLoading && groups.length === 0) setActiveTab("groups");
   }, [groupsLoading, groups.length]);
+
+  // Check if onboarding tutorial should be shown
+  useEffect(() => {
+    if (!user || onboardingChecked) return;
+    const checkOnboarding = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("user_id", user.id)
+        .single();
+      if (data && !(data as any).onboarding_completed) {
+        setShowOnboarding(true);
+        setActiveTab("groups");
+      }
+      setOnboardingChecked(true);
+    };
+    checkOnboarding();
+  }, [user, onboardingChecked]);
 
   const navSections: NavSection[] = [
     {
@@ -472,6 +494,18 @@ const Index = () => {
           </AnimatePresence>
         )}
       </main>
+
+      {/* Onboarding Tutorial */}
+      {showOnboarding && user && activeGroup && (
+        <OnboardingTutorial
+          userId={user.id}
+          onComplete={() => setShowOnboarding(false)}
+          onNavigate={(tab) => {
+            setActiveTab(tab as Tab);
+            setGameStatsName(null);
+          }}
+        />
+      )}
     </div>
   );
 };

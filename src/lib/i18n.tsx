@@ -254,6 +254,23 @@ const translations = {
   "groups.personalWorkspaceHint": { es: "Este espacio privado está optimizado para seguimiento en solitario y no se puede eliminar.", en: "This private workspace is optimized for solo tracking and cannot be deleted.", fr: "Cet espace privé est optimisé pour le suivi en solo et ne peut pas être supprimé." },
   "groups.personalLabel": { es: "Personal", en: "Personal", fr: "Personnel" },
   "groups.soloTag": { es: "Solo", en: "Solo", fr: "Solo" },
+
+  // Onboarding Tutorial
+  "onboarding.stepOf": { es: "Paso {current} de {total}", en: "Step {current} of {total}", fr: "Étape {current} sur {total}" },
+  "onboarding.skip": { es: "Omitir", en: "Skip", fr: "Passer" },
+  "onboarding.prev": { es: "Anterior", en: "Back", fr: "Précédent" },
+  "onboarding.next": { es: "Siguiente", en: "Next", fr: "Suivant" },
+  "onboarding.finish": { es: "¡Listo!", en: "Done!", fr: "Terminé !" },
+  "onboarding.step1Title": { es: "Crea un Grupo", en: "Create a Group", fr: "Créer un Groupe" },
+  "onboarding.step1Desc": { es: "Los grupos organizan tus noches de juegos. Crea uno para ti y tus amigos, o usa el grupo Personal para jugar en solitario.", en: "Groups organize your game nights. Create one for you and your friends, or use the Personal group for solo play.", fr: "Les groupes organisent vos soirées jeux. Créez-en un pour vous et vos amis, ou utilisez le groupe Personnel pour jouer en solo." },
+  "onboarding.step2Title": { es: "Añade Jugadores", en: "Add Players", fr: "Ajouter des Joueurs" },
+  "onboarding.step2Desc": { es: "Los jugadores representan a los participantes en tus partidas. Añade a tus amigos con un nombre, avatar y color único.", en: "Players represent participants in your matches. Add your friends with a name, avatar, and unique color.", fr: "Les joueurs représentent les participants à vos parties. Ajoutez vos amis avec un nom, un avatar et une couleur unique." },
+  "onboarding.step3Title": { es: "Registra tu Primera Partida", en: "Record Your First Session", fr: "Enregistrez Votre Première Partie" },
+  "onboarding.step3Desc": { es: "Selecciona un juego del catálogo, elige los jugadores, registra puntuaciones y corona al ganador. ¡Así de fácil!", en: "Select a game from the catalog, choose players, record scores, and crown the winner. It's that easy!", fr: "Sélectionnez un jeu du catalogue, choisissez les joueurs, enregistrez les scores et couronnez le gagnant. C'est aussi simple que ça !" },
+  "onboarding.step4Title": { es: "Tabla de Clasificación", en: "Leaderboard", fr: "Classement" },
+  "onboarding.step4Desc": { es: "Los rankings se actualizan automáticamente con cada partida. Compite por el primer puesto y sigue la evolución de todos los jugadores.", en: "Rankings update automatically with every match. Compete for first place and track every player's progress.", fr: "Les classements se mettent à jour automatiquement à chaque partie. Compétez pour la première place et suivez la progression de chaque joueur." },
+  "onboarding.step5Title": { es: "Logros y Medallas", en: "Achievements & Badges", fr: "Succès et Badges" },
+  "onboarding.step5Desc": { es: "Los logros se desbloquean automáticamente mientras juegas. Acumula victorias, rachas y hitos para ganar medallas especiales.", en: "Achievements unlock automatically as you play. Accumulate wins, streaks, and milestones to earn special badges.", fr: "Les succès se débloquent automatiquement en jouant. Accumulez des victoires, des séries et des jalons pour gagner des badges spéciaux." },
 } as const;
 
 type TranslationKey = keyof typeof translations;

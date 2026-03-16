@@ -246,7 +246,7 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
   const totalAchievements = GLOBAL_ACHIEVEMENTS.length + GROUP_ACHIEVEMENTS.length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-tour="achievements">
       {/* ── Header with Level ── */}
       <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="game-card relative overflow-hidden">
         <div className="absolute inset-0 opacity-20" style={{

@@ -235,7 +235,7 @@ export function PlayersTab({
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-lg gap-2 font-semibold h-10">
+            <Button data-tour="add-player" className="rounded-lg gap-2 font-semibold h-10">
               <Plus className="w-4 h-4" /> {t("players.add")}
             </Button>
           </DialogTrigger>
