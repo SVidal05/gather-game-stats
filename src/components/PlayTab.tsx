@@ -397,17 +397,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
   const sessionFormDialog = (
     <Dialog open={sessionDialogOpen} onOpenChange={(v) => { if (!v) { resetForm(); setSessionDialogOpen(false); } }}>
-      <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto overflow-x-hidden relative">
-        {/* Dynamic blurred backdrop inside dialog */}
-        {gameName.trim() && (() => {
-          const key = gameName.toLowerCase().trim();
-          const dbGame = games.find(g => g.name.toLowerCase() === key);
-          const previewArtwork = artworkPreviewByName[key];
-          const dialogBg = dbGame?.backgroundImage || dbGame?.coverImage || previewArtwork?.backgroundImage || previewArtwork?.coverImage || null;
-          if (!dialogBg) return null;
-          return <GameBackdrop image={dialogBg} objectPosition={getObjectPosition(dbGame)} overlayOpacity={0.88} />;
-        })()}
-        <div className="relative z-10">
+      <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="font-extrabold">
             {editingSessionId ? t("sessions.editSession") : t("sessions.newSession")}
@@ -751,7 +741,6 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             disabled={!sessionName.trim() || !gameName.trim() || (isSolo ? selectedPlayerIds.length !== 1 : selectedPlayerIds.length < 2)}>
             {editingSessionId ? t("sessions.saveChanges") : t("sessions.record")}
           </Button>
-        </div>
         </div>
       </DialogContent>
     </Dialog>
