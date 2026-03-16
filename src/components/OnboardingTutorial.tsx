@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronRight, ChevronLeft, Sparkles, Users, Gamepad2, Trophy, Medal } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Sparkles, Users, Gamepad2, Trophy, Medal, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,16 +50,23 @@ export function OnboardingTutorial({ userId, onComplete, onNavigate }: Onboardin
       position: "bottom",
     },
     {
-      targetSelector: "[data-tour='leaderboard']",
+      targetSelector: "[data-tour='overview']",
       titleKey: "onboarding.step4Title",
       descriptionKey: "onboarding.step4Desc",
+      icon: LayoutDashboard,
+      position: "top",
+    },
+    {
+      targetSelector: "[data-tour='leaderboard']",
+      titleKey: "onboarding.step5Title",
+      descriptionKey: "onboarding.step5Desc",
       icon: Trophy,
       position: "bottom",
     },
     {
       targetSelector: "[data-tour='achievements']",
-      titleKey: "onboarding.step5Title",
-      descriptionKey: "onboarding.step5Desc",
+      titleKey: "onboarding.step6Title",
+      descriptionKey: "onboarding.step6Desc",
       icon: Medal,
       position: "bottom",
     },
@@ -126,13 +133,8 @@ export function OnboardingTutorial({ userId, onComplete, onNavigate }: Onboardin
 
     // Navigate to the appropriate tab for each step
     if (onNavigate) {
-      switch (nextStep) {
-        case 0: onNavigate("groups"); break;
-        case 1: onNavigate("players"); break;
-        case 2: onNavigate("play"); break;
-        case 3: onNavigate("ranking"); break;
-        case 4: onNavigate("profile"); break;
-      }
+      const tabMap = ["groups", "players", "play", "overview", "ranking", "profile"];
+      if (tabMap[nextStep]) onNavigate(tabMap[nextStep]);
     }
   };
 
@@ -142,13 +144,8 @@ export function OnboardingTutorial({ userId, onComplete, onNavigate }: Onboardin
     setCurrentStep(prevStep);
 
     if (onNavigate) {
-      switch (prevStep) {
-        case 0: onNavigate("groups"); break;
-        case 1: onNavigate("players"); break;
-        case 2: onNavigate("play"); break;
-        case 3: onNavigate("ranking"); break;
-        case 4: onNavigate("profile"); break;
-      }
+      const tabMap = ["groups", "players", "play", "overview", "ranking", "profile"];
+      if (tabMap[prevStep]) onNavigate(tabMap[prevStep]);
     }
   };
 
