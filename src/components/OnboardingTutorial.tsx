@@ -133,13 +133,8 @@ export function OnboardingTutorial({ userId, onComplete, onNavigate }: Onboardin
 
     // Navigate to the appropriate tab for each step
     if (onNavigate) {
-      switch (nextStep) {
-        case 0: onNavigate("groups"); break;
-        case 1: onNavigate("players"); break;
-        case 2: onNavigate("play"); break;
-        case 3: onNavigate("ranking"); break;
-        case 4: onNavigate("profile"); break;
-      }
+      const tabMap = ["groups", "players", "play", "overview", "ranking", "profile"];
+      if (tabMap[nextStep]) onNavigate(tabMap[nextStep]);
     }
   };
 
