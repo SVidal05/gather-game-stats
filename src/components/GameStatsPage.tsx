@@ -9,6 +9,7 @@ import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
 import { useGames, searchGameArtwork, getObjectPosition } from "@/lib/gameStore";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { GameBackdrop } from "@/components/GameBackdrop";
 
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
   const animated = useCountUp(value);
@@ -83,7 +84,9 @@ export function GameStatsPage({ gameName, players, sessions, onBack }: GameStats
   );
 
   return (
-    <div className="space-y-5">
+    <div className="relative space-y-5">
+      <GameBackdrop image={bannerImage} objectPosition={getObjectPosition(dbGame)} />
+      <div className="relative z-10 space-y-5">
       {/* Back button */}
       <button
         onClick={onBack}
@@ -298,6 +301,7 @@ export function GameStatsPage({ gameName, players, sessions, onBack }: GameStats
           <p className="text-sm text-muted-foreground mt-3">No sessions recorded for this game yet.</p>
         </motion.div>
       )}
+      </div>
     </div>
   );
 }

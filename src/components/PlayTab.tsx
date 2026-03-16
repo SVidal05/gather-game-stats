@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Trophy, Users, Calendar, TrendingUp, Flame, Target, ChevronRight, Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp, Settings2, Crown, BarChart3, Crosshair, FileText, Gamepad2, Medal, User, PartyPopper, Heart } from "lucide-react";
 import { Player, GameSession, PlayerResult, POPULAR_GAMES, KNOWN_GAMES } from "@/lib/types";
+import { GameBackdrop } from "@/components/GameBackdrop";
 import { getPlayerStats } from "@/lib/store";
 import { getGameTheme, GAME_THEMES, getCategoryColor, getCategoryEmoji } from "@/lib/gameThemes";
 import { PlayerBadge } from "@/components/PlayerBadge";
@@ -396,7 +397,17 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
 
   const sessionFormDialog = (
     <Dialog open={sessionDialogOpen} onOpenChange={(v) => { if (!v) { resetForm(); setSessionDialogOpen(false); } }}>
-      <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto overflow-x-hidden relative">
+        {/* Dynamic blurred backdrop inside dialog */}
+        {gameName.trim() && (() => {
+          const key = gameName.toLowerCase().trim();
+          const dbGame = games.find(g => g.name.toLowerCase() === key);
+          const previewArtwork = artworkPreviewByName[key];
+          const dialogBg = dbGame?.backgroundImage || dbGame?.coverImage || previewArtwork?.backgroundImage || previewArtwork?.coverImage || null;
+          if (!dialogBg) return null;
+          return <GameBackdrop image={dialogBg} objectPosition={getObjectPosition(dbGame)} overlayOpacity={0.88} />;
+        })()}
+        <div className="relative z-10">
         <DialogHeader>
           <DialogTitle className="font-extrabold">
             {editingSessionId ? t("sessions.editSession") : t("sessions.newSession")}
@@ -740,6 +751,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
             disabled={!sessionName.trim() || !gameName.trim() || (isSolo ? selectedPlayerIds.length !== 1 : selectedPlayerIds.length < 2)}>
             {editingSessionId ? t("sessions.saveChanges") : t("sessions.record")}
           </Button>
+        </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -1124,7 +1136,9 @@ function GameDetailView({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-4">
+      <GameBackdrop image={heroImage} objectPosition={getObjectPosition(gameRecordForDetail)} />
+      <div className="relative z-10 space-y-4">
       {/* Hero Banner */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-2xl overflow-hidden">
         <img src={heroImage} alt={theme.name} className="w-full h-36 object-cover" style={{ objectPosition: getObjectPosition(gameRecordForDetail) }} loading="lazy" />
@@ -1458,6 +1472,7 @@ function GameDetailView({
           </motion.div>
         </>
       )}
+      </div>
     </div>
   );
 }
