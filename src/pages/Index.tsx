@@ -95,6 +95,24 @@ const Index = () => {
     if (!groupsLoading && groups.length === 0) setActiveTab("groups");
   }, [groupsLoading, groups.length]);
 
+  // Check if onboarding tutorial should be shown
+  useEffect(() => {
+    if (!user || onboardingChecked) return;
+    const checkOnboarding = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("user_id", user.id)
+        .single();
+      if (data && !(data as any).onboarding_completed) {
+        setShowOnboarding(true);
+        setActiveTab("groups");
+      }
+      setOnboardingChecked(true);
+    };
+    checkOnboarding();
+  }, [user, onboardingChecked]);
+
   const navSections: NavSection[] = [
     {
       label: "Stats",
