@@ -21,7 +21,9 @@ import { GroupSelector } from "@/components/GroupSelector";
 import { TournamentTab } from "@/components/TournamentTab";
 import { CompareTab } from "@/components/CompareTab";
 import { GameStatsPage } from "@/components/GameStatsPage";
+import { OnboardingTutorial } from "@/components/OnboardingTutorial";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
 type Tab = "groups" | "overview" | "charts" | "play" | "players" | "compare" | "tournaments" | "ranking" | "profile" | "settings";
