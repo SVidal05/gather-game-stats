@@ -1461,6 +1461,7 @@ function GameDetailView({
           </motion.div>
         </>
       )}
+      </div>
     </div>
   );
 }
