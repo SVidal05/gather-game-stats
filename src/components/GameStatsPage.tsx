@@ -84,7 +84,9 @@ export function GameStatsPage({ gameName, players, sessions, onBack }: GameStats
   );
 
   return (
-    <div className="space-y-5">
+    <div className="relative space-y-5">
+      <GameBackdrop image={bannerImage} objectPosition={getObjectPosition(dbGame)} />
+      <div className="relative z-10 space-y-5">
       {/* Back button */}
       <button
         onClick={onBack}
