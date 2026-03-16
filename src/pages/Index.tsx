@@ -65,6 +65,8 @@ const Index = () => {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [groupSelectorOpen, setGroupSelectorOpen] = useState(false);
   const [gameStatsName, setGameStatsName] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     try { return (localStorage.getItem(THEME_KEY) as ThemeMode) || "system"; } catch { return "system"; }
