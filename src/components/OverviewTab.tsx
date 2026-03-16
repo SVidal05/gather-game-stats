@@ -351,7 +351,7 @@ export function OverviewTab({ players, sessions, onGameClick }: { players: Playe
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-tour="overview">
       {/* Header */}
       <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35 }}>
         <h2 className="text-xl font-display font-bold text-foreground">Overview</h2>
