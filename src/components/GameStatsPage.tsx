@@ -9,6 +9,7 @@ import { useCountUp } from "@/hooks/useCountUp";
 import { RankBadge } from "@/components/RankBadge";
 import { useGames, searchGameArtwork, getObjectPosition } from "@/lib/gameStore";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { GameBackdrop } from "@/components/GameBackdrop";
 
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
   const animated = useCountUp(value);
