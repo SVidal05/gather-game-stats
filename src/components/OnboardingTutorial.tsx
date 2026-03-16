@@ -154,7 +154,7 @@ export function OnboardingTutorial({ userId, onComplete, onNavigate }: Onboardin
   const StepIcon = step.icon;
   const padding = 8;
 
-  // Calculate tooltip position
+  // Calculate tooltip position, ensuring it stays within viewport
   const getTooltipStyle = (): React.CSSProperties => {
     if (!targetRect) {
       return {
@@ -166,27 +166,41 @@ export function OnboardingTutorial({ userId, onComplete, onNavigate }: Onboardin
     }
 
     const gap = 16;
+    const tooltipHeight = 180; // approximate tooltip height
+    const leftPos = Math.max(16, Math.min(targetRect.left + targetRect.width / 2 - 160, window.innerWidth - 336));
 
-    switch (step.position) {
-      case "bottom":
-        return {
-          position: "fixed",
-          top: targetRect.bottom + gap,
-          left: Math.max(16, Math.min(targetRect.left + targetRect.width / 2 - 160, window.innerWidth - 336)),
-        };
-      case "top":
-        return {
-          position: "fixed",
-          bottom: window.innerHeight - targetRect.top + gap,
-          left: Math.max(16, Math.min(targetRect.left + targetRect.width / 2 - 160, window.innerWidth - 336)),
-        };
-      default:
-        return {
-          position: "fixed",
-          top: targetRect.bottom + gap,
-          left: Math.max(16, Math.min(targetRect.left + targetRect.width / 2 - 160, window.innerWidth - 336)),
-        };
+    // Prefer the step's declared position, but flip if it would go off-screen
+    const spaceBelow = window.innerHeight - targetRect.bottom - gap;
+    const spaceAbove = targetRect.top - gap;
+
+    const placeBelow = step.position === "bottom" && spaceBelow >= tooltipHeight;
+    const placeAbove = step.position === "top" || !placeBelow;
+
+    if (placeBelow) {
+      return {
+        position: "fixed",
+        top: targetRect.bottom + gap,
+        left: leftPos,
+      };
     }
+
+    if (placeAbove && spaceAbove >= tooltipHeight) {
+      return {
+        position: "fixed",
+        bottom: window.innerHeight - targetRect.top + gap,
+        left: leftPos,
+      };
+    }
+
+    // Fallback: center vertically on the visible portion of the target
+    const visibleTop = Math.max(0, targetRect.top);
+    const visibleBottom = Math.min(window.innerHeight, targetRect.bottom);
+    const centerY = (visibleTop + visibleBottom) / 2;
+    return {
+      position: "fixed",
+      top: Math.max(16, Math.min(centerY - tooltipHeight / 2, window.innerHeight - tooltipHeight - 16)),
+      left: leftPos,
+    };
   };
 
   return (
