@@ -301,6 +301,7 @@ export function GameStatsPage({ gameName, players, sessions, onBack }: GameStats
           <p className="text-sm text-muted-foreground mt-3">No sessions recorded for this game yet.</p>
         </motion.div>
       )}
+      </div>
     </div>
   );
 }
