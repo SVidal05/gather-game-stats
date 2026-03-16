@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronRight, ChevronLeft, Sparkles, Users, Gamepad2, Trophy, Medal } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Sparkles, Users, Gamepad2, Trophy, Medal, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
