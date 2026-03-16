@@ -332,7 +332,7 @@ export function GroupSelector({
 
       {/* Action Buttons */}
       <div className="flex gap-3">
-        <Button className="flex-1 rounded-lg h-11 font-semibold gap-2" onClick={() => setCreateDialogOpen(true)}>
+        <Button data-tour="create-group" className="flex-1 rounded-lg h-11 font-semibold gap-2" onClick={() => setCreateDialogOpen(true)}>
           <Plus className="w-4 h-4" /> {t("groups.createGroup")}
         </Button>
         <Button variant="outline" className="flex-1 rounded-lg h-11 font-semibold gap-2" onClick={() => setJoinDialogOpen(true)}>

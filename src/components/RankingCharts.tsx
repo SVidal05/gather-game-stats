@@ -149,7 +149,7 @@ export function RankingTab({ players, sessions }: { players: Player[]; sessions:
     : sortedCoop.length === 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-tour="leaderboard">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-display font-bold text-foreground">Leaderboard</h2>
