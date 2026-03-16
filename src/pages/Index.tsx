@@ -494,6 +494,18 @@ const Index = () => {
           </AnimatePresence>
         )}
       </main>
+
+      {/* Onboarding Tutorial */}
+      {showOnboarding && user && activeGroup && (
+        <OnboardingTutorial
+          userId={user.id}
+          onComplete={() => setShowOnboarding(false)}
+          onNavigate={(tab) => {
+            setActiveTab(tab as Tab);
+            setGameStatsName(null);
+          }}
+        />
+      )}
     </div>
   );
 };
