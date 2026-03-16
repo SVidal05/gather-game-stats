@@ -1139,14 +1139,17 @@ function GameDetailView({
     <div className="relative space-y-4">
       <GameBackdrop image={heroImage} objectPosition={getObjectPosition(gameRecordForDetail)} />
       <div className="relative z-10 space-y-4">
+      {/* Back button - outside banner to avoid header overlap */}
+      <button onClick={onBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="w-4 h-4" />
+        <span>{t("play.title")}</span>
+      </button>
+
       {/* Hero Banner */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-2xl overflow-hidden">
         <img src={heroImage} alt={theme.name} className="w-full h-36 object-cover" style={{ objectPosition: getObjectPosition(gameRecordForDetail) }} loading="lazy" />
         <div className="absolute inset-0" style={{ background: `${theme.gradient}`, opacity: 0.5 }} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-        <button onClick={onBack} className="absolute top-2.5 left-2.5 bg-card/80 backdrop-blur-sm rounded-xl p-1.5 text-foreground active:scale-90 transition-transform">
-          <ArrowLeft className="w-4 h-4" />
-        </button>
         <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{theme.emoji}</span>
