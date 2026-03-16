@@ -246,20 +246,53 @@ export function OnboardingTutorial({ userId, onComplete, onNavigate }: Onboardin
             />
           </svg>
 
-          {/* Animated spotlight ring */}
+          {/* Animated spotlight ring with pulse */}
           {targetRect && (
-            <motion.div
-              className="fixed rounded-xl ring-2 ring-primary ring-offset-2 ring-offset-transparent pointer-events-none"
-              style={{
-                zIndex: 2,
-                left: animX,
-                top: animY,
-                width: animW,
-                height: animH,
-              }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            />
+            <>
+              {/* Outer pulse ring */}
+              <motion.div
+                className="fixed rounded-xl pointer-events-none border-2 border-primary/40"
+                style={{
+                  zIndex: 2,
+                  left: animX,
+                  top: animY,
+                  width: animW,
+                  height: animH,
+                }}
+                animate={{
+                  scale: [1, 1.06, 1],
+                  opacity: [0.6, 0, 0.6],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              {/* Inner solid ring */}
+              <motion.div
+                className="fixed rounded-xl ring-2 ring-primary pointer-events-none shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                style={{
+                  zIndex: 2,
+                  left: animX,
+                  top: animY,
+                  width: animW,
+                  height: animH,
+                }}
+                animate={{
+                  boxShadow: [
+                    "0 0 10px hsl(var(--primary) / 0.2)",
+                    "0 0 25px hsl(var(--primary) / 0.4)",
+                    "0 0 10px hsl(var(--primary) / 0.2)",
+                  ],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </>
           )}
 
           {/* Tooltip card with smooth crossfade */}
