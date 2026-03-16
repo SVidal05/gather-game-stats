@@ -1125,7 +1125,9 @@ function GameDetailView({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-4">
+      <GameBackdrop image={heroImage} objectPosition={getObjectPosition(gameRecordForDetail)} />
+      <div className="relative z-10 space-y-4">
       {/* Hero Banner */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-2xl overflow-hidden">
         <img src={heroImage} alt={theme.name} className="w-full h-36 object-cover" style={{ objectPosition: getObjectPosition(gameRecordForDetail) }} loading="lazy" />
