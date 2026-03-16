@@ -398,7 +398,6 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
   const sessionFormDialog = (
     <Dialog open={sessionDialogOpen} onOpenChange={(v) => { if (!v) { resetForm(); setSessionDialogOpen(false); } }}>
       <DialogContent className="rounded-3xl mx-4 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto overflow-x-hidden">
-        <div>
         <DialogHeader>
           <DialogTitle className="font-extrabold">
             {editingSessionId ? t("sessions.editSession") : t("sessions.newSession")}
