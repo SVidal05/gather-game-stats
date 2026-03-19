@@ -548,8 +548,8 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
           <p className="text-lg font-display font-bold text-foreground">{soloFiltered.length}</p>
           <p className="text-[10px] text-muted-foreground font-medium">Solo</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-3 text-center">
-          <p className="text-lg font-display font-bold" style={{ color: topCategory ? topCategory.color : undefined }}>{topCategory?.name || "—"}</p>
+        <div className="rounded-xl border border-border bg-card p-3 text-center overflow-hidden">
+          <p className="text-sm font-display font-bold truncate" style={{ color: topCategory ? topCategory.color : undefined }}>{topCategory?.name || "—"}</p>
           <p className="text-[10px] text-muted-foreground font-medium">Top Category</p>
         </div>
       </div>
