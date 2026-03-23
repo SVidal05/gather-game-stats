@@ -104,6 +104,7 @@ export type Database = {
       game_stat_definitions: {
         Row: {
           created_at: string
+          created_by: string | null
           game_id: string
           id: string
           label: string
@@ -113,6 +114,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           game_id: string
           id?: string
           label: string
@@ -122,6 +124,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           game_id?: string
           id?: string
           label?: string
