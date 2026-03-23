@@ -7,8 +7,11 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   username: string;
+  isGuest: boolean;
   signUp: (email: string, password: string, username?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInAsGuest: () => Promise<{ error: any }>;
+  linkGuestAccount: (email: string, password: string, username?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updateUsername: (username: string) => Promise<{ error: any }>;
@@ -19,8 +22,11 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   username: "",
+  isGuest: false,
   signUp: async () => ({ error: null }),
   signIn: async () => ({ error: null }),
+  signInAsGuest: async () => ({ error: null }),
+  linkGuestAccount: async () => ({ error: null }),
   signOut: async () => {},
   resetPassword: async () => ({ error: null }),
   updateUsername: async () => ({ error: null }),
@@ -31,6 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
+
+  const isGuest = !!user && user.is_anonymous === true;
 
   const fetchUsername = async (userId: string) => {
     const { data } = await supabase
@@ -47,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
       if (session?.user) {
-        // Use setTimeout to avoid Supabase deadlock
         setTimeout(() => fetchUsername(session.user.id), 100);
       } else {
         setUsername("");
@@ -74,9 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (!error && data.user && usernameVal) {
-      // Wait a bit for the trigger to create the profile, then update username
       setTimeout(async () => {
-        // Ensure profile exists with username
         const { data: existing } = await supabase
           .from("profiles")
           .select("id")
@@ -98,6 +103,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
+  const signInAsGuest = async () => {
+    const { error } = await supabase.auth.signInAnonymously();
+    return { error };
+  };
+
+  const linkGuestAccount = async (email: string, password: string, usernameVal?: string) => {
+    // Link anonymous user to email/password
+    const { data, error } = await supabase.auth.updateUser({
+      email,
+      password,
+      data: { username: usernameVal || "" },
+    });
+    if (!error && data.user) {
+      // Update or create profile with username
+      if (usernameVal) {
+        const { data: existing } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", data.user.id)
+          .single();
+        if (existing) {
+          await supabase.from("profiles").update({ username: usernameVal }).eq("user_id", data.user.id);
+        } else {
+          await supabase.from("profiles").insert({ user_id: data.user.id, username: usernameVal });
+        }
+        setUsername(usernameVal);
+      }
+    }
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -111,7 +147,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUsername = async (newUsername: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    // Upsert to handle case where profile might not exist
     const { data: existing } = await supabase
       .from("profiles")
       .select("id")
@@ -129,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, username, signUp, signIn, signOut, resetPassword, updateUsername }}>
+    <AuthContext.Provider value={{ user, session, loading, username, isGuest, signUp, signIn, signInAsGuest, linkGuestAccount, signOut, resetPassword, updateUsername }}>
       {children}
     </AuthContext.Provider>
   );
