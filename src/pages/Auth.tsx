@@ -27,6 +27,26 @@ export default function Auth() {
     if (!authLoading && user) navigate("/");
   }, [authLoading, user, navigate]);
 
+  const getErrorMessage = (error: any): string => {
+    const msg = error?.message?.toLowerCase() || "";
+    if (msg.includes("invalid login credentials") || msg.includes("invalid_credentials")) {
+      return "Correo o contraseña incorrectos";
+    }
+    if (msg.includes("email not confirmed")) {
+      return "Debes confirmar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.";
+    }
+    if (msg.includes("user already registered") || msg.includes("already been registered")) {
+      return "Este correo ya está registrado. Intenta iniciar sesión.";
+    }
+    if (msg.includes("rate") || msg.includes("too many")) {
+      return "Demasiados intentos. Espera unos segundos e inténtalo de nuevo.";
+    }
+    if (msg.includes("password") && msg.includes("least")) {
+      return "La contraseña debe tener al menos 6 caracteres.";
+    }
+    return error?.message || "Ha ocurrido un error. Inténtalo de nuevo.";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -35,7 +55,7 @@ export default function Auth() {
       const { error } = await resetPassword(email);
       setLoading(false);
       if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+        toast({ title: "Error", description: getErrorMessage(error), variant: "destructive" });
       } else {
         toast({ title: t("auth.resetSent"), description: t("auth.resetSentMsg") });
         setMode("login");
@@ -47,7 +67,7 @@ export default function Auth() {
       const { error } = await signUp(email, password, username);
       setLoading(false);
       if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+        toast({ title: "Error", description: getErrorMessage(error), variant: "destructive" });
       }
       return;
     }
@@ -55,7 +75,7 @@ export default function Auth() {
     const { error } = await signIn(email, password);
     setLoading(false);
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: getErrorMessage(error), variant: "destructive" });
     }
   };
 
