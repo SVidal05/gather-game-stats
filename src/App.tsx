@@ -8,6 +8,7 @@ import { AuthProvider } from "@/lib/auth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import EmailVerified from "./pages/EmailVerified";
 import SharePage from "./pages/SharePage";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/email-verified" element={<EmailVerified />} />
               <Route path="/share/group/:groupId" element={<SharePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
