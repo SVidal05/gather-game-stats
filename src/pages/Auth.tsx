@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, KeyRound, User, ArrowLeft, RefreshCw } from "lucide-react";
+import { Mail, Lock, ArrowRight, KeyRound, User, ArrowLeft, RefreshCw, UserX, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,22 @@ import { useToast } from "@/hooks/use-toast";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Mode = "login" | "signup" | "reset" | "verify";
 
 export default function Auth() {
   const { t } = useI18n();
-  const { signIn, signUp, resetPassword, user, loading: authLoading } = useAuth();
+  const { signIn, signUp, resetPassword, signInAsGuest, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("login");
@@ -24,6 +34,7 @@ export default function Auth() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [showGuestWarning, setShowGuestWarning] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user) navigate("/");
@@ -106,6 +117,16 @@ export default function Auth() {
       toast({ title: "Error", description: String(result.error), variant: "destructive" });
     }
     setLoading(false);
+  };
+
+  const handleGuestConfirm = async () => {
+    setShowGuestWarning(false);
+    setLoading(true);
+    const { error } = await signInAsGuest();
+    setLoading(false);
+    if (error) {
+      toast({ title: "Error", description: getErrorMessage(error), variant: "destructive" });
+    }
   };
 
   return (
@@ -267,6 +288,22 @@ export default function Auth() {
               </div>
             )}
 
+            {/* Guest Mode */}
+            {mode !== "reset" && (
+              <div className="mt-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full rounded-lg h-12 font-semibold gap-2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowGuestWarning(true)}
+                  disabled={loading}
+                >
+                  <UserX className="w-4 h-4" />
+                  {t("auth.guest")}
+                </Button>
+              </div>
+            )}
+
             <div className="mt-6 text-center space-y-2">
               {mode === "login" && (
                 <>
@@ -298,6 +335,35 @@ export default function Auth() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Guest Warning Dialog */}
+      <AlertDialog open={showGuestWarning} onOpenChange={setShowGuestWarning}>
+        <AlertDialogContent className="max-w-sm rounded-xl">
+          <AlertDialogHeader>
+            <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-warning/10 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-warning" />
+            </div>
+            <AlertDialogTitle className="text-center">{t("auth.guestWarningTitle")}</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-sm">
+              {t("auth.guestWarningMsg")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <AlertDialogAction
+              onClick={handleGuestConfirm}
+              className="w-full rounded-lg h-11 font-semibold"
+            >
+              {t("auth.guestContinue")}
+            </AlertDialogAction>
+            <AlertDialogCancel
+              className="w-full rounded-lg h-11 font-semibold mt-0"
+              onClick={() => { setShowGuestWarning(false); setMode("signup"); }}
+            >
+              {t("auth.guestCancel")}
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
