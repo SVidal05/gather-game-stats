@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sun, Moon, Globe, LogOut, User, Check, Monitor } from "lucide-react";
+import { Sun, Moon, Globe, LogOut, User, Check, Monitor, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n, LANGUAGE_OPTIONS, Language } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { GuestBanner } from "@/components/GuestBanner";
 
 interface SettingsTabProps {
   isDark: boolean;
@@ -16,7 +17,7 @@ interface SettingsTabProps {
 
 export function SettingsTab({ isDark, onToggleDark, themeMode = "system", onSetThemeMode }: SettingsTabProps) {
   const { lang, setLang, t } = useI18n();
-  const { user, username, updateUsername, signOut } = useAuth();
+  const { user, username, updateUsername, signOut, isGuest } = useAuth();
   const { toast } = useToast();
   const [editingUsername, setEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState(username);
@@ -54,37 +55,45 @@ export function SettingsTab({ isDark, onToggleDark, themeMode = "system", onSetT
           {t("settings.account")}
         </h3>
 
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">{t("auth.email")}</label>
-          <p className="text-sm font-semibold text-foreground truncate">{user?.email}</p>
-        </div>
+        {isGuest ? (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">{t("auth.guestBanner")}</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">{t("auth.email")}</label>
+              <p className="text-sm font-semibold text-foreground truncate">{user?.email}</p>
+            </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">{t("auth.username")}</label>
-          {editingUsername ? (
-            <div className="flex gap-2">
-              <Input
-                value={newUsername}
-                onChange={e => setNewUsername(e.target.value)}
-                className="rounded-lg h-10 text-sm"
-                placeholder={t("auth.username")}
-              />
-              <Button size="sm" onClick={handleSaveUsername} disabled={saving} className="rounded-lg px-3">
-                {saving ? <div className="w-3 h-3 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Check className="w-4 h-4" />}
-              </Button>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">{t("auth.username")}</label>
+              {editingUsername ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={newUsername}
+                    onChange={e => setNewUsername(e.target.value)}
+                    className="rounded-lg h-10 text-sm"
+                    placeholder={t("auth.username")}
+                  />
+                  <Button size="sm" onClick={handleSaveUsername} disabled={saving} className="rounded-lg px-3">
+                    {saving ? <div className="w-3 h-3 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Check className="w-4 h-4" />}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">{username || "—"}</p>
+                  <button
+                    onClick={() => { setNewUsername(username); setEditingUsername(true); }}
+                    className="text-xs text-primary font-semibold hover:underline"
+                  >
+                    {t("settings.edit")}
+                  </button>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-foreground">{username || "—"}</p>
-              <button
-                onClick={() => { setNewUsername(username); setEditingUsername(true); }}
-                className="text-xs text-primary font-semibold hover:underline"
-              >
-                {t("settings.edit")}
-              </button>
-            </div>
-          )}
-        </div>
+          </>
+        )}
       </motion.div>
 
       {/* Language */}
