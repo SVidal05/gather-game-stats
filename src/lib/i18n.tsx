@@ -233,6 +233,15 @@ const translations = {
   "settings.account": { es: "Cuenta", en: "Account", fr: "Compte" },
   "settings.edit": { es: "Editar", en: "Edit", fr: "Modifier" },
   "settings.usernameSaved": { es: "Nombre de usuario actualizado", en: "Username updated", fr: "Nom d'utilisateur mis à jour" },
+  "settings.help": { es: "Ayuda y soporte", en: "Help & Support", fr: "Aide et support" },
+  "settings.helpSubtitle": { es: "¿Tienes alguna duda o problema? Escríbenos.", en: "Have a question or issue? Write to us.", fr: "Une question ou un problème ? Écrivez-nous." },
+  "settings.yourName": { es: "Tu nombre", en: "Your name", fr: "Votre nom" },
+  "settings.yourEmail": { es: "Tu email", en: "Your email", fr: "Votre email" },
+  "settings.message": { es: "Mensaje", en: "Message", fr: "Message" },
+  "settings.send": { es: "Enviar mensaje", en: "Send message", fr: "Envoyer" },
+  "settings.sending": { es: "Enviando...", en: "Sending...", fr: "Envoi..." },
+  "settings.sent": { es: "¡Mensaje enviado! Te responderemos lo antes posible.", en: "Message sent! We'll get back to you soon.", fr: "Message envoyé ! Nous vous répondrons bientôt." },
+  "settings.sendError": { es: "Error al enviar. Inténtalo de nuevo.", en: "Failed to send. Try again.", fr: "Échec de l'envoi. Réessayez." },
 
   // Groups
   "groups.title": { es: "Mis Grupos", en: "My Groups", fr: "Mes Groupes" },
