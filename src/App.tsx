@@ -8,6 +8,7 @@ import { AuthProvider } from "@/lib/auth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import EmailVerified from "./pages/EmailVerified";
 import SharePage from "./pages/SharePage";
 import NotFound from "./pages/NotFound";
 
