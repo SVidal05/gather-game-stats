@@ -215,6 +215,17 @@ const translations = {
   "auth.verifiedTitle": { es: "¡Email verificado!", en: "Email verified!", fr: "Email vérifié !" },
   "auth.verifiedMsg": { es: "Tu cuenta ha sido activada correctamente. Ya puedes empezar a jugar.", en: "Your account has been activated. You can start playing now.", fr: "Votre compte a été activé. Vous pouvez commencer à jouer." },
   "auth.letsPlay": { es: "¡A jugar!", en: "Let's play!", fr: "Jouons !" },
+  "auth.guest": { es: "Jugar como invitado", en: "Play as guest", fr: "Jouer en invité" },
+  "auth.guestWarningTitle": { es: "Modo invitado", en: "Guest mode", fr: "Mode invité" },
+  "auth.guestWarningMsg": { es: "Tus partidas no se guardarán permanentemente. Si cierras sesión o limpias el navegador, perderás todos los datos. Puedes crear una cuenta en cualquier momento desde Configuración para conservar todo.", en: "Your games won't be saved permanently. If you log out or clear the browser, you'll lose all data. You can create an account anytime from Settings to keep everything.", fr: "Vos parties ne seront pas sauvegardées de façon permanente. Si vous vous déconnectez ou videz le navigateur, vous perdrez toutes les données. Vous pouvez créer un compte à tout moment depuis les Paramètres." },
+  "auth.guestContinue": { es: "Entendido, continuar", en: "Got it, continue", fr: "Compris, continuer" },
+  "auth.guestCancel": { es: "Mejor me registro", en: "I'll register instead", fr: "Je préfère m'inscrire" },
+  "auth.guestBanner": { es: "Estás en modo invitado. Crea una cuenta para guardar tus datos.", en: "You're in guest mode. Create an account to save your data.", fr: "Vous êtes en mode invité. Créez un compte pour sauvegarder vos données." },
+  "auth.createAccount": { es: "Crear cuenta", en: "Create account", fr: "Créer un compte" },
+  "auth.linkAccountTitle": { es: "Crear cuenta", en: "Create account", fr: "Créer un compte" },
+  "auth.linkAccountMsg": { es: "Registra tu cuenta para conservar todas tus partidas y datos.", en: "Register your account to keep all your games and data.", fr: "Enregistrez votre compte pour conserver toutes vos parties et données." },
+  "auth.accountLinked": { es: "¡Cuenta creada!", en: "Account created!", fr: "Compte créé !" },
+  "auth.accountLinkedMsg": { es: "Tus datos se han guardado permanentemente. Verifica tu email para completar el registro.", en: "Your data has been saved permanently. Verify your email to complete registration.", fr: "Vos données ont été sauvegardées. Vérifiez votre email pour compléter l'inscription." },
 
   // Settings
   "settings.title": { es: "Configuración", en: "Settings", fr: "Paramètres" },

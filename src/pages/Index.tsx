@@ -22,6 +22,7 @@ import { TournamentTab } from "@/components/TournamentTab";
 import { CompareTab } from "@/components/CompareTab";
 import { GameStatsPage } from "@/components/GameStatsPage";
 import { OnboardingTutorial } from "@/components/OnboardingTutorial";
+import { GuestBanner } from "@/components/GuestBanner";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
@@ -437,6 +438,7 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
+      <GuestBanner />
       <main className="max-w-2xl mx-auto px-4 py-6">
         {groupsLoading ? (
           <div className="text-center py-20">
