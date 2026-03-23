@@ -205,6 +205,16 @@ const translations = {
   "auth.updatePassword": { es: "Actualizar Contraseña", en: "Update Password", fr: "Mettre à Jour" },
   "auth.username": { es: "Nombre de usuario", en: "Username", fr: "Nom d'utilisateur" },
   "auth.orWith": { es: "o con", en: "or with", fr: "ou avec" },
+  "auth.verifyTitle": { es: "Verifica tu email", en: "Verify your email", fr: "Vérifiez votre email" },
+  "auth.verifyMsg": { es: "Hemos enviado un enlace de verificación a", en: "We sent a verification link to", fr: "Nous avons envoyé un lien de vérification à" },
+  "auth.verifyHint": { es: "Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.", en: "Check your inbox and click the link to activate your account.", fr: "Vérifiez votre boîte de réception et cliquez sur le lien." },
+  "auth.resendEmail": { es: "Reenviar email", en: "Resend email", fr: "Renvoyer l'email" },
+  "auth.resendSuccess": { es: "Email reenviado", en: "Email resent", fr: "Email renvoyé" },
+  "auth.resendSuccessMsg": { es: "Revisa tu bandeja de entrada", en: "Check your inbox", fr: "Vérifiez votre boîte de réception" },
+  "auth.goBack": { es: "Volver", en: "Go back", fr: "Retour" },
+  "auth.verifiedTitle": { es: "¡Email verificado!", en: "Email verified!", fr: "Email vérifié !" },
+  "auth.verifiedMsg": { es: "Tu cuenta ha sido activada correctamente. Ya puedes empezar a jugar.", en: "Your account has been activated. You can start playing now.", fr: "Votre compte a été activé. Vous pouvez commencer à jouer." },
+  "auth.letsPlay": { es: "¡A jugar!", en: "Let's play!", fr: "Jouons !" },
 
   // Settings
   "settings.title": { es: "Configuración", en: "Settings", fr: "Paramètres" },
