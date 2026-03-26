@@ -357,7 +357,7 @@ export function ChartsTab({ players, sessions }: { players: Player[]; sessions: 
     }
 
     return result;
-  }, [sessions, modeFilter, gameFilter, timeFilter]);
+  }, [sessions, modeFilter, gameFilter, timeFilter, categoryFilter, gameCategoryMap]);
 
   const multiplayerFiltered = filteredSessions.filter(s => !isSoloSession(s));
   const soloFiltered = filteredSessions.filter(s => isSoloSession(s));
