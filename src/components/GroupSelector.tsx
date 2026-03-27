@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Link2, Users, ChevronRight, Mail, Check, Copy, Crown, Shield, Trash2, LogOut, Edit3, X, UserPlus } from "lucide-react";
+import { isImageAvatar } from "@/lib/avatarOptions";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { Group, GroupMember, GroupInvite } from "@/lib/groupStore";
@@ -190,8 +191,24 @@ export function GroupSelector({
             {members.map(m => (
               <div key={m.id} className="flex items-center justify-between bg-secondary rounded-lg p-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-sm">
-                    {m.role === "admin" ? <Crown className="w-4 h-4 text-primary" /> : <Users className="w-4 h-4 text-muted-foreground" />}
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 overflow-hidden"
+                    style={{
+                      backgroundColor: m.playerColor ? m.playerColor + "15" : "hsl(var(--primary) / 0.1)",
+                      border: m.playerColor ? `2px solid ${m.playerColor}` : "2px solid hsl(var(--primary) / 0.3)",
+                    }}
+                  >
+                    {m.playerAvatar ? (
+                      isImageAvatar(m.playerAvatar) ? (
+                        <img src={m.playerAvatar} alt={m.playerName || m.username || ""} className="w-full h-full object-cover" />
+                      ) : (
+                        m.playerAvatar
+                      )
+                    ) : m.role === "admin" ? (
+                      <Crown className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Users className="w-4 h-4 text-muted-foreground" />
+                    )}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">

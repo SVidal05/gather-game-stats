@@ -19,6 +19,9 @@ export interface GroupMember {
   joinedAt: string;
   email?: string;
   username?: string;
+  playerAvatar?: string;
+  playerColor?: string;
+  playerName?: string;
 }
 
 export interface GroupInvite {
@@ -186,15 +189,29 @@ export function useGroupMembers(groupId: string | null) {
       const { data: emailData } = await supabase.rpc("get_group_member_emails", { _group_id: groupId });
       const emailMap = new Map((emailData || []).map((e: any) => [e.user_id, e.email]));
 
-      setMembers(data.map((m: any) => ({
-        id: m.id,
-        groupId: m.group_id,
-        userId: m.user_id,
-        role: m.role as "admin" | "member",
-        joinedAt: m.joined_at,
-        username: profileMap.get(m.user_id) || "",
-        email: emailMap.get(m.user_id) || "",
-      })));
+      // Fetch linked players for avatars
+      const { data: players } = await supabase
+        .from("players")
+        .select("linked_user_id, avatar, color, name")
+        .eq("group_id", groupId)
+        .in("linked_user_id", userIds);
+      const playerMap = new Map((players || []).map((p: any) => [p.linked_user_id, { avatar: p.avatar, color: p.color, name: p.name }]));
+
+      setMembers(data.map((m: any) => {
+        const player = playerMap.get(m.user_id);
+        return {
+          id: m.id,
+          groupId: m.group_id,
+          userId: m.user_id,
+          role: m.role as "admin" | "member",
+          joinedAt: m.joined_at,
+          username: profileMap.get(m.user_id) || "",
+          email: emailMap.get(m.user_id) || "",
+          playerAvatar: player?.avatar,
+          playerColor: player?.color,
+          playerName: player?.name,
+        };
+      }));
     }
     setLoading(false);
   }, [groupId]);
