@@ -134,7 +134,7 @@ export function SettingsTab({ isDark, onToggleDark, themeMode = "system", onSetT
       </motion.div>
 
       {/* Language */}
-      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="game-card space-y-3">
+      <motion.div data-tour="language-selector" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="game-card space-y-3">
         <label className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Globe className="w-4 h-4 text-primary" />
           {t("profile.language")}
@@ -158,7 +158,7 @@ export function SettingsTab({ isDark, onToggleDark, themeMode = "system", onSetT
       </motion.div>
 
       {/* Theme */}
-      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="game-card space-y-3">
+      <motion.div data-tour="theme-selector" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="game-card space-y-3">
         <label className="text-sm font-semibold text-foreground flex items-center gap-2">
           {isDark ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
           {t("profile.theme")}
