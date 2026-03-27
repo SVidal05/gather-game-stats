@@ -173,13 +173,18 @@ function GuidedSpotlight({
 
   return (
     <motion.div
-      className="fixed inset-0 z-[9998]"
+      className="fixed inset-0 z-[9998] pointer-events-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Overlay */}
-      <svg className="fixed inset-0 w-full h-full" style={{ zIndex: 1 }}>
+      {/* Overlay — click-through except the dark area */}
+      <svg className="fixed inset-0 w-full h-full pointer-events-auto" style={{ zIndex: 1 }}
+        onClick={(e) => {
+          // If clicking on the dark overlay (not the cutout), do nothing
+          // The cutout area is handled by the transparent click zone below
+        }}
+      >
         <defs>
           <mask id="help-spotlight-mask">
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
@@ -188,14 +193,39 @@ function GuidedSpotlight({
             )}
           </mask>
         </defs>
-        <rect x="0" y="0" width="100%" height="100%" fill="rgba(0,0,0,0.65)" mask="url(#help-spotlight-mask)" />
+        <rect x="0" y="0" width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#help-spotlight-mask)" />
       </svg>
+
+      {/* Transparent click zone over highlighted element — lets clicks through to real UI */}
+      {targetRect && (
+        <div
+          className="fixed"
+          style={{
+            zIndex: 2,
+            left: targetRect.left - padding,
+            top: targetRect.top - padding,
+            width: targetRect.width + padding * 2,
+            height: targetRect.height + padding * 2,
+            pointerEvents: "auto",
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            // Let the real click happen on the element underneath
+            const el = step.highlight ? document.querySelector(`[data-tour='${step.highlight}']`) as HTMLElement : null;
+            if (el) {
+              el.click();
+              // Auto-advance to next step after a short delay for the UI to update
+              setTimeout(() => onNext(), 600);
+            }
+          }}
+        />
+      )}
 
       {/* Spotlight ring */}
       {targetRect && (
         <motion.div
           className="fixed rounded-xl ring-2 ring-primary pointer-events-none shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
-          style={{ zIndex: 2, left: animX, top: animY, width: animW, height: animH }}
+          style={{ zIndex: 3, left: animX, top: animY, width: animW, height: animH }}
           animate={{
             boxShadow: [
               "0 0 10px hsl(var(--primary) / 0.2)",
@@ -215,8 +245,8 @@ function GuidedSpotlight({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -12, scale: 0.95 }}
           transition={{ duration: 0.3 }}
-          className="w-[300px] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
-          style={{ ...getTooltipStyle(), zIndex: 3 }}
+          className="w-[300px] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
+          style={{ ...getTooltipStyle(), zIndex: 4 }}
         >
           <div className="bg-primary/10 px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs font-bold text-primary">
@@ -228,6 +258,11 @@ function GuidedSpotlight({
           </div>
           <div className="px-4 py-3">
             <p className="text-sm text-foreground leading-relaxed">{step.instruction}</p>
+            {step.highlight && (
+              <p className="text-[10px] text-primary/70 mt-1.5 font-medium animate-pulse">
+                👆 {lang === "es" ? "Pulsa el elemento resaltado para continuar" : lang === "fr" ? "Cliquez sur l'élément en surbrillance" : "Click the highlighted element to continue"}
+              </p>
+            )}
           </div>
           <div className="px-4 pb-3 flex items-center justify-between">
             <div className="flex gap-1">
@@ -243,7 +278,7 @@ function GuidedSpotlight({
               )}
               <Button size="sm" onClick={onNext} className="h-7 px-3 text-xs rounded-lg font-semibold">
                 {currentStep >= steps.length - 1 ? (labels.close) : (
-                  <>Next <ChevronRight className="w-3 h-3 ml-0.5" /></>
+                  <>{lang === "es" ? "Siguiente" : "Next"} <ChevronRight className="w-3 h-3 ml-0.5" /></>
                 )}
               </Button>
             </div>
