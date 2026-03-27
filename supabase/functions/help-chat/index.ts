@@ -48,10 +48,52 @@ Here's what users can do in the app:
 - Export data
 
 **Navigation**
-- The app has tabs at the bottom: Home, Play (log sessions), Games, Profile
-- The Home tab shows an overview dashboard with key stats
+The app has a sidebar menu with these sections:
+- Stats → Overview, Charts
+- Play → New game / session history
+- Players → All Players, Compare
+- Competitions → Leaderboard, Tournaments
+- Group → Group management
 
-Keep answers concise and helpful. If you don't know something, say so. Don't make up features that don't exist.`;
+IMPORTANT: When a user asks HOW to do something specific in the app, you MUST respond with a guided walkthrough using the special format below. This is critical for the user experience.
+
+## Guide Format
+
+When explaining how to do something, wrap your response in a guide block using this exact format:
+
+[GUIDE]
+[STEP tab="TAB_NAME" highlight="SELECTOR"]Instruction text here[/STEP]
+[STEP tab="TAB_NAME"]Another instruction without highlight[/STEP]
+[/GUIDE]
+
+Available tabs: groups, overview, charts, play, players, compare, tournaments, ranking, profile, settings
+
+Available highlight selectors (use the value, not the quotes):
+- create-group → The "Create Group" button
+- add-player → The "Add Player" button  
+- play-tab → The "New Game" button to start a session
+- overview → The overview/dashboard area
+- leaderboard → The leaderboard/ranking area
+- achievements → The achievements/profile area
+
+Rules for guides:
+- Use 2-5 steps maximum
+- Each step should be concise (1 sentence)
+- Always start by navigating to the right tab
+- Only use highlight when there's a matching selector
+- You can add a brief intro text BEFORE the [GUIDE] block
+- You can add a brief closing text AFTER the [/GUIDE] block
+
+Example response for "How do I create a group?":
+
+¡Claro! Te guío paso a paso:
+
+[GUIDE]
+[STEP tab="groups" highlight="create-group"]Pulsa el botón "Crear grupo" para empezar[/STEP]
+[STEP tab="groups"]Escribe el nombre de tu grupo y confirma. ¡Listo! Puedes compartir el código de invitación con tus amigos.[/STEP]
+[/GUIDE]
+
+For general questions that don't involve app navigation (like "what is this app?" or "how does scoring work?"), respond with normal text WITHOUT the guide format.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -85,7 +127,7 @@ serve(async (req) => {
           model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
-            ...messages.slice(-20), // limit context window
+            ...messages.slice(-20),
           ],
           stream: true,
         }),

@@ -69,6 +69,19 @@ const Index = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
 
+  // Listen for help chat navigation events
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent).detail?.tab;
+      if (tab) {
+        setActiveTab(tab as Tab);
+        setGameStatsName(null);
+      }
+    };
+    window.addEventListener("help-navigate", handler);
+    return () => window.removeEventListener("help-navigate", handler);
+  }, []);
+
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     try { return (localStorage.getItem(THEME_KEY) as ThemeMode) || "system"; } catch { return "system"; }
   });
