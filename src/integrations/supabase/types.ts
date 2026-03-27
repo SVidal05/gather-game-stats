@@ -682,6 +682,13 @@ export type Database = {
           name: string
         }[]
       }
+      get_group_member_emails: {
+        Args: { _group_id: string }
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       get_group_share_data: { Args: { _group_id: string }; Returns: Json }
       is_group_admin: {
         Args: { _group_id: string; _user_id: string }
