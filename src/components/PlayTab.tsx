@@ -411,7 +411,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           </div>
 
           {/* 2. Game Selector with Autocomplete */}
-          <div className="relative">
+          <div className="relative" data-tour="game-selector">
             <Label className="font-semibold text-xs">{t("sessions.game")}</Label>
             <Input
               value={gameName}
@@ -568,7 +568,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           {selectedPlayerIds.length > 0 && !isSolo && (
             <>
               {/* 5. Scores */}
-              <div>
+              <div data-tour="score-input">
                 <Label className="font-semibold text-xs">{t("sessions.scores")}</Label>
                 <div className="space-y-1.5 mt-1">
                   {selectedPlayerIds.map(pid => {
@@ -737,7 +737,7 @@ export function PlayTab({ players, sessions, onAddSession, onRemoveSession, onUp
           </div>
 
           {/* 9. Submit */}
-          <Button onClick={editingSessionId ? handleSaveEdit : handleAdd} className="w-full rounded-2xl font-bold h-12" size="lg"
+          <Button data-tour="save-session" onClick={editingSessionId ? handleSaveEdit : handleAdd} className="w-full rounded-2xl font-bold h-12" size="lg"
             disabled={!sessionName.trim() || !gameName.trim() || (isSolo ? selectedPlayerIds.length !== 1 : selectedPlayerIds.length < 2)}>
             {editingSessionId ? t("sessions.saveChanges") : t("sessions.record")}
           </Button>
