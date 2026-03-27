@@ -182,6 +182,10 @@ export function useGroupMembers(groupId: string | null) {
         .in("user_id", userIds);
       const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p.username]));
 
+      // Fetch emails via secure RPC
+      const { data: emailData } = await supabase.rpc("get_group_member_emails", { _group_id: groupId });
+      const emailMap = new Map((emailData || []).map((e: any) => [e.user_id, e.email]));
+
       setMembers(data.map((m: any) => ({
         id: m.id,
         groupId: m.group_id,
@@ -189,6 +193,7 @@ export function useGroupMembers(groupId: string | null) {
         role: m.role as "admin" | "member",
         joinedAt: m.joined_at,
         username: profileMap.get(m.user_id) || "",
+        email: emailMap.get(m.user_id) || "",
       })));
     }
     setLoading(false);

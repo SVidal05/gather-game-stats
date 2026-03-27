@@ -202,6 +202,9 @@ export function GroupSelector({
                       {m.role === "admin" ? t("groups.admin") : t("groups.member")}
                       {m.userId === activeGroup.ownerId && ` · ${t("groups.owner")}`}
                     </p>
+                    {m.email && (
+                      <p className="text-xs text-muted-foreground/70 truncate max-w-[200px]">{m.email}</p>
+                    )}
                   </div>
                 </div>
                 {isAdmin && m.userId !== user?.id && m.userId !== activeGroup.ownerId && (
