@@ -139,6 +139,113 @@ function AchievementCard({ achievement, unlocked, players, sessions, lang, index
   );
 }
 
+const INITIAL_SHOW = 5;
+
+function AchievementSections({ achievements, allUnlockedIds, globalPlayers, globalSessions, players, sessions, lang, linkedPlayer, activeCategory }: {
+  achievements: Achievement[];
+  allUnlockedIds: Set<string>;
+  globalPlayers: Player[];
+  globalSessions: GameSession[];
+  players: Player[];
+  sessions: GameSession[];
+  lang: string;
+  linkedPlayer?: Player | null;
+  activeCategory: AchievementCategory | "all";
+}) {
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  };
+
+  // If a specific category is selected, render flat (no grouping needed)
+  if (activeCategory !== "all") {
+    return (
+      <div className="grid gap-3">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {achievements.slice(0, expandedCategories.has(activeCategory) ? undefined : INITIAL_SHOW).map((achievement, i) => {
+            const unlocked = allUnlockedIds.has(achievement.id);
+            const achPlayers = achievement.scope === "global" ? globalPlayers : players;
+            const achSessions = achievement.scope === "global" ? globalSessions : sessions;
+            return (
+              <AchievementCard key={achievement.id} achievement={achievement} unlocked={unlocked}
+                players={achPlayers} sessions={achSessions} lang={lang} index={i}
+                linkedPlayer={achievement.scope === "group" ? linkedPlayer : undefined} />
+            );
+          })}
+        </AnimatePresence>
+        {achievements.length > INITIAL_SHOW && (
+          <button onClick={() => toggleCategory(activeCategory)}
+            className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors py-2 flex items-center justify-center gap-1">
+            {expandedCategories.has(activeCategory)
+              ? <><ChevronUp className="w-3.5 h-3.5" />{lang === "es" ? "Ver menos" : lang === "fr" ? "Voir moins" : "Show less"}</>
+              : <><ChevronDown className="w-3.5 h-3.5" />{lang === "es" ? `Ver todos (${achievements.length})` : lang === "fr" ? `Voir tous (${achievements.length})` : `Show all (${achievements.length})`}</>
+            }
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Group by category
+  const categories = Object.keys(CATEGORY_CONFIG) as AchievementCategory[];
+  const grouped = categories.map(cat => ({
+    cat,
+    items: achievements.filter(a => a.category === cat),
+  })).filter(g => g.items.length > 0);
+
+  return (
+    <div className="space-y-4">
+      {grouped.map(({ cat, items }) => {
+        const cfg = CATEGORY_CONFIG[cat];
+        const CatIcon = cfg.icon;
+        const expanded = expandedCategories.has(cat);
+        const visible = expanded ? items : items.slice(0, INITIAL_SHOW);
+        const hasMore = items.length > INITIAL_SHOW;
+
+        return (
+          <div key={cat}>
+            <div className="flex items-center gap-1.5 mb-2">
+              <CatIcon className="w-3.5 h-3.5 text-muted-foreground" />
+              <h4 className="text-xs font-display font-semibold text-muted-foreground uppercase tracking-wider">
+                {cfg.label[lang] || cfg.label.en}
+              </h4>
+              <span className="text-[10px] text-muted-foreground/60">({items.filter(a => allUnlockedIds.has(a.id)).length}/{items.length})</span>
+            </div>
+            <div className="grid gap-3">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {visible.map((achievement, i) => {
+                  const unlocked = allUnlockedIds.has(achievement.id);
+                  const achPlayers = achievement.scope === "global" ? globalPlayers : players;
+                  const achSessions = achievement.scope === "global" ? globalSessions : sessions;
+                  return (
+                    <AchievementCard key={achievement.id} achievement={achievement} unlocked={unlocked}
+                      players={achPlayers} sessions={achSessions} lang={lang} index={i}
+                      linkedPlayer={achievement.scope === "group" ? linkedPlayer : undefined} />
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+            {hasMore && (
+              <button onClick={() => toggleCategory(cat)}
+                className="w-full text-xs font-semibold text-primary hover:text-primary/80 transition-colors py-2 flex items-center justify-center gap-1 mt-1">
+                {expanded
+                  ? <><ChevronUp className="w-3.5 h-3.5" />{lang === "es" ? "Ver menos" : lang === "fr" ? "Voir moins" : "Show less"}</>
+                  : <><ChevronDown className="w-3.5 h-3.5" />{lang === "es" ? `Ver todos (${items.length})` : lang === "fr" ? `Voir tous (${items.length})` : `Show all (${items.length})`}</>
+                }
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ProfileTab({ players, sessions, globalPlayers, globalSessions }: ProfileTabProps) {
   const { lang, t } = useI18n();
   const { user, username } = useAuth();
