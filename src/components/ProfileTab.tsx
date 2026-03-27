@@ -488,28 +488,18 @@ export function ProfileTab({ players, sessions, globalPlayers, globalSessions }:
           })}
         </div>
 
-        {/* Achievement grid */}
-        <div className="grid gap-3">
-          <AnimatePresence mode="popLayout" initial={false}>
-            {filteredAchievements.map((achievement, i) => {
-              const unlocked = allUnlockedIds.has(achievement.id);
-              const achPlayers = achievement.scope === "global" ? globalPlayers : players;
-              const achSessions = achievement.scope === "global" ? globalSessions : sessions;
-              return (
-                <AchievementCard
-                  key={achievement.id}
-                  achievement={achievement}
-                  unlocked={unlocked}
-                  players={achPlayers}
-                  sessions={achSessions}
-                  lang={lang}
-                  index={i}
-                  linkedPlayer={achievement.scope === "group" ? linkedPlayer : undefined}
-                />
-              );
-            })}
-          </AnimatePresence>
-        </div>
+        {/* Achievement grid grouped by category */}
+        <AchievementSections
+          achievements={filteredAchievements}
+          allUnlockedIds={allUnlockedIds}
+          globalPlayers={globalPlayers}
+          globalSessions={globalSessions}
+          players={players}
+          sessions={sessions}
+          lang={lang}
+          linkedPlayer={linkedPlayer}
+          activeCategory={activeCategory}
+        />
       </motion.div>
     </div>
   );
