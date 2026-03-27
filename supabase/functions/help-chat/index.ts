@@ -118,7 +118,6 @@ Example for "How do I change my username?":
 [/GUIDE]
 
 For general questions (like "what is this app?"), respond with normal text WITHOUT the guide format.`;
-For general questions that don't involve app navigation (like "what is this app?" or "how does scoring work?"), respond with normal text WITHOUT the guide format.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
