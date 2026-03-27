@@ -12,6 +12,7 @@ import EmailVerified from "./pages/EmailVerified";
 import SharePage from "./pages/SharePage";
 import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
+import HelpChat from "./components/HelpChat";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          <HelpChat />
         </TooltipProvider>
       </AuthProvider>
     </I18nProvider>
