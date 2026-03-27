@@ -38,3 +38,12 @@ export const template = {
   displayName: 'Mensaje de soporte',
   previewData: { name: 'Juan', email: 'juan@example.com', message: '¡Hola! Tengo una duda sobre la app.' },
 } satisfies TemplateEntry
+
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#000000', margin: '0 0 20px' }
+const label = { fontSize: '12px', color: '#999999', margin: '0 0 4px' }
+const value = { fontSize: '14px', color: '#333333', margin: '0 0 16px' }
+const hr = { borderColor: '#e5e5e5', margin: '16px 0' }
+const messageStyle = { fontSize: '14px', color: '#333333', lineHeight: '1.6', margin: '0 0 16px', whiteSpace: 'pre-wrap' as const }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
