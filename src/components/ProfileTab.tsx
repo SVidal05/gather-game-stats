@@ -154,6 +154,11 @@ function AchievementSections({ achievements, allUnlockedIds, globalPlayers, glob
 }) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
+  // Reset expanded state when filters change
+  useEffect(() => {
+    setExpandedCategories(new Set());
+  }, [activeCategory, achievements.length]);
+
   const toggleCategory = (cat: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev);
